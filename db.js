@@ -1,33 +1,38 @@
-const path = require('path');
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 
-const db = new Database(path.join(__dirname, 'data.sqlite'));
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+const connectionString = process.env.DATABASE_URL;
+const isLocal = !connectionString || /localhost|127\.0\.0\.1/.test(connectionString);
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS videos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    slug TEXT UNIQUE NOT NULL,
-    youtube_id TEXT NOT NULL,
-    title TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
+const pool = new Pool({
+  connectionString,
+  ssl: isLocal ? false : { rejectUnauthorized: false },
+});
 
-  CREATE TABLE IF NOT EXISTS reviewers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL
-  );
+async function init() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS videos (
+      id SERIAL PRIMARY KEY,
+      slug TEXT UNIQUE NOT NULL,
+      youtube_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
 
-  CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    video_id INTEGER NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
-    reviewer_name TEXT NOT NULL,
-    timestamp_seconds INTEGER NOT NULL,
-    text TEXT NOT NULL,
-    resolved INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`);
+    CREATE TABLE IF NOT EXISTS reviewers (
+      id SERIAL PRIMARY KEY,
+      name TEXT UNIQUE NOT NULL
+    );
 
-module.exports = db;
+    CREATE TABLE IF NOT EXISTS comments (
+      id SERIAL PRIMARY KEY,
+      video_id INTEGER NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+      reviewer_name TEXT NOT NULL,
+      timestamp_seconds INTEGER NOT NULL,
+      text TEXT NOT NULL,
+      resolved BOOLEAN NOT NULL DEFAULT false,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+  `);
+}
+
+module.exports = { pool, init };

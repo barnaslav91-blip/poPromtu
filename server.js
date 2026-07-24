@@ -4,6 +4,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 
+const { init: initDb } = require('./db');
 const adminRoutes = require('./routes/admin');
 const moderationRoutes = require('./routes/moderation');
 
@@ -34,6 +35,14 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`poPromtu running on http://localhost:${PORT}`);
-});
+
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`poPromtu running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Не удалось инициализировать базу данных:', err);
+    process.exit(1);
+  });
