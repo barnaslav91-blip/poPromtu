@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= video.title %> — модерация</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1><%= video.title %></h1>
+
+    <div class="video-embed">
+      <div id="player"></div>
+    </div>
+
+    <section class="card">
+      <h2>Оставить правку</h2>
+      <% if (error) { %>
+        <p class="error"><%= error %></p>
+      <% } %>
+      <% if (!reviewers.length) { %>
+        <p class="muted">Проверяющие ещё не добавлены — попросите администратора добавить команду в админке.</p>
+      <% } else { %>
+        <form method="POST" action="/moderate/<%= video.slug %>/comments" class="stacked-form">
+          <label for="reviewer_name">Вы</label>
+          <select id="reviewer_name" name="reviewer_name" required>
+            <option value="" disabled selected>Выберите имя</option>
+            <% reviewers.forEach(function (r) { %>
+              <option value="<%= r.name %>"><%= r.name %></option>
+            <% }) %>
+          </select>
+
+          <label for="text">Правка</label>
+          <textarea id="text" name="text" rows="3" required></textarea>
+
+          <input type="hidden" id="timestamp_seconds" name="timestamp_seconds" value="0" />
+          <div class="timestamp-row">
+            <span>Таймкод: <strong id="timestamp-display">0:00</strong></span>
+            <button type="button" id="capture-timestamp">Взять текущее время видео</button>
+          </div>
+
+          <button type="submit">Отправить правку</button>
+        </form>
+      <% } %>
+    </section>
+
+    <h3>Правки (<%= comments.length %>)</h3>
+    <% if (!comments.length) { %>
+      <p class="muted">Правок пока нет — будьте первым</p>
+    <% } %>
+    <ul class="comment-list">
+      <% comments.forEach(function (c) { %>
+        <li class="<%= c.resolved ? 'resolved' : '' %>">
+          <div class="comment-meta">
+            <button type="button" class="link-btn seek-btn" data-seconds="<%= c.timestamp_seconds %>">
+              <%= Math.floor(c.timestamp_seconds / 60) %>:<%= String(c.timestamp_seconds % 60).padStart(2, '0') %>
+            </button>
+            <strong><%= c.reviewer_name %></strong>
+            <% if (c.resolved) { %><span class="badge">исправлено</span><% } %>
+          </div>
+          <p class="comment-text"><%= c.text %></p>
+        </li>
+      <% }) %>
+    </ul>
+  </main>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    window.POPROMTU_VIDEO_ID = <%- JSON.stringify(video.youtube_id) %>;
+  </script>
+  <script src="/js/moderation.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= video.title %> — poPromtu</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><a href="/admin">poPromtu</a></h1>
+    <form method="POST" action="/admin/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="container">
+    <p><a href="/admin">&larr; Ко всем видео</a></p>
+    <h2><%= video.title %></h2>
+    <p class="muted">
+      Ссылка на модерацию:
+      <input class="link-input" type="text" readonly value="<%= baseUrl %>/moderate/<%= video.slug %>" onclick="this.select()" />
+    </p>
+
+    <div class="video-embed">
+      <iframe
+        src="https://www.youtube.com/embed/<%= video.youtube_id %>"
+        title="<%= video.title %>"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
+    </div>
+
+    <h3>Правки (<%= comments.length %>)</h3>
+    <% if (!comments.length) { %>
+      <p class="muted">Правок пока нет</p>
+    <% } %>
+    <ul class="comment-list">
+      <% comments.forEach(function (c) { %>
+        <li class="<%= c.resolved ? 'resolved' : '' %>">
+          <div class="comment-meta">
+            <span class="timestamp"><%= Math.floor(c.timestamp_seconds / 60) %>:<%= String(c.timestamp_seconds % 60).padStart(2, '0') %></span>
+            <strong><%= c.reviewer_name %></strong>
+          </div>
+          <p class="comment-text"><%= c.text %></p>
+          <form method="POST" action="/admin/comments/<%= c.id %>/resolve">
+            <button class="link-btn" type="submit">
+              <%= c.resolved ? '↺ Вернуть в открытые' : '✓ Отметить исправленным' %>
+            </button>
+          </form>
+        </li>
+      <% }) %>
+    </ul>
+  </main>
+</body>
+</html>

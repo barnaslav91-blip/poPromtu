@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>poPromtu — Видео на модерации</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>poPromtu</h1>
+    <form method="POST" action="/admin/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Новое видео на модерацию</h2>
+      <% if (error) { %>
+        <p class="error"><%= error %></p>
+      <% } %>
+      <form method="POST" action="/admin/videos" class="stacked-form">
+        <label for="title">Название</label>
+        <input type="text" id="title" name="title" required />
+
+        <label for="youtube_url">Ссылка на YouTube (или ID видео)</label>
+        <input type="text" id="youtube_url" name="youtube_url" placeholder="https://www.youtube.com/watch?v=..." required />
+
+        <button type="submit">Создать ссылку на модерацию</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Команда проверяющих</h2>
+      <ul class="reviewer-list">
+        <% reviewers.forEach(function (r) { %>
+          <li>
+            <%= r.name %>
+            <form method="POST" action="/admin/reviewers/<%= r.id %>/delete" class="inline-form">
+              <button class="link-btn danger" type="submit" title="Удалить">✕</button>
+            </form>
+          </li>
+        <% }) %>
+        <% if (!reviewers.length) { %>
+          <li class="muted">Пока никого не добавили</li>
+        <% } %>
+      </ul>
+      <form method="POST" action="/admin/reviewers" class="inline-form">
+        <input type="text" name="name" placeholder="Имя проверяющего" required />
+        <button type="submit">Добавить</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Видео</h2>
+      <% if (!videos.length) { %>
+        <p class="muted">Пока нет ни одного видео</p>
+      <% } %>
+      <table class="videos-table">
+        <thead>
+          <tr>
+            <th>Название</th>
+            <th>Правки</th>
+            <th>Ссылка на модерацию</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% videos.forEach(function (v) { %>
+            <tr>
+              <td><a href="/admin/videos/<%= v.id %>"><%= v.title %></a></td>
+              <td><%= v.open_comments %> открыт<%= v.open_comments === 1 ? 'а' : 'ых' %> / <%= v.total_comments %> всего</td>
+              <td>
+                <input class="link-input" type="text" readonly value="<%= baseUrl %>/moderate/<%= v.slug %>" onclick="this.select()" />
+              </td>
+              <td>
+                <form method="POST" action="/admin/videos/<%= v.id %>/delete" onsubmit="return confirm('Удалить видео и все правки?');">
+                  <button class="link-btn danger" type="submit">Удалить</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>
