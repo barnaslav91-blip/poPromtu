@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>QR-Karten zum Ausdrucken</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #EFEAE0;
+    color: #241E18;
+  }
+  .sheet {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    background: #fff;
+  }
+  .card {
+    border: 1px dashed #C3B79E;
+    padding: 12mm 8mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 4mm;
+    background: #D7C9AD;
+  }
+  .eyebrow {
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: #5F5546;
+    margin: 0;
+  }
+  h1 {
+    font-size: 21pt;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    line-height: 1;
+    margin: 0;
+  }
+  .qr {
+    width: 52mm;
+    height: 52mm;
+    padding: 3mm;
+    background: #fff;
+    border-radius: 1mm;
+  }
+  .qr img { width: 100%; height: 100%; display: block; }
+  .how { font-size: 9.5pt; line-height: 1.4; margin: 0; max-width: 70mm; }
+  .how b { display: block; font-size: 11pt; margin-bottom: 1mm; }
+  .foot {
+    font-size: 7.5pt;
+    color: #5F5546;
+    margin: 0;
+    letter-spacing: .04em;
+  }
+  @media print {
+    body { background: #fff; }
+    .card { border: 1px dashed #D8D0C2; }
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="card">
+      <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus</p>
+      <h1>Speisekarte<br>zum Mitnehmen</h1>
+      <div class="qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAewAAAHsAQMAAAAq5AwjAAAABlBMVEUkHhj///9zmY5uAAACb0lEQVR42u2dW27DMAwEiV7A97+lbqA2li0uaSH9CFCUwhhFkIfnx1gzyxWjWv/kaAYODg4O/v9xm8fRx+P46Od4PZ5vjifp5N6+7KMDHPzv8VPzx3UHTM2P94fCh/hPhZ8fycloHryu5i+pJ7XfVT18KcjJaB58A82/hH37Gb0RpudB8+C7ab5fss9VHc2Db+zn1cyIhw/3BX4evLTmNbf59Y/cBry+5vVwA6OJZY9vetTJlQevqnkt8jOcnJZmmpx5C1DnwTfoYV3843kLSY6GOd4CoHnw4pr3cGbWdgvLsjnGQfPglXObJHvXfOptlULz4JV7WDfzx+O5iZ/XPBPNg1fuYX3ebCbwt8OZk2yhn0Xz4KW9TZOXceTG48rm98Vd9rny4DU1Hz18mDGWQD50r+Tz4NU1P182r/zT5PvsWexn0Tx4VT/f1i3q0uT7TUGdB6/s568XcREqjRyYSXpp+Hnw+rlNXId1qafQsjNXCb6Dt7HHr6LC7I24/Qhy5cEL5zYrSedvgWD+0Tx49R7W7DlCnKYOpHvFz4PX9vNJ+Tp+s1icRfPgG9T5vHGNLLnKUGWYxsHbgNf183F1dWpbrbsOm5HPg2+geQ0qQzObNkPo4ffgaB68sOZlBeq53YfvEJi2CkTz4JW9Tc5klhtaSvGnzoOXz216X+zv1HtoaWVlljoPXrjOa2LTu5r5tPvH42dTXHnw4j3skZZZ7f0EDpoHL+3nwxRZi3uANPw8+Naab6H4hx0/4mY4aB58D80vti+TyQRmicG39POazKcMh32JwXfLbeKqk9lj8IZ1WPC98nn+/Rw4ODj4Xvg3aoha1smLZnwAAAAASUVORK5CYII=" alt="QR-Code zur Speisekarte"></div>
+      <p class="how"><b>Einfach scannen</b>Kamera aufs Bild halten &ndash; die komplette Karte
+      &ouml;ffnet sich auf Ihrem Handy. Bestellen direkt aus der Karte.</p>
+      <p class="foot">barnaslav91-blip.github.io/poPromtu</p>
+    </div>
+    <div class="card">
+      <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus</p>
+      <h1>Speisekarte<br>zum Mitnehmen</h1>
+      <div class="qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAewAAAHsAQMAAAAq5AwjAAAABlBMVEUkHhj///9zmY5uAAACb0lEQVR42u2dW27DMAwEiV7A97+lbqA2li0uaSH9CFCUwhhFkIfnx1gzyxWjWv/kaAYODg4O/v9xm8fRx+P46Od4PZ5vjifp5N6+7KMDHPzv8VPzx3UHTM2P94fCh/hPhZ8fycloHryu5i+pJ7XfVT18KcjJaB58A82/hH37Gb0RpudB8+C7ab5fss9VHc2Db+zn1cyIhw/3BX4evLTmNbf59Y/cBry+5vVwA6OJZY9vetTJlQevqnkt8jOcnJZmmpx5C1DnwTfoYV3843kLSY6GOd4CoHnw4pr3cGbWdgvLsjnGQfPglXObJHvXfOptlULz4JV7WDfzx+O5iZ/XPBPNg1fuYX3ebCbwt8OZk2yhn0Xz4KW9TZOXceTG48rm98Vd9rny4DU1Hz18mDGWQD50r+Tz4NU1P182r/zT5PvsWexn0Tx4VT/f1i3q0uT7TUGdB6/s568XcREqjRyYSXpp+Hnw+rlNXId1qafQsjNXCb6Dt7HHr6LC7I24/Qhy5cEL5zYrSedvgWD+0Tx49R7W7DlCnKYOpHvFz4PX9vNJ+Tp+s1icRfPgG9T5vHGNLLnKUGWYxsHbgNf183F1dWpbrbsOm5HPg2+geQ0qQzObNkPo4ffgaB68sOZlBeq53YfvEJi2CkTz4JW9Tc5klhtaSvGnzoOXz216X+zv1HtoaWVlljoPXrjOa2LTu5r5tPvH42dTXHnw4j3skZZZ7f0EDpoHL+3nwxRZi3uANPw8+Naab6H4hx0/4mY4aB58D80vti+TyQRmicG39POazKcMh32JwXfLbeKqk9lj8IZ1WPC98nn+/Rw4ODj4Xvg3aoha1smLZnwAAAAASUVORK5CYII=" alt="QR-Code zur Speisekarte"></div>
+      <p class="how"><b>Einfach scannen</b>Kamera aufs Bild halten &ndash; die komplette Karte
+      &ouml;ffnet sich auf Ihrem Handy. Bestellen direkt aus der Karte.</p>
+      <p class="foot">barnaslav91-blip.github.io/poPromtu</p>
+    </div>
+    <div class="card">
+      <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus</p>
+      <h1>Speisekarte<br>zum Mitnehmen</h1>
+      <div class="qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAewAAAHsAQMAAAAq5AwjAAAABlBMVEUkHhj///9zmY5uAAACb0lEQVR42u2dW27DMAwEiV7A97+lbqA2li0uaSH9CFCUwhhFkIfnx1gzyxWjWv/kaAYODg4O/v9xm8fRx+P46Od4PZ5vjifp5N6+7KMDHPzv8VPzx3UHTM2P94fCh/hPhZ8fycloHryu5i+pJ7XfVT18KcjJaB58A82/hH37Gb0RpudB8+C7ab5fss9VHc2Db+zn1cyIhw/3BX4evLTmNbf59Y/cBry+5vVwA6OJZY9vetTJlQevqnkt8jOcnJZmmpx5C1DnwTfoYV3843kLSY6GOd4CoHnw4pr3cGbWdgvLsjnGQfPglXObJHvXfOptlULz4JV7WDfzx+O5iZ/XPBPNg1fuYX3ebCbwt8OZk2yhn0Xz4KW9TZOXceTG48rm98Vd9rny4DU1Hz18mDGWQD50r+Tz4NU1P182r/zT5PvsWexn0Tx4VT/f1i3q0uT7TUGdB6/s568XcREqjRyYSXpp+Hnw+rlNXId1qafQsjNXCb6Dt7HHr6LC7I24/Qhy5cEL5zYrSedvgWD+0Tx49R7W7DlCnKYOpHvFz4PX9vNJ+Tp+s1icRfPgG9T5vHGNLLnKUGWYxsHbgNf183F1dWpbrbsOm5HPg2+geQ0qQzObNkPo4ffgaB68sOZlBeq53YfvEJi2CkTz4JW9Tc5klhtaSvGnzoOXz216X+zv1HtoaWVlljoPXrjOa2LTu5r5tPvH42dTXHnw4j3skZZZ7f0EDpoHL+3nwxRZi3uANPw8+Naab6H4hx0/4mY4aB58D80vti+TyQRmicG39POazKcMh32JwXfLbeKqk9lj8IZ1WPC98nn+/Rw4ODj4Xvg3aoha1smLZnwAAAAASUVORK5CYII=" alt="QR-Code zur Speisekarte"></div>
+      <p class="how"><b>Einfach scannen</b>Kamera aufs Bild halten &ndash; die komplette Karte
+      &ouml;ffnet sich auf Ihrem Handy. Bestellen direkt aus der Karte.</p>
+      <p class="foot">barnaslav91-blip.github.io/poPromtu</p>
+    </div>
+    <div class="card">
+      <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus</p>
+      <h1>Speisekarte<br>zum Mitnehmen</h1>
+      <div class="qr"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAewAAAHsAQMAAAAq5AwjAAAABlBMVEUkHhj///9zmY5uAAACb0lEQVR42u2dW27DMAwEiV7A97+lbqA2li0uaSH9CFCUwhhFkIfnx1gzyxWjWv/kaAYODg4O/v9xm8fRx+P46Od4PZ5vjifp5N6+7KMDHPzv8VPzx3UHTM2P94fCh/hPhZ8fycloHryu5i+pJ7XfVT18KcjJaB58A82/hH37Gb0RpudB8+C7ab5fss9VHc2Db+zn1cyIhw/3BX4evLTmNbf59Y/cBry+5vVwA6OJZY9vetTJlQevqnkt8jOcnJZmmpx5C1DnwTfoYV3843kLSY6GOd4CoHnw4pr3cGbWdgvLsjnGQfPglXObJHvXfOptlULz4JV7WDfzx+O5iZ/XPBPNg1fuYX3ebCbwt8OZk2yhn0Xz4KW9TZOXceTG48rm98Vd9rny4DU1Hz18mDGWQD50r+Tz4NU1P182r/zT5PvsWexn0Tx4VT/f1i3q0uT7TUGdB6/s568XcREqjRyYSXpp+Hnw+rlNXId1qafQsjNXCb6Dt7HHr6LC7I24/Qhy5cEL5zYrSedvgWD+0Tx49R7W7DlCnKYOpHvFz4PX9vNJ+Tp+s1icRfPgG9T5vHGNLLnKUGWYxsHbgNf183F1dWpbrbsOm5HPg2+geQ0qQzObNkPo4ffgaB68sOZlBeq53YfvEJi2CkTz4JW9Tc5klhtaSvGnzoOXz216X+zv1HtoaWVlljoPXrjOa2LTu5r5tPvH42dTXHnw4j3skZZZ7f0EDpoHL+3nwxRZi3uANPw8+Naab6H4hx0/4mY4aB58D80vti+TyQRmicG39POazKcMh32JwXfLbeKqk9lj8IZ1WPC98nn+/Rw4ODj4Xvg3aoha1smLZnwAAAAASUVORK5CYII=" alt="QR-Code zur Speisekarte"></div>
+      <p class="how"><b>Einfach scannen</b>Kamera aufs Bild halten &ndash; die komplette Karte
+      &ouml;ffnet sich auf Ihrem Handy. Bestellen direkt aus der Karte.</p>
+      <p class="foot">barnaslav91-blip.github.io/poPromtu</p>
+    </div>
+  </div>
+</body>
+</html>
