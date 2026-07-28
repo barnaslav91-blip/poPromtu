@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speisekarte</title>
+<meta name="description" content="Digitale Speisekarte: Schnitzel, Grill, Salate, Getränke und Tagesangebote. Bestellung direkt per Nachricht.">
+<meta name="theme-color" content="#D7C9AD" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14100D" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Speisekarte">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:title" content="Speisekarte">
+<meta property="og:description" content="Karte ansehen und direkt bestellen.">
+<meta property="og:type" content="website">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper:      #D7C9AD;
+    --paper-2:    #E3D8C1;
+    --paper-3:    #EDE4D2;
+    --ink:        #241E18;
+    --ink-soft:   #5F5546;
+    --pill-bg:    #2B241E;
+    --pill-ink:   #F1E8D7;
+    --accent:     #97281F;
+    --accent-ink: #FFF3E6;
+    --rule:       rgba(36, 30, 24, .18);
+    --rule-firm:  rgba(36, 30, 24, .34);
+    --shadow:     0 1px 2px rgba(36, 30, 24, .10), 0 8px 24px -16px rgba(36, 30, 24, .5);
+    --shadow-up:  0 -6px 24px -12px rgba(36, 30, 24, .55);
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --measure: 34rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:      #14100D;
+      --paper-2:    #1F1913;
+      --paper-3:    #2A231B;
+      --ink:        #EFE5D2;
+      --ink-soft:   #A2947C;
+      --pill-bg:    #EADCC0;
+      --pill-ink:   #191410;
+      --accent:     #E0715F;
+      --accent-ink: #1A0F0C;
+      --rule:       rgba(234, 220, 192, .18);
+      --rule-firm:  rgba(234, 220, 192, .34);
+      --shadow:     0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .9);
+      --shadow-up:  0 -6px 24px -10px rgba(0, 0, 0, .85);
+    }
+  }
+
+  :root[data-theme="light"] {
+    --paper: #D7C9AD; --paper-2: #E3D8C1; --paper-3: #EDE4D2; --ink: #241E18; --ink-soft: #5F5546;
+    --pill-bg: #2B241E; --pill-ink: #F1E8D7; --accent: #97281F; --accent-ink: #FFF3E6;
+    --rule: rgba(36, 30, 24, .18); --rule-firm: rgba(36, 30, 24, .34);
+    --shadow: 0 1px 2px rgba(36, 30, 24, .10), 0 8px 24px -16px rgba(36, 30, 24, .5);
+    --shadow-up: 0 -6px 24px -12px rgba(36, 30, 24, .55);
+  }
+  :root[data-theme="dark"] {
+    --paper: #14100D; --paper-2: #1F1913; --paper-3: #2A231B; --ink: #EFE5D2; --ink-soft: #A2947C;
+    --pill-bg: #EADCC0; --pill-ink: #191410; --accent: #E0715F; --accent-ink: #1A0F0C;
+    --rule: rgba(234, 220, 192, .18); --rule-firm: rgba(234, 220, 192, .34);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .9);
+    --shadow-up: 0 -6px 24px -10px rgba(0, 0, 0, .85);
+  }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E");
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.45;
+    margin: 0;
+    padding: 0 0 3rem;
+  }
+  body.has-cart { padding-bottom: 5.6rem; }
+  body.locked { overflow: hidden; }
+
+  .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 1.1rem; }
+
+  button { font: inherit; color: inherit; }
+
+  /* ---------- Kopf ---------- */
+
+  header.top { padding: 2.4rem 0 1.1rem; display: flex; flex-direction: column; gap: .5rem; }
+  .eyebrow {
+    font-size: .69rem; font-weight: 700; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0;
+  }
+  h1 {
+    font-size: clamp(2.1rem, 11vw, 3rem); line-height: .95; letter-spacing: -.025em;
+    font-weight: 800; margin: 0; text-wrap: balance;
+  }
+  .lede { font-size: .92rem; color: var(--ink-soft); margin: 0; max-width: 26rem; }
+
+  .today {
+    display: flex; align-items: baseline; gap: .7rem;
+    background: var(--accent); color: var(--accent-ink);
+    border-radius: 2px; padding: .7rem .9rem; margin-top: .6rem; box-shadow: var(--shadow);
+  }
+  .today b {
+    font-size: .68rem; letter-spacing: .17em; text-transform: uppercase;
+    white-space: nowrap; opacity: .85;
+  }
+  .today span { font-size: .92rem; font-weight: 600; line-height: 1.3; }
+  .today em { font-style: normal; font-weight: 800; }
+
+  /* ---------- Suche + Navigation ---------- */
+
+  .sticky {
+    position: sticky; top: 0; z-index: 20;
+    background-color: var(--paper);
+    box-shadow: 0 8px 12px -10px rgba(0, 0, 0, .45);
+  }
+  .searchbar { padding: .7rem 0 .55rem; }
+  .searchbar input {
+    width: 100%; box-sizing: border-box; font: inherit; font-size: 1rem;
+    color: var(--ink); background: var(--paper-2);
+    border: 1px solid var(--rule); border-radius: 2px; padding: .6rem .75rem;
+  }
+  .searchbar input::placeholder { color: var(--ink-soft); }
+  .searchbar input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  nav.chips {
+    display: flex; gap: .4rem; overflow-x: auto; padding: 0 1.1rem .7rem;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  nav.chips::-webkit-scrollbar { display: none; }
+  nav.chips a {
+    flex: 0 0 auto; font-size: .78rem; font-weight: 600; text-decoration: none;
+    color: var(--ink); background: var(--paper-2);
+    border: 1px solid var(--rule); border-radius: 999px;
+    padding: .34rem .7rem; white-space: nowrap;
+  }
+  nav.chips a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .hint {
+    font-size: .82rem; color: var(--ink-soft);
+    margin: 1.2rem 0 0; display: flex; gap: .4rem; align-items: baseline;
+  }
+  .hint::before { content: "→"; font-weight: 700; color: var(--accent); }
+
+  /* ---------- Abschnitte ---------- */
+
+  section { margin-top: 2rem; scroll-margin-top: 6.4rem; }
+
+  .lozenge {
+    display: inline-block; background: var(--pill-bg); color: var(--pill-ink);
+    font-size: 1.06rem; font-weight: 700; border-radius: 999px;
+    padding: .34rem 1.05rem .4rem; margin: 0;
+  }
+  .section-note { font-size: .82rem; color: var(--ink-soft); margin: .55rem 0 0; }
+
+  .colhead {
+    display: grid; grid-template-columns: 1fr var(--pricecols); gap: .5rem;
+    margin-top: .9rem; padding: 0 .5rem .3rem 1.85rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .colhead .unit {
+    font-size: .6rem; font-weight: 700; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--ink-soft); align-self: end;
+  }
+  .colhead .labels { display: grid; grid-template-columns: subgrid; grid-column: 2 / -1; }
+  .colhead .labels span {
+    font-size: .66rem; font-weight: 700; color: var(--ink);
+    text-align: right; white-space: nowrap;
+  }
+  .colhead .labels span small {
+    display: block; color: var(--ink-soft); font-size: .88em;
+    font-weight: 500; letter-spacing: .02em; opacity: .8;
+  }
+
+  ol.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  li.item { border-bottom: 1px solid var(--rule); }
+
+  .row {
+    width: 100%; text-align: left; background: none; border: 0;
+    display: grid; grid-template-columns: 1.4rem 1fr var(--pricecols);
+    gap: .45rem; align-items: baseline;
+    padding: .6rem .5rem .6rem .4rem; cursor: pointer;
+    border-radius: 3px;
+  }
+  .row:hover { background: rgba(151, 40, 31, .06); }
+  .row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .row .no {
+    font-size: .74rem; font-weight: 600; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .row > div { min-width: 0; }
+  .row h3 {
+    font-size: .95rem; font-weight: 700; line-height: 1.25; margin: 0;
+    overflow-wrap: break-word; hyphens: auto;
+  }
+  .row p {
+    font-size: .8rem; line-height: 1.35; color: var(--ink-soft); margin: .12rem 0 0;
+    overflow-wrap: break-word; hyphens: auto;
+  }
+  .row .prices { display: grid; grid-template-columns: subgrid; grid-column: 3 / -1; }
+  .row .prices b {
+    font-size: .9rem; font-weight: 700; text-align: right;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .row .prices b.empty { color: var(--ink-soft); font-weight: 400; }
+
+  /* Tagesangebote */
+  ol.days { list-style: none; margin: .9rem 0 0; padding: 0; display: flex; flex-direction: column; }
+  li.day { border-bottom: 1px solid var(--rule); }
+  .dayrow {
+    width: 100%; text-align: left; background: none; border: 0;
+    display: grid; grid-template-columns: 6.1rem 1fr auto; gap: .5rem;
+    align-items: baseline; padding: .65rem .5rem; border-radius: 3px;
+  }
+  .dayrow.orderable { cursor: pointer; }
+  .dayrow.orderable:hover { background: rgba(151, 40, 31, .06); }
+  .dayrow:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .dayrow .dname { font-weight: 700; font-size: .93rem; }
+  .dayrow .dtext { font-size: .87rem; line-height: 1.35; }
+  .dayrow .dtext em { font-style: normal; color: var(--ink-soft); }
+  .dayrow b { font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  li.day.is-today .dayrow { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--accent); }
+  li.day.is-today .dname::after {
+    content: "heute"; display: block; font-size: .6rem; font-weight: 700;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--accent);
+  }
+
+  /* ---------- Bestellhinweis / Fuß ---------- */
+
+  .order {
+    margin-top: 2.2rem; background: var(--paper-2); border: 1px solid var(--rule);
+    border-radius: 2px; padding: 1.1rem; display: flex; flex-direction: column; gap: .6rem;
+  }
+  .order h2 { font-size: 1.05rem; font-weight: 800; margin: 0; letter-spacing: -.01em; }
+  .order ul { margin: 0; padding-left: 1.1rem; font-size: .88rem; line-height: 1.5; }
+  .order .keep-lead { margin: 0; font-size: .88rem; line-height: 1.5; color: var(--ink-soft); }
+  .order .channel { display: block; text-align: center; text-decoration: none; margin-top: .3rem; }
+
+  .footnote {
+    margin-top: 1.6rem; font-size: .78rem; line-height: 1.5; color: var(--ink-soft);
+    border-top: 1px solid var(--rule); padding-top: .9rem;
+  }
+
+  .noresult { display: none; padding: 2rem 0; font-size: .92rem; color: var(--ink-soft); }
+  body.is-empty .noresult { display: block; }
+
+  /* ---------- Warenkorb-Leiste ---------- */
+
+  .cartbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--pill-bg); color: var(--pill-ink);
+    box-shadow: var(--shadow-up);
+    transform: translateY(110%); transition: transform .22s ease;
+  }
+  body.has-cart .cartbar { transform: translateY(0); }
+  .cartbar .inner {
+    max-width: var(--measure); margin: 0 auto; padding: .75rem 1.1rem;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  .cartbar .sum { display: flex; flex-direction: column; line-height: 1.2; }
+  .cartbar .sum small { font-size: .72rem; opacity: .75; }
+  .cartbar .sum b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+  .cartbar button {
+    margin-left: auto; background: var(--accent); color: var(--accent-ink);
+    border: 0; border-radius: 2px; padding: .7rem 1.1rem;
+    font-weight: 700; font-size: .95rem; cursor: pointer;
+  }
+  .cartbar button:focus-visible { outline: 2px solid var(--pill-ink); outline-offset: 2px; }
+
+  /* ---------- Dialoge ---------- */
+
+  .backdrop {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(20, 16, 13, .55);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .backdrop[hidden] { display: none; }
+
+  .sheet {
+    width: 100%; max-width: var(--measure); max-height: 88vh;
+    background: var(--paper); border-radius: 10px 10px 0 0;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 -10px 40px -10px rgba(0, 0, 0, .6);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .sheet { animation: rise .22s ease-out; }
+    @keyframes rise { from { transform: translateY(14px); opacity: .4; } }
+  }
+
+  .sheet > header {
+    display: flex; align-items: flex-start; gap: .6rem;
+    padding: 1rem 1.1rem .7rem; border-bottom: 1px solid var(--rule);
+  }
+  .sheet > header h2 {
+    font-size: 1.18rem; font-weight: 800; margin: 0; letter-spacing: -.015em;
+    line-height: 1.2; text-wrap: balance;
+  }
+  .sheet > header p { margin: .2rem 0 0; font-size: .82rem; color: var(--ink-soft); line-height: 1.35; }
+  .sheet .close {
+    margin-left: auto; flex: 0 0 auto; background: none; border: 1px solid var(--rule);
+    border-radius: 999px; width: 2rem; height: 2rem; font-size: 1.1rem; line-height: 1;
+    cursor: pointer; color: var(--ink-soft);
+  }
+  .sheet .close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .sheet .body { overflow-y: auto; padding: .9rem 1.1rem 1.2rem; display: flex; flex-direction: column; gap: 1.15rem; }
+
+  .grp { display: flex; flex-direction: column; gap: .5rem; }
+  .grp > h3 {
+    font-size: .68rem; font-weight: 700; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--ink-soft); margin: 0;
+  }
+  .grp > h3 span { text-transform: none; letter-spacing: 0; font-weight: 500; }
+
+  .choices { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .choice {
+    background: var(--paper-2); border: 1px solid var(--rule-firm); border-radius: 2px;
+    padding: .5rem .7rem; cursor: pointer; font-size: .88rem; font-weight: 600;
+    display: flex; align-items: baseline; gap: .45rem;
+  }
+  .choice b { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .choice small { color: var(--ink-soft); font-weight: 500; font-size: .78rem; }
+  .choice[aria-pressed="true"], .choice[aria-checked="true"] {
+    background: var(--pill-bg); color: var(--pill-ink); border-color: var(--pill-bg);
+  }
+  .choice[aria-pressed="true"] small, .choice[aria-checked="true"] small { color: inherit; opacity: .75; }
+  .choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .qty { display: flex; align-items: center; gap: .8rem; }
+  .qty button {
+    width: 2.3rem; height: 2.3rem; border-radius: 999px;
+    border: 1px solid var(--rule-firm); background: var(--paper-2);
+    font-size: 1.2rem; line-height: 1; cursor: pointer;
+  }
+  .qty button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .qty output { font-size: 1.05rem; font-weight: 700; min-width: 1.5rem; text-align: center; font-variant-numeric: tabular-nums; }
+
+  .sheet > footer {
+    padding: .8rem 1.1rem 1.1rem; border-top: 1px solid var(--rule);
+    background: var(--paper-2); display: flex; flex-direction: column; gap: .5rem;
+  }
+  .btn-primary {
+    width: 100%; background: var(--accent); color: var(--accent-ink); border: 0;
+    border-radius: 2px; padding: .85rem 1rem; font-size: 1rem; font-weight: 700; cursor: pointer;
+    display: flex; justify-content: space-between; gap: 1rem;
+  }
+  .btn-primary span:last-child { font-variant-numeric: tabular-nums; }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-ghost {
+    width: 100%; background: none; border: 1px solid var(--rule-firm); border-radius: 2px;
+    padding: .7rem 1rem; font-size: .92rem; font-weight: 600; cursor: pointer;
+  }
+  .btn-ghost:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Warenkorb-Liste */
+  ul.lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  ul.lines li {
+    display: grid; grid-template-columns: 1fr auto auto; gap: .6rem;
+    align-items: center; padding: .65rem 0; border-bottom: 1px solid var(--rule);
+  }
+  ul.lines .what { min-width: 0; }
+  ul.lines .what b { display: block; font-size: .92rem; font-weight: 700; line-height: 1.25; }
+  ul.lines .what small { font-size: .78rem; color: var(--ink-soft); }
+  ul.lines .stepper { display: flex; align-items: center; gap: .35rem; }
+  ul.lines .stepper button {
+    width: 1.9rem; height: 1.9rem; border-radius: 999px;
+    border: 1px solid var(--rule-firm); background: var(--paper-2);
+    font-size: 1rem; line-height: 1; cursor: pointer;
+  }
+  ul.lines .stepper button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  ul.lines .stepper output { min-width: 1.2rem; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+  ul.lines .line-sum { font-weight: 700; font-variant-numeric: tabular-nums; font-size: .92rem; min-width: 3.6rem; text-align: right; }
+
+  .total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: .8rem; font-size: 1.05rem; font-weight: 800;
+  }
+  .total span:last-child { font-variant-numeric: tabular-nums; }
+  .total-note { font-size: .78rem; color: var(--ink-soft); margin: .3rem 0 0; }
+
+  .empty-cart { padding: 1.6rem 0; color: var(--ink-soft); font-size: .92rem; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 6.4rem; transform: translate(-50%, 12px);
+    z-index: 50; background: var(--pill-bg); color: var(--pill-ink);
+    padding: .6rem 1rem; border-radius: 999px; font-size: .86rem; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+    box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  [hidden] { display: none !important; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus</p>
+    <h1>Speisekarte</h1>
+    <p class="lede">Alles frisch aus der Pfanne und vom Grill. Zusammenstellen, absenden, abholen.</p>
+    <div class="today" id="today" hidden>
+      <b>Heute</b>
+      <span id="today-text"></span>
+    </div>
+  </header>
+</div>
+
+<div class="sticky">
+  <div class="wrap searchbar">
+    <input id="q" type="search" placeholder="Gericht suchen &ndash; z.&nbsp;B. Gyros, Salat, Pommes" aria-label="Gericht suchen" autocomplete="off">
+  </div>
+  <nav class="chips" id="chips" aria-label="Kategorien"></nav>
+</div>
+
+<div class="wrap">
+  <p class="hint">Gericht antippen, Beilagen und Getr&auml;nk dazuw&auml;hlen &ndash; die fertige Bestellung geht per Nachricht an uns.</p>
+
+  <main id="menu"></main>
+  <p class="noresult">Nichts gefunden. Versuchen Sie es mit einem anderen Suchbegriff.</p>
+
+  <div class="order">
+    <h2>So bestellen Sie</h2>
+    <ul>
+      <li>Gerichte antippen und zur Bestellung hinzuf&uuml;gen</li>
+      <li>Unten auf &bdquo;Bestellung&ldquo; tippen und absenden</li>
+      <li>Abholzeit dazuschreiben &ndash; wir best&auml;tigen kurz</li>
+    </ul>
+  </div>
+
+  <div class="order keep">
+    <h2>Karte immer dabei</h2>
+    <p class="keep-lead">Legen Sie die Karte als Symbol auf den Startbildschirm &ndash; sie &ouml;ffnet sich dann wie eine App und zeigt immer die aktuellen Preise.</p>
+    <ul>
+      <li><b>iPhone:</b> unten auf das Teilen-Symbol tippen &rarr; &bdquo;Zum Home-Bildschirm&ldquo;</li>
+      <li><b>Android:</b> oben rechts auf &#8942; tippen &rarr; &bdquo;Zum Startbildschirm hinzuf&uuml;gen&ldquo;</li>
+    </ul>
+    <a class="btn-ghost channel" id="channel-link" hidden>Tagesangebote per WhatsApp-Kanal</a>
+  </div>
+
+  <p class="footnote">
+    <strong>Allergene und Zusatzstoffe:</strong> Eine &Uuml;bersicht der Zusatzstoffe und Allergene
+    unserer Speisen erhalten Sie auf Nachfrage an der Kasse.<br>
+    Alle Preise in Euro inkl.&nbsp;MwSt. &Auml;nderungen und Irrt&uuml;mer vorbehalten.
+  </p>
+</div>
+
+<div class="cartbar" id="cartbar">
+  <div class="inner">
+    <span class="sum">
+      <small id="cart-count">0 Artikel</small>
+      <b id="cart-total">0,00 &euro;</b>
+    </span>
+    <button type="button" id="open-cart">Bestellung ansehen</button>
+  </div>
+</div>
+
+<div class="backdrop" id="item-backdrop" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="item-title">
+    <header>
+      <div>
+        <h2 id="item-title"></h2>
+        <p id="item-desc"></p>
+      </div>
+      <button type="button" class="close" data-close aria-label="Schlie&szlig;en">&times;</button>
+    </header>
+    <div class="body" id="item-body"></div>
+    <footer>
+      <button type="button" class="btn-primary" id="item-add">
+        <span>Zur Bestellung</span><span id="item-price">0,00 &euro;</span>
+      </button>
+    </footer>
+  </div>
+</div>
+
+<div class="backdrop" id="cart-backdrop" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <header>
+      <div>
+        <h2 id="cart-title">Ihre Bestellung</h2>
+        <p>Preise inkl. MwSt. &middot; Zahlung bei Abholung</p>
+      </div>
+      <button type="button" class="close" data-close aria-label="Schlie&szlig;en">&times;</button>
+    </header>
+    <div class="body" id="cart-body"></div>
+    <footer id="cart-actions"></footer>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ==================================================================
+   KONTAKT — hier die eigenen Daten eintragen.
+   whatsapp: Nummer international, ohne + und ohne Leerzeichen  ("4915112345678")
+   telegram: Benutzername ohne @                                 ("meinimbiss")
+   Beide leer  ->  die Bestellung wird stattdessen zum Kopieren angezeigt.
+================================================================== */
+const CONTACT = {
+  whatsapp: "",
+  telegram: "",
+  channel: ""   // Einladungslink zum WhatsApp-Kanal, z. B. "https://whatsapp.com/channel/XXXX"
+};
+
+document.documentElement.lang = "de";
+
+const PRICE_COLS = {
+  three: "2.9rem 2.9rem 2.9rem",
+  two:   "3.1rem 3.1rem",
+  one:   "3.9rem",
+  wide:  "7.4rem"
+};
+
+/* Was zu welcher Kategorie dazu angeboten wird (Artikelnummern). */
+const ADDONS = {
+  beilage: [47, 48, 49, 50, 53],
+  saucen:  [54, 55, 57, 58],
+  salate:  [59, 60, 62],
+  drinks:  [70, 71, 73, 77]
+};
+
+const MENU = [
+  {
+    id: "schnitzel", chip: "Schnitzel", title: "Schnitzel",
+    cols: ["klein|ca. 120 g", "groß|ca. 210 g", "Hähnchen|ca. 180 g"],
+    addons: ["beilage", "saucen", "salate", "drinks"],
+    items: [
+      [1,  "Schnitzel „Wiener Art“", "", ["5,00", "5,80", "5,00"]],
+      [2,  "Jägerschnitzel", "", ["5,80", "6,80", "5,80"]],
+      [3,  "Zigeunerschnitzel", "", ["5,80", "6,80", "5,80"]],
+      [4,  "Curryschnitzel", "", ["5,80", "6,50", "5,80"]],
+      [5,  "Rahmschnitzel", "", ["6,00", "7,30", "6,00"]],
+      [6,  "Zwiebelschnitzel", "", ["6,00", "7,30", "6,00"]],
+      [7,  "Champignon-Rahmschnitzel", "", ["6,00", "7,30", "6,00"]],
+      [8,  "Schnitzel Bernaise", "", ["6,00", "7,30", "6,00"]],
+      [9,  "Pfefferrahmschnitzel", "", ["6,00", "7,30", "6,00"]],
+      [10, "Paprikarahmschnitzel", "mit gebr. Paprika und Rahmsauce", ["6,00", "7,30", "6,00"]],
+      [11, "Holzfällerschnitzel", "mit gebr. Zwiebeln und Spiegelei", ["6,30", "7,80", "6,30"]],
+      [12, "Westernschnitzel", "mit gebr. grünen Bohnen, Speck und Kräuterbutter", ["6,30", "7,80", "6,30"]],
+      [13, "Bauernschnitzel", "mit gebr. Zwiebeln, Speck, Champignons und Pfefferrahmsauce", ["6,30", "7,80", "6,30"]],
+      [14, "Holsteiner Schnitzel", "mit gebr. Zwiebeln, Champignons und Spiegelei", ["6,30", "7,80", "6,30"]],
+      [15, "Curry-Cocktailschnitzel", "mit Cocktailfrüchten und Currysauce", ["6,30", "7,80", "6,30"]]
+    ]
+  },
+  {
+    id: "ueberbacken", chip: "Überbacken", title: "Schnitzel überbacken",
+    cols: ["klein|ca. 120 g", "groß|ca. 210 g", "Hähnchen|ca. 180 g"],
+    addons: ["beilage", "saucen", "salate", "drinks"],
+    items: [
+      [16, "Schlemmerschnitzel", "mit Champignons, Pfirsich, Sauce Bernaise und Käse", ["6,80", "8,50", "6,80"]],
+      [17, "Schnitzel Spezial", "mit gebr. Zwiebeln, Champignons, Tomaten, Sauce Bernaise und Käse", ["6,80", "8,50", "6,80"]],
+      [18, "Bombenlegerschnitzel", "mit Salami, Champignons, Peperoni und Käse", ["6,80", "8,50", "6,80"]],
+      [19, "Kaiserschnitzel", "mit Kaisergemüse, Sauce Bernaise und Käse", ["6,80", "8,50", "6,80"]],
+      [20, "Hawaiischnitzel", "mit gekochtem Schinken, Ananas und Käse", ["6,80", "8,50", "6,80"]],
+      [21, "Spargelschnitzel", "mit Spargel, Sauce Bernaise und Käse", ["6,80", "8,50", "6,80"]],
+      [22, "Tessiner Schnitzel", "mit gekochtem Schinken, Zwiebeln, Tomaten und Käse", ["6,80", "8,50", "6,80"]],
+      [23, "Berner Rahmschnitzel", "mit gekochtem Schinken, Schmand und Käse", ["6,80", "8,50", "6,80"]],
+      [24, "Schnitzel Rustikal", "mit gebr. Zwiebeln, Champignons, Sauce Bernaise und Käse", ["6,80", "8,50", "6,80"]]
+    ]
+  },
+  {
+    id: "grill", chip: "Vom Grill", title: "Vom Grill",
+    addons: ["beilage", "saucen", "salate", "drinks"],
+    items: [
+      [25, "Bratwurst", "", ["2,50"]],
+      [26, "Currywurst", "", ["3,00"]],
+      [27, "Balkanwurst", "", ["3,20"]],
+      [28, "Jägerwurst", "", ["3,20"]],
+      [29, "Curryzwiebelwurst", "", ["3,20"]]
+    ]
+  },
+  {
+    id: "allerlei", chip: "Allerlei", title: "Allerlei",
+    addons: ["beilage", "saucen", "salate", "drinks"],
+    items: [
+      [30, "Frikadelle", "hausgemacht", ["3,00"]],
+      [31, "Chicken-Wings", "", ["4,50"]],
+      [32, "Chicken-Cracker", "", ["4,50"]],
+      [33, "Bernds Pettina", "mit gebr. Zwiebeln, Tomaten, Schinken, Knoblauch und Käse", ["6,00"]],
+      [34, "Pelemeni", "mit Krautsalat und Schmand", ["7,50"]]
+    ]
+  },
+  {
+    id: "pfanne", chip: "Aus der Pfanne", title: "Aus der Pfanne",
+    addons: ["beilage", "saucen", "salate", "drinks"],
+    items: [
+      [35, "Pfannen-Gyros", "überbacken +0,50 €", ["6,00"]],
+      [36, "Pfannen-Schaschlik", "überbacken +0,50 €", ["6,00"]],
+      [37, "Pfannen-Gyros im Brot", "mit Krautsalat und Zaziki", ["6,00"]],
+      [38, "Kinder-Gyros", "mit Pommes und Mayo", ["6,00"]],
+      [39, "Kinder-Schaschlik", "mit Pommes und Mayo", ["6,00"]]
+    ]
+  },
+  {
+    id: "burger", chip: "Burger &amp; Hot Dog", title: "Burger &amp; Hot Dog",
+    addons: ["beilage", "saucen", "drinks"],
+    items: [
+      [40, "Hamburger", "", ["3,00"]],
+      [41, "Cheeseburger", "mit Speck +0,40 €", ["3,20"]],
+      [42, "Cheese-Salada", "", ["3,40"]],
+      [43, "Hot Dog", "", ["3,40"]],
+      [44, "Cheese-Egg-Burger", "", ["3,90"]],
+      [45, "Anröchter Burger", "", ["5,00"]],
+      [46, "Riesenburger", "", ["6,00"]]
+    ]
+  },
+  {
+    id: "beilagen", chip: "Beilagen", title: "Beilagen",
+    addons: ["saucen", "drinks"],
+    items: [
+      [47, "Pommes klein", "", ["1,80"]],
+      [48, "Pommes normal", "", ["2,30"]],
+      [49, "Pommes groß", "", ["4,00"]],
+      [50, "Kroketten", "7 Stück", ["2,60"]],
+      [51, "Rösti", "5 Stück", ["2,60"]],
+      [52, "Kartoffelpüree", "", ["2,60"]],
+      [53, "Bratkartoffeln", "hausgemacht", ["3,50"]]
+    ]
+  },
+  {
+    id: "saucen", chip: "Saucen", title: "Saucen",
+    addons: [],
+    items: [
+      [54, "Mayonnaise, Ketchup oder Remoulade", "", ["0,70"]],
+      [55, "Currysauce", "", ["0,70"]],
+      [56, "Jägersauce oder Sauce „Balkan Art“", "", ["0,90"]],
+      [57, "Zaziki", "hausgemacht", ["2,10"]],
+      [58, "Rahmsauce oder Sauce Bernaise", "", ["1,60"]]
+    ]
+  },
+  {
+    id: "salate", chip: "Salate", title: "Salate",
+    addons: ["drinks"],
+    items: [
+      [59, "Krautsalat", "hausgemacht", ["2,80"]],
+      [60, "Kartoffelsalat", "hausgemacht", ["3,30"]],
+      [61, "Nudelsalat", "hausgemacht", ["3,30"]]
+    ]
+  },
+  {
+    id: "gemischt", chip: "Gemischte Salate", title: "Gemischte Salate",
+    cols: ["klein|", "groß|"],
+    addons: ["drinks"],
+    note: "Alle Salate mit Joghurt-, French- oder Essig-/Öl-Dressing. Extra-Beilagen: klein +0,70 € | groß +1,00 € (außer Fleisch +2,00 €).",
+    items: [
+      [62, "Gemischter Salat", "grüner Salat mit Tomaten, Mais, Gurken, Zwiebeln, Krautsalat", ["4,50", "6,00"]],
+      [63, "Chefsalat", "gemischter Salat mit Käse-Schinken-Röllchen, Ei", ["5,50", "7,00"]],
+      [64, "Hawaii Salat", "gemischter Salat mit Käse-Schinken-Röllchen, Ananas, Pfirsich", ["6,00", "7,50"]],
+      [65, "Bauernsalat", "gemischter Salat mit Feta-Käse, Oliven, roten Bohnen", ["6,00", "7,50"]],
+      [66, "Thunfischsalat", "gemischter Salat mit Käse-Schinken-Röllchen, Thunfisch, Ei", ["6,00", "7,50"]],
+      [67, "Schlemmer Salat", "gemischter Salat mit Käse-Schinken-Röllchen, Ei, Hähnchenfleisch", ["–", "10,00"]],
+      [68, "Gyros Salat", "gemischter Salat mit Käse-Schinken-Röllchen, Ei, Gyros", ["6,50", "9,50"]],
+      [69, "Champignonsalat", "gemischter Salat mit Käse-Schinken-Röllchen, Ei, gebratene Champignons", ["6,50", "9,00"]]
+    ]
+  },
+  {
+    id: "kalt", chip: "Kalte Getränke", title: "Kalte Getränke",
+    sizes: ["0,33 l", "1 l"], addons: [],
+    items: [
+      [70, "Softdrinks", "Coca Cola (auch light), Fanta, Mezzo Mix oder Sprite", ["1,80", "2,80"]],
+      [71, "Wasser", "", ["1,80"]],
+      [72, "Vitamalz", "", ["1,80"]],
+      [73, "Apfelschorle", "", ["2,00"], ["0,5 l"]],
+      [74, "Kakao oder Vanillemilch", "", ["1,80"], ["0,5 l"]]
+    ]
+  },
+  {
+    id: "warm", chip: "Warme Getränke", title: "Warme Getränke",
+    addons: [],
+    items: [
+      [75, "Kaffee", "", ["1,50"]],
+      [76, "Tee", "Sorte je nach Sortiment", ["1,50"]]
+    ]
+  },
+  {
+    id: "bier", chip: "Bier", title: "Alkoholische Getränke",
+    sizes: ["0,33 l", "0,5 l"], addons: [],
+    items: [
+      [77, "Krombacher Pils", "", ["1,80", "2,00"]],
+      [78, "Warsteiner Pils", "", ["1,80", "2,00"]],
+      [79, "Krombacher Radler", "", ["1,80"]]
+    ]
+  }
+];
+
+const DAYS = [
+  { dow: 1, name: "Montag",     text: "Schaschlik dazu Pommes mit Mayo o. Ketchup", extra: "", price: "8,00" },
+  { dow: 2, name: "Dienstag",   text: "2 Hamburger dazu Pommes mit Mayo o. Ketchup", extra: "als Cheese +0,80 €", price: "8,00" },
+  { dow: 4, name: "Donnerstag", text: "Pfannengyros dazu Pommes mit Mayo o. Ketchup", extra: "mit Zaziki 9,00 €", price: "8,00" },
+  { dow: 5, name: "Freitag",    text: "Jägerschnitzel oder Zigeunerschnitzel dazu Pommes mit Mayo o. Ketchup", extra: "", price: "8,00" },
+  { dow: 6, name: "Samstag",    text: "Doppelte Currywurst dazu Pommes mit Mayo o. Ketchup", extra: "", price: "8,00" }
+];
+
+/* ---------------- Hilfsfunktionen ---------------- */
+
+const toNum = (s) => parseFloat(String(s).replace(",", "."));
+const fmt = (n) => n.toFixed(2).replace(".", ",") + " €";
+const numLabel = (no) => (String(no).startsWith("T") ? "" : "Nr. " + no + " ");
+const numNote  = (no) => (String(no).startsWith("T") ? "Tagesangebot" : "Nr. " + no);
+const strip = (s) => String(s).replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&middot;/g, "·").replace(/&nbsp;/g, " ");
+
+/* Artikel-Register: Nummer -> {no, name, desc, variants, sectionTitle} */
+const BY_NO = new Map();
+
+for (const sec of MENU) {
+  const labels = sec.cols ? sec.cols.map((c) => c.split("|")[0]) : sec.sizes || null;
+  for (const [no, name, desc, prices, ownLabels] of sec.items) {
+    const useLabels = ownLabels || labels;
+    const variants = prices
+      .map((p, i) => ({ label: useLabels ? useLabels[i] : "", price: p }))
+      .filter((v) => v.price && v.price !== "–");
+    BY_NO.set(no, { no, name, desc, variants, section: sec.id });
+  }
+}
+
+/* ---------------- Karte aufbauen ---------------- */
+
+function priceCells(prices, count) {
+  let out = "";
+  for (let i = 0; i < count; i++) {
+    const v = prices[i];
+    if (v === undefined || v === "–") out += '<b class="empty">–</b>';
+    else out += "<b>" + v + (count === 1 ? "&nbsp;€" : "") + "</b>";
+  }
+  return out;
+}
+
+function renderSection(sec) {
+  const count = sec.cols ? sec.cols.length : 1;
+  const wide = !sec.cols && (sec.sizes || sec.items.some((it) => it[3].length > 1));
+  const cols = count === 3 ? PRICE_COLS.three
+             : count === 2 ? PRICE_COLS.two
+             : wide ? PRICE_COLS.wide : PRICE_COLS.one;
+
+  let html = '<section id="' + sec.id + '" style="--pricecols:' + cols + '">';
+  html += '<h2 class="lozenge">' + sec.title + "</h2>";
+
+  if (sec.cols) {
+    html += '<div class="colhead"><span class="unit">Preise in €</span><div class="labels">';
+    for (const c of sec.cols) {
+      const [label, sub] = c.split("|");
+      html += "<span>" + label + (sub ? "<small>" + sub + "</small>" : "") + "</span>";
+    }
+    html += "</div></div>";
+  }
+
+  html += '<ol class="items">';
+  for (const [no, name, desc, prices, ownLabels] of sec.items) {
+    const item = BY_NO.get(no);
+    const sizeText = sec.cols ? ""
+      : item.variants.map((v) => v.label).filter(Boolean).join(" | ");
+    const fullDesc = [desc, sizeText].filter(Boolean).join(" &middot; ");
+
+    html += '<li class="item" data-search="' + (name + " " + desc).toLowerCase().replace(/"/g, "") + '">';
+    html += '<button type="button" class="row" data-no="' + no + '">';
+    html += '<span class="no">' + no + "</span>";
+    html += "<div><h3>" + name + "</h3>" + (fullDesc ? "<p>" + fullDesc + "</p>" : "") + "</div>";
+    html += '<span class="prices">' +
+      (sec.cols ? priceCells(prices, count)
+                : "<b>" + item.variants.map((v) => v.price).join(" € | ") + "&nbsp;€</b>") +
+      "</span>";
+    html += "</button></li>";
+  }
+  html += "</ol>";
+
+  if (sec.note) html += '<p class="section-note">' + sec.note + "</p>";
+  html += "</section>";
+  return html;
+}
+
+function renderDays() {
+  const today = new Date().getDay();
+  let html = '<section id="angebote">';
+  html += '<h2 class="lozenge">Tagesangebote</h2>';
+  html += '<ol class="days">';
+  for (const d of DAYS) {
+    const isToday = d.dow === today;
+    html += '<li class="day' + (isToday ? " is-today" : "") + '" data-search="tagesangebot ' +
+            d.name.toLowerCase() + " " + d.text.toLowerCase() + '">';
+    html += "<" + (isToday ? 'button type="button" class="dayrow orderable" data-day="' + d.dow + '"' : 'span class="dayrow"') + ">";
+    html += '<span class="dname">' + d.name + "</span>";
+    html += '<span class="dtext">' + d.text + (d.extra ? " <em>(" + d.extra + ")</em>" : "") + "</span>";
+    html += "<b>" + d.price + "&nbsp;€</b>";
+    html += "</" + (isToday ? "button" : "span") + ">";
+    html += "</li>";
+  }
+  html += "</ol>";
+  html += '<p class="section-note">Tagesangebote gelten nicht an Feiertagen.</p>';
+  html += "</section>";
+  return html;
+}
+
+document.getElementById("menu").innerHTML = MENU.map(renderSection).join("") + renderDays();
+document.getElementById("chips").innerHTML =
+  MENU.map((s) => '<a href="#' + s.id + '">' + s.chip + "</a>").join("") +
+  '<a href="#angebote">Tagesangebote</a>';
+
+const todayOffer = DAYS.find((d) => d.dow === new Date().getDay());
+if (todayOffer) {
+  document.getElementById("today-text").innerHTML =
+    "<em>" + todayOffer.text + "</em> — " + todayOffer.price + " €";
+  document.getElementById("today").hidden = false;
+}
+
+/* ---------------- Suche ---------------- */
+
+const q = document.getElementById("q");
+const rows = Array.from(document.querySelectorAll("[data-search]"));
+const sections = Array.from(document.querySelectorAll("#menu section"));
+
+q.addEventListener("input", () => {
+  const term = q.value.trim().toLowerCase();
+  let hits = 0;
+  for (const row of rows) {
+    const match = !term || row.dataset.search.includes(term);
+    row.hidden = !match;
+    if (match) hits++;
+  }
+  for (const sec of sections) {
+    sec.hidden = !Array.from(sec.querySelectorAll("[data-search]")).some((r) => !r.hidden);
+  }
+  document.body.classList.toggle("is-empty", hits === 0);
+});
+
+/* ---------------- Warenkorb ---------------- */
+
+let cart = [];
+
+const cartCount = document.getElementById("cart-count");
+const cartTotal = document.getElementById("cart-total");
+const toastEl = document.getElementById("toast");
+let toastTimer;
+
+function cartSum() {
+  return cart.reduce((sum, l) => sum + toNum(l.price) * l.qty, 0);
+}
+
+function refreshCart() {
+  const pieces = cart.reduce((n, l) => n + l.qty, 0);
+  document.body.classList.toggle("has-cart", pieces > 0);
+  cartCount.textContent = pieces === 1 ? "1 Artikel" : pieces + " Artikel";
+  cartTotal.textContent = fmt(cartSum());
+}
+
+function addLine(line) {
+  const twin = cart.find((l) => l.key === line.key);
+  if (twin) twin.qty += line.qty;
+  else cart.push(line);
+  if (CONTACT.channel) {
+  const ch = document.getElementById("channel-link");
+  ch.href = CONTACT.channel;
+  ch.hidden = false;
+}
+
+refreshCart();
+}
+
+function toast(text) {
+  toastEl.textContent = text;
+  toastEl.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2200);
+}
+
+/* ---------------- Dialoge ---------------- */
+
+const itemBackdrop = document.getElementById("item-backdrop");
+const cartBackdrop = document.getElementById("cart-backdrop");
+let lastFocus = null;
+
+function openSheet(el) {
+  lastFocus = document.activeElement;
+  el.hidden = false;
+  document.body.classList.add("locked");
+  const first = el.querySelector("button:not([data-close]), input");
+  (first || el.querySelector("[data-close]")).focus({ preventScroll: true });
+}
+
+function closeSheets() {
+  itemBackdrop.hidden = true;
+  cartBackdrop.hidden = true;
+  document.body.classList.remove("locked");
+  if (lastFocus) lastFocus.focus({ preventScroll: true });
+}
+
+for (const bd of [itemBackdrop, cartBackdrop]) {
+  bd.addEventListener("click", (e) => {
+    if (e.target === bd || e.target.closest("[data-close]")) closeSheets();
+  });
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && (!itemBackdrop.hidden || !cartBackdrop.hidden)) closeSheets();
+});
+
+/* ---------- Gericht-Dialog mit Empfehlungen ---------- */
+
+const itemBody = document.getElementById("item-body");
+const itemAdd = document.getElementById("item-add");
+const itemPrice = document.getElementById("item-price");
+
+let draft = null; /* {item, variantIndex, qty, extras:Set<no>} */
+
+function addonGroups(sec) {
+  const groups = [];
+  const titles = {
+    beilage: "Beilage dazu?",
+    saucen: "Sauce dazu?",
+    salate: "Salat dazu?",
+    drinks: "Und ein Getränk?"
+  };
+  for (const key of sec.addons || []) {
+    const list = ADDONS[key].map((no) => BY_NO.get(no)).filter(Boolean);
+    if (list.length) groups.push({ key, title: titles[key] || key, list });
+  }
+  return groups;
+}
+
+function draftTotal() {
+  if (!draft) return 0;
+  let sum = toNum(draft.item.variants[draft.variantIndex].price) * draft.qty;
+  for (const no of draft.extras) sum += toNum(BY_NO.get(no).variants[0].price);
+  return sum;
+}
+
+function refreshDraftPrice() {
+  itemPrice.textContent = fmt(draftTotal());
+  itemBody.querySelector(".qty output").textContent = draft.qty;
+}
+
+function openItem(no) {
+  const item = BY_NO.get(no);
+  if (!item) return;
+  const sec = MENU.find((s) => s.id === item.section);
+  draft = { item, variantIndex: 0, qty: 1, extras: new Set() };
+
+  document.getElementById("item-title").innerHTML = item.name;
+  document.getElementById("item-desc").innerHTML = item.desc || "";
+
+  let html = "";
+
+  if (item.variants.length > 1) {
+    html += '<div class="grp"><h3>Größe</h3><div class="choices" role="radiogroup" aria-label="Größe">';
+    item.variants.forEach((v, i) => {
+      html += '<button type="button" class="choice" role="radio" data-variant="' + i + '" aria-checked="' +
+              (i === 0 ? "true" : "false") + '">' + v.label + " <b>" + v.price + " €</b></button>";
+    });
+    html += "</div></div>";
+  }
+
+  html += '<div class="grp"><h3>Menge</h3><div class="qty">' +
+          '<button type="button" data-step="-1" aria-label="Weniger">−</button>' +
+          '<output aria-live="polite">1</output>' +
+          '<button type="button" data-step="1" aria-label="Mehr">+</button>' +
+          "</div></div>";
+
+  for (const g of addonGroups(sec)) {
+    html += '<div class="grp"><h3>' + g.title + "</h3><div class=\"choices\">";
+    for (const a of g.list) {
+      html += '<button type="button" class="choice" data-extra="' + a.no + '" aria-pressed="false">' +
+              a.name + (a.variants[0].label ? ' <small>' + a.variants[0].label + "</small>" : "") +
+              " <b>" + a.variants[0].price + " €</b></button>";
+    }
+    html += "</div></div>";
+  }
+
+  itemBody.innerHTML = html;
+  itemBody.scrollTop = 0;
+  refreshDraftPrice();
+  openSheet(itemBackdrop);
+}
+
+function openOffer(dow) {
+  const d = DAYS.find((x) => x.dow === dow);
+  if (!d) return;
+  draft = {
+    item: { no: "T" + dow, name: "Tagesangebot " + d.name, desc: d.text, variants: [{ label: "", price: d.price }], section: null },
+    variantIndex: 0, qty: 1, extras: new Set()
+  };
+
+  document.getElementById("item-title").textContent = "Tagesangebot " + d.name;
+  document.getElementById("item-desc").textContent = d.text + (d.extra ? " (" + d.extra + ")" : "");
+
+  let html = '<div class="grp"><h3>Menge</h3><div class="qty">' +
+             '<button type="button" data-step="-1" aria-label="Weniger">−</button>' +
+             '<output aria-live="polite">1</output>' +
+             '<button type="button" data-step="1" aria-label="Mehr">+</button>' +
+             "</div></div>";
+
+  html += '<div class="grp"><h3>Und ein Getränk?</h3><div class="choices">';
+  for (const no of ADDONS.drinks) {
+    const a = BY_NO.get(no);
+    html += '<button type="button" class="choice" data-extra="' + a.no + '" aria-pressed="false">' +
+            a.name + (a.variants[0].label ? ' <small>' + a.variants[0].label + "</small>" : "") +
+            " <b>" + a.variants[0].price + " €</b></button>";
+  }
+  html += "</div></div>";
+
+  itemBody.innerHTML = html;
+  itemBody.scrollTop = 0;
+  refreshDraftPrice();
+  openSheet(itemBackdrop);
+}
+
+itemBody.addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || !draft) return;
+
+  if (btn.dataset.variant !== undefined) {
+    draft.variantIndex = Number(btn.dataset.variant);
+    itemBody.querySelectorAll("[data-variant]").forEach((b) =>
+      b.setAttribute("aria-checked", b === btn ? "true" : "false"));
+  } else if (btn.dataset.step) {
+    draft.qty = Math.max(1, Math.min(20, draft.qty + Number(btn.dataset.step)));
+  } else if (btn.dataset.extra) {
+    const no = Number(btn.dataset.extra);
+    if (draft.extras.has(no)) draft.extras.delete(no);
+    else draft.extras.add(no);
+    btn.setAttribute("aria-pressed", draft.extras.has(no) ? "true" : "false");
+  } else return;
+
+  refreshDraftPrice();
+});
+
+itemAdd.addEventListener("click", () => {
+  if (!draft) return;
+  const v = draft.item.variants[draft.variantIndex];
+  addLine({
+    key: draft.item.no + "|" + v.label,
+    no: draft.item.no,
+    name: strip(draft.item.name),
+    variant: v.label,
+    price: v.price,
+    qty: draft.qty
+  });
+  for (const no of draft.extras) {
+    const a = BY_NO.get(no);
+    addLine({
+      key: a.no + "|" + a.variants[0].label,
+      no: a.no,
+      name: strip(a.name),
+      variant: a.variants[0].label,
+      price: a.variants[0].price,
+      qty: 1
+    });
+  }
+  const extras = draft.extras.size;
+  toast(extras ? "Hinzugefügt (+ " + extras + ")" : "Hinzugefügt");
+  draft = null;
+  closeSheets();
+});
+
+document.getElementById("menu").addEventListener("click", (e) => {
+  const row = e.target.closest(".row");
+  if (row) return openItem(Number(row.dataset.no));
+  const day = e.target.closest(".dayrow.orderable");
+  if (day) return openOffer(Number(day.dataset.day));
+});
+
+/* ---------- Warenkorb-Dialog ---------- */
+
+const cartBody = document.getElementById("cart-body");
+const cartActions = document.getElementById("cart-actions");
+
+function orderText() {
+  const lines = cart.map((l) =>
+    l.qty + "× " + numLabel(l.no) + l.name + (l.variant ? " (" + l.variant + ")" : "") +
+    " – " + fmt(toNum(l.price) * l.qty));
+  return "Bestellung:\n" + lines.join("\n") +
+         "\n\nSumme: " + fmt(cartSum()) +
+         "\n\nName: \nAbholung um: \n";
+}
+
+function renderCart() {
+  if (!cart.length) {
+    cartBody.innerHTML = '<p class="empty-cart">Noch nichts ausgewählt. Tippen Sie ein Gericht in der Karte an.</p>';
+    cartActions.innerHTML = "";
+    return;
+  }
+
+  let html = '<ul class="lines">';
+  cart.forEach((l, i) => {
+    html += "<li><span class=\"what\"><b>" + l.name + "</b><small>" + numNote(l.no) +
+            (l.variant ? " · " + l.variant : "") + " · " + l.price + " €</small></span>" +
+            '<span class="stepper">' +
+            '<button type="button" data-line="' + i + '" data-step="-1" aria-label="Weniger">−</button>' +
+            "<output>" + l.qty + "</output>" +
+            '<button type="button" data-line="' + i + '" data-step="1" aria-label="Mehr">+</button>' +
+            "</span>" +
+            '<span class="line-sum">' + fmt(toNum(l.price) * l.qty) + "</span></li>";
+  });
+  html += "</ul>";
+  html += '<div class="total"><span>Summe</span><span>' + fmt(cartSum()) + "</span></div>";
+  html += '<p class="total-note">Zahlung bei Abholung. Wir bestätigen Ihre Bestellung per Nachricht.</p>';
+  cartBody.innerHTML = html;
+
+  const text = orderText();
+  let actions = "";
+  if (CONTACT.whatsapp) {
+    actions += '<a class="btn-primary" style="text-decoration:none" href="https://wa.me/' + CONTACT.whatsapp +
+               "?text=" + encodeURIComponent(text) + '"><span>Per WhatsApp senden</span><span>' + fmt(cartSum()) + "</span></a>";
+  }
+  if (CONTACT.telegram) {
+    actions += '<a class="btn-ghost" style="text-decoration:none;display:block;text-align:center" href="https://t.me/' +
+               CONTACT.telegram + '">Per Telegram senden</a>';
+  }
+  actions += '<button type="button" class="btn-ghost" id="copy-order">Bestellung kopieren</button>';
+  cartActions.innerHTML = actions;
+}
+
+cartBody.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-line]");
+  if (!btn) return;
+  const i = Number(btn.dataset.line);
+  cart[i].qty += Number(btn.dataset.step);
+  if (cart[i].qty < 1) cart.splice(i, 1);
+  if (CONTACT.channel) {
+  const ch = document.getElementById("channel-link");
+  ch.href = CONTACT.channel;
+  ch.hidden = false;
+}
+
+refreshCart();
+  renderCart();
+  if (!cart.length) closeSheets();
+});
+
+cartActions.addEventListener("click", async (e) => {
+  if (!e.target.closest("#copy-order")) return;
+  const text = orderText();
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("Bestellung kopiert");
+  } catch (err) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    toast("Bestellung kopiert");
+  }
+});
+
+document.getElementById("open-cart").addEventListener("click", () => {
+  renderCart();
+  openSheet(cartBackdrop);
+});
+
+if (CONTACT.channel) {
+  const ch = document.getElementById("channel-link");
+  ch.href = CONTACT.channel;
+  ch.hidden = false;
+}
+
+refreshCart();
+</script>
+
+</body>
+</html>
