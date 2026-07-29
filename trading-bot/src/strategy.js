@@ -7,11 +7,22 @@ const DEFAULTS = {
   cooldownTicks: 20, // сколько тиков не открываем новые позиции после краха
   minStopPct: 0.003, // нижняя граница стоп-дистанции, чтобы не ставить стоп в нулевом ATR
   stopAtrMultiple: 1.5,
+  // Стохастик — доп. фильтр входа поверх EMA/ATR, значения по умолчанию под
+  // Crash 900 Index; для других индексов (например, Crash 1000) подбираются
+  // отдельно через calibrate.js, т.к. частота крахов и "шум" между ними разные.
+  stochPeriod: 14,
+  stochSmoothK: 3,
+  stochSmoothD: 3,
+  stochOverbought: 80,
 };
 
 function nextEma(prevEma, price, period) {
   const k = 2 / (period + 1);
   return prevEma === null ? price : price * k + prevEma * (1 - k);
+}
+
+function average(values) {
+  return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
 // Стратегия рассчитана на то, что момент краха непредсказуем (это заявленное
@@ -32,6 +43,12 @@ class StrategyEngine {
     this.emaFast = null;
     this.emaSlow = null;
     this.atr = null;
+
+    this.recentCandles = [];
+    this.rawKHistory = [];
+    this.kHistory = [];
+    this.stochK = null;
+    this.stochD = null;
   }
 
   isReady() {
@@ -54,6 +71,27 @@ class StrategyEngine {
       this.trueRanges.reduce((sum, tr) => sum + tr, 0) / this.trueRanges.length;
 
     this.prevCandleClose = candle.close;
+    this._updateStochastic(candle);
+  }
+
+  _updateStochastic(candle) {
+    this.recentCandles.push({ high: candle.high, low: candle.low });
+    if (this.recentCandles.length > this.opts.stochPeriod) this.recentCandles.shift();
+    if (this.recentCandles.length < this.opts.stochPeriod) return;
+
+    const highestHigh = Math.max(...this.recentCandles.map((c) => c.high));
+    const lowestLow = Math.min(...this.recentCandles.map((c) => c.low));
+    const range = highestHigh - lowestLow;
+    const rawK = range === 0 ? 50 : ((candle.close - lowestLow) / range) * 100;
+
+    this.rawKHistory.push(rawK);
+    if (this.rawKHistory.length > this.opts.stochSmoothK) this.rawKHistory.shift();
+    if (this.rawKHistory.length < this.opts.stochSmoothK) return;
+
+    this.stochK = average(this.rawKHistory);
+    this.kHistory.push(this.stochK);
+    if (this.kHistory.length > this.opts.stochSmoothD) this.kHistory.shift();
+    this.stochD = average(this.kHistory);
   }
 
   // tick: { epoch: number (unix seconds), quote: number }
@@ -101,6 +139,12 @@ class StrategyEngine {
     if (inCooldown) return { action: 'hold', reason: 'cooldown-after-crash' };
     if (!uptrend) return { action: 'hold', reason: 'no-uptrend' };
 
+    if (this.stochK === null || this.stochD === null) {
+      return { action: 'hold', reason: 'stoch-warming-up' };
+    }
+    if (this.stochK <= this.stochD) return { action: 'hold', reason: 'stoch-not-confirmed' };
+    if (this.stochK >= this.opts.stochOverbought) return { action: 'hold', reason: 'stoch-overbought' };
+
     const volatilityPct = this.atr / this.lastPrice;
     const stopDistancePct = Math.max(
       volatilityPct * this.opts.stopAtrMultiple,
@@ -112,6 +156,8 @@ class StrategyEngine {
       direction: 'up',
       stopDistancePct,
       volatilityPct,
+      stochK: this.stochK,
+      stochD: this.stochD,
     };
   }
 }

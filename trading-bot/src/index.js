@@ -7,6 +7,7 @@ const { DerivClient } = require('./derivClient');
 const { resolveSymbol } = require('./symbols');
 const { StrategyEngine } = require('./strategy');
 const { RiskManager } = require('./riskManager');
+const { getSymbolDisplayName, strategyOptsFromEnv, riskOptsFromEnv } = require('./config');
 
 const TRADES_LOG_PATH = path.join(__dirname, '..', 'trades.log');
 
@@ -34,16 +35,12 @@ async function main() {
     `Подключено к Deriv (${accountBalance.currency}), баланс: ${accountBalance.balance}, loginid: ${accountBalance.loginid}`
   );
 
-  const symbol = await resolveSymbol(client);
-  console.log(`Торгуем инструментом: ${symbol}`);
+  const displayName = getSymbolDisplayName();
+  const symbol = await resolveSymbol(client, displayName);
+  console.log(`Торгуем инструментом: ${displayName} (${symbol})`);
 
-  const strategy = new StrategyEngine({
-    cooldownTicks: Number(process.env.COOLDOWN_TICKS_AFTER_CRASH) || undefined,
-  });
-  const riskManager = new RiskManager({
-    riskPerTradePct: Number(process.env.RISK_PER_TRADE_PCT) || undefined,
-    maxDailyLossPct: Number(process.env.MAX_DAILY_LOSS_PCT) || undefined,
-  });
+  const strategy = new StrategyEngine(strategyOptsFromEnv());
+  const riskManager = new RiskManager(riskOptsFromEnv());
 
   let balance = accountBalance.balance;
   let currentDay = todayKey();
