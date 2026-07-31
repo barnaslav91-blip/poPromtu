@@ -47,6 +47,7 @@ async function main() {
   riskManager.startDay(balance);
 
   let openContractId = null;
+  let openDirection = null;
   let opening = false;
 
   client.on('error', (err) => {
@@ -71,6 +72,7 @@ async function main() {
       balance,
     });
     openContractId = null;
+    openDirection = null;
   });
 
   client.on('tick', async (tick) => {
@@ -84,7 +86,7 @@ async function main() {
     strategy.ingestTick({ epoch: tick.epoch, quote: tick.quote });
 
     if (openContractId) {
-      const closeSignal = strategy.evaluate({ inPosition: true });
+      const closeSignal = strategy.evaluate({ inPosition: true, positionDirection: openDirection });
       if (closeSignal.action === 'close') {
         client
           .sellContract(openContractId)
@@ -116,6 +118,7 @@ async function main() {
         stopLossUsd: sizing.stopLossUsd,
       });
       openContractId = bought.contract_id;
+      openDirection = signal.direction;
       await client.subscribeContract(openContractId);
       logTrade({
         event: 'opened',

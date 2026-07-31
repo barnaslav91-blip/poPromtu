@@ -14,6 +14,13 @@ const DEFAULTS = {
   stochSmoothK: 3,
   stochSmoothD: 3,
   stochOverbought: 80,
+  stochOversold: 20,
+  // Доля растущих тиков за окно — направленческий фильтр: разрешает long
+  // только когда тиков с ростом заметно больше, чем с падением, и наоборот
+  // для short. В "спокойной" зоне между порогами сделок нет вообще.
+  tickDirectionWindow: 200,
+  tickDirectionUpThreshold: 0.55,
+  tickDirectionDownThreshold: 0.45,
 };
 
 function nextEma(prevEma, price, period) {
@@ -27,9 +34,13 @@ function average(values) {
 
 // Стратегия рассчитана на то, что момент краха непредсказуем (это заявленное
 // свойство синтетического индекса у Deriv): она не пытается его угадать, а
-// (1) торгует только по восходящему дрейфу между крахами, (2) адаптирует
-// размер стопа под текущую волатильность (ATR), (3) уходит в паузу сразу
-// после обнаруженного краш-тика, пока цена не стабилизируется.
+// (1) торгует по направлению текущего дрейфа цены — вверх (MULTUP) или вниз
+// (MULTDOWN), решая по EMA-тренду и доле растущих/падающих тиков за окно,
+// (2) подтверждает вход симметричным стохастиком, (3) адаптирует размер
+// стопа под текущую волатильность (ATR), (4) уходит в паузу сразу после
+// обнаруженного краш-тика, пока цена не стабилизируется. Шорты против
+// структурно растущего между крахами индекса рискованнее лонгов — это
+// решение пользователя, а не встроенное допущение стратегии.
 class StrategyEngine {
   constructor(opts = {}) {
     this.opts = { ...DEFAULTS, ...opts };
@@ -49,6 +60,8 @@ class StrategyEngine {
     this.kHistory = [];
     this.stochK = null;
     this.stochD = null;
+
+    this.tickDirections = [];
   }
 
   isReady() {
@@ -117,34 +130,16 @@ class StrategyEngine {
         crashDetected = true;
         this.cooldownUntil = this.tickIndex + this.opts.cooldownTicks;
       }
+
+      this.tickDirections.push(tickReturn > 0 ? 1 : 0);
+      if (this.tickDirections.length > this.opts.tickDirectionWindow) this.tickDirections.shift();
     }
     this.lastPrice = price;
 
     return { crashDetected, price };
   }
 
-  // inPosition: bool — открыта ли сейчас позиция (решает вызывающий код)
-  // Возвращает { action: 'open'|'close'|'hold', ...details }
-  evaluate({ inPosition }) {
-    if (!this.isReady()) return { action: 'hold', reason: 'warming-up' };
-
-    const inCooldown = this.tickIndex < this.cooldownUntil;
-    const uptrend = this.emaFast > this.emaSlow;
-
-    if (inPosition) {
-      if (!uptrend) return { action: 'close', reason: 'trend-flip' };
-      return { action: 'hold', reason: 'trend-intact' };
-    }
-
-    if (inCooldown) return { action: 'hold', reason: 'cooldown-after-crash' };
-    if (!uptrend) return { action: 'hold', reason: 'no-uptrend' };
-
-    if (this.stochK === null || this.stochD === null) {
-      return { action: 'hold', reason: 'stoch-warming-up' };
-    }
-    if (this.stochK <= this.stochD) return { action: 'hold', reason: 'stoch-not-confirmed' };
-    if (this.stochK >= this.opts.stochOverbought) return { action: 'hold', reason: 'stoch-overbought' };
-
+  _buildOpenSignal(direction, risingRatio) {
     const volatilityPct = this.atr / this.lastPrice;
     const stopDistancePct = Math.max(
       volatilityPct * this.opts.stopAtrMultiple,
@@ -153,12 +148,58 @@ class StrategyEngine {
 
     return {
       action: 'open',
-      direction: 'up',
+      direction,
       stopDistancePct,
       volatilityPct,
       stochK: this.stochK,
       stochD: this.stochD,
+      risingRatio,
     };
+  }
+
+  // inPosition: bool — открыта ли сейчас позиция (решает вызывающий код)
+  // positionDirection: 'up' | 'down' | null — направление открытой позиции
+  // Возвращает { action: 'open'|'close'|'hold', ...details }
+  evaluate({ inPosition, positionDirection = null }) {
+    if (!this.isReady()) return { action: 'hold', reason: 'warming-up' };
+
+    const inCooldown = this.tickIndex < this.cooldownUntil;
+    const emaUptrend = this.emaFast > this.emaSlow;
+    const emaDowntrend = this.emaFast < this.emaSlow;
+
+    if (inPosition) {
+      const trendFlipped =
+        (positionDirection === 'up' && !emaUptrend) || (positionDirection === 'down' && !emaDowntrend);
+      if (trendFlipped) return { action: 'close', reason: 'trend-flip' };
+      return { action: 'hold', reason: 'trend-intact' };
+    }
+
+    if (inCooldown) return { action: 'hold', reason: 'cooldown-after-crash' };
+
+    if (this.tickDirections.length < this.opts.tickDirectionWindow) {
+      return { action: 'hold', reason: 'direction-warming-up' };
+    }
+    if (this.stochK === null || this.stochD === null) {
+      return { action: 'hold', reason: 'stoch-warming-up' };
+    }
+
+    const risingRatio = average(this.tickDirections);
+    const wantUp = emaUptrend && risingRatio >= this.opts.tickDirectionUpThreshold;
+    const wantDown = emaDowntrend && risingRatio <= this.opts.tickDirectionDownThreshold;
+
+    if (wantUp) {
+      if (this.stochK <= this.stochD) return { action: 'hold', reason: 'stoch-not-confirmed' };
+      if (this.stochK >= this.opts.stochOverbought) return { action: 'hold', reason: 'stoch-overbought' };
+      return this._buildOpenSignal('up', risingRatio);
+    }
+
+    if (wantDown) {
+      if (this.stochK >= this.stochD) return { action: 'hold', reason: 'stoch-not-confirmed' };
+      if (this.stochK <= this.opts.stochOversold) return { action: 'hold', reason: 'stoch-oversold' };
+      return this._buildOpenSignal('down', risingRatio);
+    }
+
+    return { action: 'hold', reason: 'no-directional-edge' };
   }
 }
 

@@ -30,19 +30,24 @@ function simulate({ prices, times, startBalance = 1000, strategyOpts = {}, riskO
     strategy.ingestTick(tick);
 
     if (position) {
+      const directionSign = position.direction === 'up' ? 1 : -1;
       const priceChangePct = (tick.quote - position.entryPrice) / position.entryPrice;
-      const unrealizedPnl = position.stake * position.multiplier * priceChangePct;
+      const unrealizedPnl = position.stake * position.multiplier * priceChangePct * directionSign;
       if (unrealizedPnl <= -position.stopLossUsd) {
         closePosition(-position.stopLossUsd, 'stop-loss');
         continue;
       }
     }
 
-    const signal = strategy.evaluate({ inPosition: !!position });
+    const signal = strategy.evaluate({
+      inPosition: !!position,
+      positionDirection: position ? position.direction : null,
+    });
 
     if (signal.action === 'close' && position) {
+      const directionSign = position.direction === 'up' ? 1 : -1;
       const priceChangePct = (tick.quote - position.entryPrice) / position.entryPrice;
-      const pnl = position.stake * position.multiplier * priceChangePct;
+      const pnl = position.stake * position.multiplier * priceChangePct * directionSign;
       closePosition(pnl, signal.reason);
     } else if (signal.action === 'open' && !position) {
       const { allowed } = riskManager.canOpenPosition(0);
@@ -50,6 +55,7 @@ function simulate({ prices, times, startBalance = 1000, strategyOpts = {}, riskO
         const sizing = riskManager.sizeTrade({ balance, stopDistancePct: signal.stopDistancePct });
         position = {
           entryPrice: tick.quote,
+          direction: signal.direction,
           stake: sizing.stake,
           multiplier: sizing.multiplier,
           stopLossUsd: sizing.stopLossUsd,

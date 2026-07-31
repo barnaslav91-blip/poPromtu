@@ -16,6 +16,10 @@ function strategyOptsFromEnv() {
     stochSmoothK: numOrUndefined(process.env.STOCH_SMOOTH_K),
     stochSmoothD: numOrUndefined(process.env.STOCH_SMOOTH_D),
     stochOverbought: numOrUndefined(process.env.STOCH_OVERBOUGHT),
+    stochOversold: numOrUndefined(process.env.STOCH_OVERSOLD),
+    tickDirectionWindow: numOrUndefined(process.env.TICK_DIRECTION_WINDOW),
+    tickDirectionUpThreshold: numOrUndefined(process.env.TICK_DIRECTION_UP_THRESHOLD),
+    tickDirectionDownThreshold: numOrUndefined(process.env.TICK_DIRECTION_DOWN_THRESHOLD),
   };
 }
 
