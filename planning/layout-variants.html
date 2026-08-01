@@ -166,20 +166,7 @@
 
   .head { display: flex; flex-direction: column; gap: var(--s1); }
 
-  .rule {
-    height: 2px;
-    background: var(--ink);
-    opacity: 0.85;
-  }
-
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--line);
-    padding: var(--s3);
-    display: flex;
-    flex-direction: column;
-    gap: var(--s2);
-  }
+  .rule { height: 2px; background: var(--ink); opacity: 0.85; }
 
   /* ---------- masthead ---------- */
 
@@ -318,6 +305,8 @@
 
   tr.total td { font-weight: 700; background: var(--panel-2); border-top: 1.5px solid var(--line-strong); }
 
+  tr.base td { background: color-mix(in srgb, var(--accent) 8%, var(--panel)); font-weight: 700; }
+
   .pick { background: color-mix(in srgb, var(--accent) 9%, var(--panel)); }
   th.pick { color: var(--accent); }
 
@@ -335,12 +324,7 @@
 
   .variant.is-pick { border-top-color: var(--accent); }
 
-  .vhead {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--s1) var(--s2);
-  }
+  .vhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s2); }
 
   .vnum {
     font-family: var(--f-mono);
@@ -386,7 +370,7 @@
     background: var(--panel-2);
   }
 
-  .floor.tall { min-height: 104px; }
+  .floor.tall { min-height: 82px; }
 
   .floor[data-zone="sport"]   { background: color-mix(in srgb, var(--z-sport) var(--tint), var(--panel)); border-color: color-mix(in srgb, var(--z-sport) 45%, var(--panel)); }
   .floor[data-zone="class"]   { background: color-mix(in srgb, var(--z-class) var(--tint), var(--panel)); border-color: color-mix(in srgb, var(--z-class) 45%, var(--panel)); }
@@ -395,9 +379,18 @@
   .floor[data-zone="service"] { background: color-mix(in srgb, var(--z-service) var(--tint), var(--panel)); border-color: color-mix(in srgb, var(--z-service) 45%, var(--panel)); }
   .floor[data-zone="mixed"] {
     background: linear-gradient(100deg,
-      color-mix(in srgb, var(--z-public) var(--tint), var(--panel)) 0 55%,
-      color-mix(in srgb, var(--z-class) var(--tint), var(--panel)) 55% 100%);
+      color-mix(in srgb, var(--z-public) var(--tint), var(--panel)) 0 40%,
+      color-mix(in srgb, var(--z-sport) var(--tint), var(--panel)) 40% 70%,
+      color-mix(in srgb, var(--z-class) var(--tint), var(--panel)) 70% 100%);
   }
+
+  .floor-row { display: grid; grid-template-columns: 1fr; gap: 4px; }
+
+  @media (min-width: 620px) {
+    .floor-row { grid-template-columns: 1.35fr 1fr; }
+  }
+
+  .floor-row .floor { grid-template-columns: 72px 1fr auto; }
 
   .lvl {
     font-family: var(--f-mono);
@@ -423,18 +416,13 @@
     height: 12px;
     margin-top: 3px;
     border-top: 2px solid var(--line-strong);
-    background: repeating-linear-gradient(
-      -45deg,
-      var(--line-strong) 0 1px,
-      transparent 1px 7px
-    );
+    background: repeating-linear-gradient(-45deg, var(--line-strong) 0 1px, transparent 1px 7px);
   }
 
   .split { display: grid; grid-template-columns: 1fr; gap: var(--s2); }
 
-  @media (min-width: 720px) {
-    .split.t-shape { grid-template-columns: 0.85fr 1.15fr; align-items: end; }
-    .split.two-blocks { grid-template-columns: 1fr 1fr; align-items: end; }
+  @media (min-width: 760px) {
+    .split.two-blocks { grid-template-columns: 1.15fr 1fr; align-items: end; }
   }
 
   .blocklabel {
@@ -458,8 +446,7 @@
     padding: var(--s1) 0;
   }
 
-  .link-strip::before,
-  .link-strip::after {
+  .link-strip::before, .link-strip::after {
     content: "";
     flex: 1;
     border-top: 1px dashed var(--line-strong);
@@ -491,7 +478,9 @@
 
   /* ---------- lists ---------- */
 
-  ol.rules, ul.plain, ol.questions { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--s2); }
+  ol.rules, ol.questions { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--s2); }
+
+  ol.rules { counter-reset: r; }
 
   ol.rules > li {
     display: grid;
@@ -514,9 +503,9 @@
     padding-top: 0.28rem;
   }
 
-  ol.rules { counter-reset: r; }
-
   .qgroup { display: flex; flex-direction: column; gap: var(--s2); }
+
+  ol.questions { counter-reset: q var(--start, 0); }
 
   ol.questions > li {
     display: grid;
@@ -534,15 +523,39 @@
     color: var(--muted);
   }
 
-  ol.questions { counter-reset: q var(--start, 0); }
-
   .callout {
     border-left: 3px solid var(--accent);
     padding: 0.15rem 0 0.15rem var(--s2);
     font-size: 0.93rem;
-    color: var(--ink);
     max-width: 70ch;
   }
+
+  .callout.quiet { border-left-color: var(--line-strong); color: var(--muted); font-size: 0.88rem; }
+
+  .fits { display: grid; grid-template-columns: 1fr; gap: 0; border: 1px solid var(--line); background: var(--panel); }
+
+  .fits > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--s2);
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.92rem;
+  }
+
+  .fits > div:last-child { border-bottom: none; }
+
+  .yes, .no {
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .yes { color: var(--accent); }
+  .no { color: var(--z-public); font-weight: 700; }
 
   footer {
     border-top: 1px solid var(--line);
@@ -559,41 +572,85 @@
 
   <!-- ================= MASTHEAD ================= -->
   <header class="masthead">
-    <p class="eyebrow">Предпроектная проработка · рабочий документ</p>
-    <h1>Программа помещений и четыре варианта компоновки центра</h1>
+    <p class="eyebrow">Предпроектная проработка · редакция 2, задание уточнено</p>
+    <h1>Программа помещений и три варианта компоновки центра</h1>
     <p class="lede">
-      Состав помещений задан. Этажность, участок и конфигурация здания — нет.
-      Ниже: посчитанная программа, правила компоновки, которые верны при любой
-      этажности, и четыре схемы — от «горизонтальной» до «башни».
+      Спортивная часть уточнена: два помещения вместе 230 м², включая раздевалки.
+      Здание получается компактным — около 1 800 м² брутто, и главный
+      конструктивный конфликт первой редакции исчез.
     </p>
     <div class="stamp">
-      <span>Спорт 2 зала</span>
+      <span>Спорт 230 м²</span>
       <span>8 классов</span>
       <span>Зал встреч 120 м²</span>
       <span>Кафе и столовая</span>
-      <span>Спальный уровень: 3 квартиры + 5 комнат</span>
+      <span>3 квартиры + 5 комнат</span>
     </div>
 
     <div class="metrics">
-      <div class="metric"><span class="metric-v">1 676</span><span class="metric-l">м² полезной</span></div>
-      <div class="metric"><span class="metric-v">≈ 2 250</span><span class="metric-l">м² брутто (×1,35)</span></div>
-      <div class="metric"><span class="metric-v">250–300</span><span class="metric-l">человек на пике</span></div>
-      <div class="metric"><span class="metric-v">6,0 м</span><span class="metric-l">высота спортзала</span></div>
-      <div class="metric"><span class="metric-v">4</span><span class="metric-l">варианта компоновки</span></div>
+      <div class="metric"><span class="metric-v">1 334</span><span class="metric-l">м² полезной</span></div>
+      <div class="metric"><span class="metric-v">≈ 1 800</span><span class="metric-l">м² брутто (×1,35)</span></div>
+      <div class="metric"><span class="metric-v">250–280</span><span class="metric-l">человек на пике</span></div>
+      <div class="metric"><span class="metric-v">4,0 м</span><span class="metric-l">высота залов, не 6</span></div>
+      <div class="metric"><span class="metric-v">3</span><span class="metric-l">варианта компоновки</span></div>
     </div>
   </header>
+
+  <!-- ================= УТОЧНЕНИЕ ПО СПОРТУ ================= -->
+  <section>
+    <div class="head">
+      <p class="eyebrow">01 — Уточнение</p>
+      <h2>Что означает «230 м² вместе с раздевалками»</h2>
+      <div class="rule"></div>
+    </div>
+
+    <p>
+      За вычетом двух раздевалок и инвентарной на сами залы остаётся около
+      170 м² — то есть <strong>два помещения примерно по 85 м²</strong>.
+      Вот что туда помещается:
+    </p>
+
+    <div class="fits">
+      <div><span>Групповые занятия, аэробика, фитнес</span><span class="yes">Да · 12–16 человек</span></div>
+      <div><span>Единоборства, татами 8 × 8 м</span><span class="yes">Да · впритык</span></div>
+      <div><span>Гимнастика, растяжка, йога</span><span class="yes">Да · с запасом</span></div>
+      <div><span>Настольный теннис</span><span class="yes">Да · 2 стола</span></div>
+      <div><span>Волейбол, баскетбол, мини-футбол</span><span class="no">Нет · нужно ~280 м²</span></div>
+    </div>
+
+    <div class="pros">
+      <div>
+        <h4>Следствие 1 — высота</h4>
+        <p>Нужно 3,3–4,0 м вместо 6 м. Спортзал перестал быть «этажом в два роста» — исчез главный конфликт компоновки.</p>
+      </div>
+      <div>
+        <h4>Следствие 2 — конструктив</h4>
+        <p>85 м² ложатся на обычную сетку колонн 6 × 6 м. Ферм и перекрытий пролётом 18 м не нужно — это была самая дорогая позиция сметы.</p>
+      </div>
+      <div>
+        <h4>Следствие 3 — размер</h4>
+        <p>Здание похудело с 2 250 до 1 800 м² брутто. Вариант «башня» отпал: при такой площади вертикальная схема не даёт ничего, кроме затрат.</p>
+      </div>
+    </div>
+
+    <p class="callout">
+      Если под словом «спортзал» имелись в виду игровые виды спорта, 230 м² не
+      хватит — одна волейбольная площадка это 162 м² плюс зоны безопасности.
+      Дальше всё посчитано по вашей цифре.
+    </p>
+  </section>
 
   <!-- ================= ПРОГРАММА ================= -->
   <section>
     <div class="head">
-      <p class="eyebrow">01 — Программа</p>
-      <h2>Из чего складываются 1 676 м²</h2>
+      <p class="eyebrow">02 — Программа</p>
+      <h2>Из чего складываются 1 334 м²</h2>
       <div class="rule"></div>
     </div>
 
     <div class="barchart">
-      <div class="bar" role="img" aria-label="Доли блоков: спорт 572 м², классы 305 м², общественный 355 м², спальный 287 м², обслуживание 157 м²">
-        <div class="seg-sport"   style="flex: 572">572</div>
+      <div class="bar" role="img" aria-label="Доли блоков: спорт 230 м², классы 305 м², общественная часть 355 м², спальный уровень 287 м², обслуживание 157 м²">
+        <div class="seg-sport"   style="flex: 230">230</div>
         <div class="seg-class"   style="flex: 305">305</div>
         <div class="seg-public"  style="flex: 355">355</div>
         <div class="seg-sleep"   style="flex: 287">287</div>
@@ -611,105 +668,91 @@
     <div class="scroller">
       <table>
         <thead>
-          <tr>
-            <th>Блок</th>
-            <th>Состав</th>
-            <th class="num">м²</th>
-          </tr>
+          <tr><th>Блок</th><th>Состав</th><th class="num">м²</th></tr>
         </thead>
         <tbody>
           <tr>
-            <td>Спортивный</td>
-            <td>2 зала по 230 · 4 раздевалки с душевыми по 22 · 2 инвентарные по 12</td>
-            <td class="num">572</td>
+            <td>Спорт</td>
+            <td>2 зала по 85 · 2 раздевалки с душем по 20 · инвентарная 20</td>
+            <td class="num">230</td>
           </tr>
           <tr>
-            <td>Учебный</td>
+            <td>Классы</td>
             <td>Языковой 30 · «Братская» 40 · Студия 45 · «Драгоценные» 40 · 2 для маленьких по 35 · 2 для подростков по 40</td>
             <td class="num">305</td>
           </tr>
           <tr>
-            <td>Общественный</td>
+            <td>Общественная часть</td>
             <td>Зал встреч 120 · фойе 40 · кладовая 12 · кафе 70 · раздача 15 · столовая с кухней 80 · загрузочная 18</td>
             <td class="num">355</td>
           </tr>
           <tr>
-            <td>Спальный</td>
+            <td>Спальный уровень</td>
             <td>3 квартиры по 50 · 5 комнат по 17 · санблок 20 · кухня-гостиная 20 · постирочная 12</td>
             <td class="num">287</td>
           </tr>
           <tr>
             <td>Обслуживание</td>
-            <td>Вестибюль 45 · санузлы 4×12 · кладовые 4×4 · техпомещение 30 · администрация 18</td>
+            <td>Вестибюль 45 · санузлы 4 × 12 · кладовые 4 × 4 · техпомещение 30 · администрация 18</td>
             <td class="num">157</td>
           </tr>
-          <tr class="total">
-            <td>Полезная площадь</td>
-            <td>без коридоров, лестниц и стен</td>
-            <td class="num">1 676</td>
-          </tr>
-          <tr class="total">
-            <td>Площадь брутто</td>
-            <td>с коэффициентом 1,35</td>
-            <td class="num">≈ 2 250</td>
-          </tr>
+          <tr class="total"><td>Полезная площадь</td><td>без коридоров, лестниц и стен</td><td class="num">1 334</td></tr>
+          <tr class="total"><td>Площадь брутто</td><td>с коэффициентом 1,35</td><td class="num">≈ 1 800</td></tr>
         </tbody>
       </table>
     </div>
 
     <p class="callout">
-      Восемь классов сходятся точно по заданию. Всё остальное — раздевалки,
-      фойе, санузлы, техпомещение, загрузочная — добавлено, потому что без них
-      объект не работает. Эти строки можно менять: итог пересчитывается.
+      Восемь классов сходятся точно по заданию. Раздевалки, фойе, санузлы,
+      техпомещение и загрузочная добавлены, потому что без них объект не
+      работает — эти строки можно менять, итог пересчитывается.
     </p>
+  </section>
+
+  <!-- ================= КВАРТИРЫ ================= -->
+  <section>
+    <div class="head">
+      <p class="eyebrow">03 — Открытая цифра</p>
+      <h2>Квартиры: площадь не задана — вот вилка</h2>
+      <div class="rule"></div>
+      <p class="note">
+        Остальной спальный уровень — 5 комнат, общий санблок, кухня-гостиная,
+        постирочная — во всех строках одинаков: 137 м².
+      </p>
+    </div>
 
     <div class="scroller">
       <table>
         <thead>
           <tr>
-            <th>Этажность</th>
-            <th class="num">Пятно застройки</th>
-            <th>Что это значит</th>
+            <th>Квартира</th>
+            <th class="num">3 квартиры</th>
+            <th class="num">Спальный уровень</th>
+            <th class="num">Полезная всего</th>
+            <th class="num">Брутто</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>2 этажа</td><td class="num">≈ 1 130 м²</td><td>Самое дешёвое строительство, нужен большой участок</td></tr>
-          <tr><td>3 этажа</td><td class="num">≈ 750 м²</td><td>Оптимум по большинству критериев</td></tr>
-          <tr><td>4 этажа</td><td class="num">≈ 565 м²</td><td>Обязателен лифт, конструктив дороже</td></tr>
-          <tr><td>5 этажей</td><td class="num">≈ 450 м²</td><td>Высота уходит за 22 м — скачок требований и цены</td></tr>
+          <tr><td>40 м² — студия или одна спальня</td><td class="num">120</td><td class="num">257</td><td class="num">1 304</td><td class="num">≈ 1 760</td></tr>
+          <tr class="base"><td>50 м² — две спальни · базовый расчёт</td><td class="num">150</td><td class="num">287</td><td class="num">1 334</td><td class="num">≈ 1 800</td></tr>
+          <tr><td>65 м² — три спальни</td><td class="num">195</td><td class="num">332</td><td class="num">1 379</td><td class="num">≈ 1 860</td></tr>
+          <tr><td>80 м² — семейная</td><td class="num">240</td><td class="num">377</td><td class="num">1 424</td><td class="num">≈ 1 920</td></tr>
         </tbody>
       </table>
     </div>
-  </section>
 
-  <!-- ================= ДОПУЩЕНИЯ ================= -->
-  <section>
-    <div class="head">
-      <p class="eyebrow">02 — Допущения</p>
-      <h2>Три цифры, от которых зависит всё остальное</h2>
-      <div class="rule"></div>
-    </div>
-
-    <div class="pros">
-      <div>
-        <h4>«2 помещения 230 кв»</h4>
-        <p>Принято: <strong>два зала по 230 м²</strong> = 460 м². Если 230 м² суммарно — здание худеет примерно на 310 м² брутто и спокойно встаёт в два этажа.</p>
-      </div>
-      <div>
-        <h4>«Столовая с кухней 80 кв»</h4>
-        <p>Принято: <strong>80 м² вместе</strong> — обеденная зона 50 + кухня 30. Если 80 м² это только зал, кухню (+30–40 м²) надо добавлять сверху.</p>
-      </div>
-      <div>
-        <h4>Кафе и столовая</h4>
-        <p>Принято: зал кафе <strong>70 м², ~40 мест</strong>, кухня общая со столовой. Раздельные кухни — это +25 м² и второй комплект вытяжки.</p>
-      </div>
-    </div>
+    <p class="callout">
+      Разброс — всего 160 м² брутто, меньше 9 % здания. Спальный уровень при
+      любом раскладе умещается на верхнем этаже, поэтому <strong>вопрос о
+      квартирах не блокирует выбор компоновки.</strong> Схему можно выбирать
+      сейчас, а размер квартир уточнить позже.
+    </p>
   </section>
 
   <!-- ================= ПРАВИЛА ================= -->
   <section>
     <div class="head">
-      <p class="eyebrow">03 — Инварианты</p>
+      <p class="eyebrow">04 — Инварианты</p>
       <h2>Правила компоновки: действуют в любом варианте</h2>
       <div class="rule"></div>
       <p class="note">Это не выбор, а ограничения. Нарушение любого пункта позже стоит дорого.</p>
@@ -717,25 +760,25 @@
 
     <ol class="rules">
       <li><span><strong>Спальный уровень — всегда верхний.</strong> Отдельная лестница с контролем доступа и свой пожарный отсек. Жильцы не ходят через учебную зону, посетители не попадают в жилую.</span></li>
-      <li><span><strong>Спортзал и зал встреч — не под спальными комнатами и не под классами для маленьких.</strong> Ударный шум лечится только плавающим полом, а это дополнительные 40–60 мм и деньги.</span></li>
-      <li><span><strong>Кухня — на уровне земли</strong> или с грузовым лифтом. Ей нужны загрузка с улицы, мусорная камера и вытяжная шахта до кровли. Шахту закладывают на старте — потом её не провести.</span></li>
-      <li><span><strong>Мокрые точки — в один-два стояка:</strong> душевые раздевалок, кухня, санузлы по этажам, санузлы квартир. Разбросанные мокрые зоны — это лишние стояки и протечки над классами.</span></li>
-      <li><span><strong>Классы для маленьких — первый этаж, у выхода, со своим санузлом</strong> и по возможности с выходом на площадку. Не смежно с подростками и не рядом со спортзалом.</span></li>
+      <li><span><strong>Залы групповых занятий и зал встреч — не под спальными комнатами и не под классами для маленьких.</strong> Аэробика и прыжки дают ударный шум; лечится только плавающим полом — плюс 40–60 мм и деньги.</span></li>
+      <li><span><strong>Кухня — на уровне земли.</strong> Ей нужны загрузка с улицы, мусорная камера и вытяжная шахта до кровли. Шахту закладывают на старте — потом её не провести.</span></li>
+      <li><span><strong>Мокрые точки — в один-два стояка:</strong> душевые раздевалок, кухня, санузлы по этажам, санузлы квартир. Разбросанные мокрые зоны — лишние стояки и протечки над классами.</span></li>
+      <li><span><strong>Классы для маленьких — первый этаж, у выхода, со своим санузлом</strong> и по возможности с выходом на площадку. Не смежно с подростками.</span></li>
       <li><span><strong>Кафе — на входе, с витриной на улицу и автономным режимом:</strong> свой вход, свой санузел, отсекающая дверь. Тогда оно работает, когда остальной центр закрыт.</span></li>
-      <li><span><strong>Раздевалки — между входом и залом.</strong> Это разделение «грязной» и «чистой» зон; заход в зал в уличной обуви убивает покрытие за сезон.</span></li>
+      <li><span><strong>Раздевалки — между входом и залами.</strong> Это разделение «грязной» и «чистой» зон; заход в зал в уличной обуви убивает покрытие за сезон.</span></li>
       <li><span><strong>Студия шумная — ей нужен акустический карман:</strong> торец здания или буфер из кладовых. Не через стену от языкового класса и не под спальней.</span></li>
-      <li><span><strong>Модуль сетки 6,0 × 6,0 или 7,2 × 7,2 м.</strong> Классы 30–45 м² ложатся на него без потерь, а спортзалу нужен пролёт 12–18 м без колонн — это отдельная конструктивная система.</span></li>
-      <li><span><strong>Лифт обязателен от трёх этажей</strong> — и по доступности, и по логистике: бельё на спальный этаж, продукты на кухню, техника в зал.</span></li>
+      <li><span><strong>Сетка колонн 6,0 × 6,0 м — единая на всё здание.</strong> При залах по 85 м² отдельная конструктивная система не нужна: классы, залы и квартиры ложатся на один шаг. Заметная экономия.</span></li>
+      <li><span><strong>Лифт обязателен от трёх этажей</strong>, а при двух практически тоже — доступность и логистика: бельё наверх, продукты на кухню.</span></li>
     </ol>
   </section>
 
   <!-- ================= ВАРИАНТЫ ================= -->
   <section>
     <div class="head">
-      <p class="eyebrow">04 — Схемы</p>
-      <h2>Четыре варианта компоновки</h2>
+      <p class="eyebrow">05 — Схемы</p>
+      <h2>Три варианта компоновки</h2>
       <div class="rule"></div>
-      <p class="note">Схемы читаются снизу вверх: нижняя полоса — уровень земли (штриховка). Высота полосы отражает высоту этажа.</p>
+      <p class="note">Схемы читаются снизу вверх: нижняя полоса — уровень земли (штриховка).</p>
       <div class="legend">
         <span><i class="swatch sw-sport"></i>Спорт</span>
         <span><i class="swatch sw-class"></i>Классы</span>
@@ -747,225 +790,143 @@
 
     <div class="variants">
 
-      <!-- ВАРИАНТ 1 -->
+      <!-- ВАРИАНТ A -->
       <article class="variant">
         <div class="vhead">
-          <span class="vnum">Вариант 1</span>
-          <h3>«Компактный» — 3 этажа в одном объёме</h3>
+          <span class="vnum">Вариант A</span>
+          <h3>Два этажа</h3>
         </div>
         <div class="facts">
-          <span>Пятно <b>750–800 м²</b></span>
-          <span>Высота <b>~13 м</b></span>
-          <span>Конструктив <b>сложный</b></span>
-          <span>Стоимость <b>+10–15 %</b></span>
+          <span>Пятно <b>950–1 000 м²</b></span>
+          <span>Высота <b>~8 м</b></span>
+          <span>Стоимость <b>база</b></span>
+          <span>Лифт <b>желателен</b></span>
         </div>
 
         <div class="diagram">
           <div class="stack">
-            <div class="floor" data-zone="sleep">
-              <span class="lvl">3 этаж</span>
-              <span class="fn">Спальный уровень<em>3 квартиры, 5 комнат, общий санблок, постирочная</em></span>
-              <span class="area">287 м²</span>
+            <div class="floor-row">
+              <div class="floor" data-zone="class">
+                <span class="lvl">2 этаж</span>
+                <span class="fn">Языковой, «Братская», «Драгоценные», 2 класса подростков, студия<em>администрация, санузлы</em></span>
+                <span class="area">285 м²</span>
+              </div>
+              <div class="floor" data-zone="sleep">
+                <span class="lvl">2 этаж</span>
+                <span class="fn">Спальное крыло<em>3 квартиры + 5 комнат, своя лестница и СКУД</em></span>
+                <span class="area">287 м²</span>
+              </div>
             </div>
-            <div class="floor" data-zone="mixed">
-              <span class="lvl">2 этаж</span>
-              <span class="fn">Зал общих встреч с фойе · 8 классов · студия<em>вся учебная и собранческая функция на одном уровне</em></span>
-              <span class="area">477 м²</span>
-            </div>
-            <div class="floor" data-zone="public">
-              <span class="lvl">1 этаж<br>верх</span>
-              <span class="fn">Вестибюль · кафе · столовая с кухней и загрузочной</span>
-              <span class="area">228 м²</span>
-            </div>
-            <div class="floor tall" data-zone="sport">
-              <span class="lvl">1 этаж<br>h = 6 м</span>
-              <span class="fn">Спортзал 1 (230) · Спортзал 2 (230) · раздевалки<em>над залами — перекрытие пролётом 12–18 м</em></span>
-              <span class="area">572 м²</span>
+            <div class="floor tall" data-zone="mixed">
+              <span class="lvl">1 этаж</span>
+              <span class="fn">Вестибюль · кафе · столовая с кухней · зал общих встреч с фойе · спорт: 2 зала по 85 с раздевалками · 2 класса для маленьких<em>вся публичная и шумная функция на земле</em></span>
+              <span class="area">762 м²</span>
             </div>
           </div>
           <div class="ground"></div>
         </div>
 
         <div class="pros">
-          <div><h4>Плюс</h4><p>Минимальный участок, одна инженерная система, короткие связи между функциями.</p></div>
-          <div><h4>Минус</h4><p>Перекрытие над спортзалами пролётом 12–18 м — самая дорогая позиция сметы. Первый этаж высотой 6 м съедает высоту здания. Кафе и спорт конкурируют за фасад.</p></div>
-          <div><h4>Когда брать</h4><p>Участок маленький и дорогой, строим в один этап.</p></div>
+          <div><h4>Плюс</h4><p>Дешевле всего строить и эксплуатировать. Кухня и спорт на земле, эвакуация простая, лифт формально не обязателен.</p></div>
+          <div><h4>Минус</h4><p>Спальная зона оказывается на одном этаже с классами — нужно выделять крыло со своей лестницей и отсечкой, иначе правило 1 нарушено. Самое большое пятно и самая большая кровля.</p></div>
+          <div><h4>Когда брать</h4><p>Участок широкий, приоритет — минимальная стоимость строительства.</p></div>
         </div>
       </article>
 
-      <!-- ВАРИАНТ 2 -->
+      <!-- ВАРИАНТ B -->
       <article class="variant is-pick">
         <div class="vhead">
-          <span class="vnum">Вариант 2</span>
-          <h3>«Т-образный» — спортблок на земле + корпус в 3 этажа</h3>
+          <span class="vnum">Вариант B</span>
+          <h3>Три этажа с уступом</h3>
           <span class="tag">Рекомендуется</span>
         </div>
         <div class="facts">
-          <span>Пятно <b>~1 200 м²</b></span>
-          <span>Высота <b>~13 м</b></span>
-          <span>Конструктив <b>простой</b></span>
-          <span>Стоимость <b>база</b></span>
+          <span>Пятно <b>750–780 м²</b></span>
+          <span>Высота <b>~11 м</b></span>
+          <span>Стоимость <b>+3–5 %</b></span>
+          <span>Лифт <b>обязателен</b></span>
         </div>
 
-        <div class="split t-shape">
-          <div>
-            <p class="blocklabel">Спортблок · 1 этаж</p>
-            <div class="diagram">
-              <div class="stack">
-                <div class="floor tall" data-zone="sport">
-                  <span class="lvl">h = 6 м</span>
-                  <span class="fn">Зал 1 · Зал 2 · раздевалки<em>лёгкая кровля, свой вход с торца, кровля — терраса для 2 этажа</em></span>
-                  <span class="area">572 м²</span>
-                </div>
-              </div>
-              <div class="ground"></div>
+        <div class="diagram">
+          <div class="stack">
+            <div class="floor" data-zone="sleep">
+              <span class="lvl">3 этаж</span>
+              <span class="fn">Спальный уровень целиком<em>3 квартиры + 5 комнат · отдельная лестница и СКУД · кровля 2 этажа становится террасой</em></span>
+              <span class="area">291 м²</span>
+            </div>
+            <div class="floor" data-zone="class">
+              <span class="lvl">2 этаж</span>
+              <span class="fn">Зал общих встреч с фойе · языковой, «Братская», «Драгоценные», 2 класса подростков, студия</span>
+              <span class="area">453 м²</span>
+            </div>
+            <div class="floor" data-zone="public">
+              <span class="lvl">1 этаж</span>
+              <span class="fn">Вестибюль · кафе · столовая с кухней · спорт: 2 зала по 85 с раздевалками · 2 класса для маленьких</span>
+              <span class="area">590 м²</span>
             </div>
           </div>
-          <div>
-            <p class="blocklabel">Основной корпус · 3 этажа</p>
-            <div class="diagram">
-              <div class="stack">
-                <div class="floor" data-zone="sleep">
-                  <span class="lvl">3 этаж</span>
-                  <span class="fn">Спальный уровень<em>3 квартиры, 5 комнат</em></span>
-                  <span class="area">287 м²</span>
-                </div>
-                <div class="floor" data-zone="class">
-                  <span class="lvl">2 этаж</span>
-                  <span class="fn">Зал встреч с фойе · языковой, «Братская», «Драгоценные», 2 класса подростков · студия</span>
-                  <span class="area">407 м²</span>
-                </div>
-                <div class="floor" data-zone="public">
-                  <span class="lvl">1 этаж</span>
-                  <span class="fn">Вестибюль · кафе · столовая с кухней · 2 класса для маленьких с санузлом</span>
-                  <span class="area">298 м²</span>
-                </div>
-              </div>
-              <div class="ground"></div>
-            </div>
-          </div>
+          <div class="ground"></div>
         </div>
 
         <div class="pros">
-          <div><h4>Плюс</h4><p>Спортзал стоит на земле под лёгкой кровлей — конструктив простой и дешёвый, высота 6 м никому не мешает. Шум спорта физически отрезан. Блок строится вторым этапом и сдаётся в аренду отдельно.</p></div>
-          <div><h4>Минус</h4><p>Участок нужен шире; больше площадь кровли и наружных стен — чуть выше теплопотери.</p></div>
-          <div><h4>Когда брать</h4><p>Участок позволяет. Самый предсказуемый по стоимости и самый гибкий по этапности вариант.</p></div>
+          <div><h4>Плюс</h4><p>Спальный уровень получает целый отдельный этаж — свой замок, никто через него не ходит. Кухня и спорт на земле. Пятно на четверть меньше, чем в A: остаётся место под парковку и площадку. Уступ даёт террасу для жилого уровня — бонус, а не проблема.</p></div>
+          <div><h4>Минус</h4><p>Обязателен лифт и вторая лестница. В местах уступа конструктив чуть сложнее.</p></div>
+          <div><h4>Когда брать</h4><p>По умолчанию. Лучший баланс участка, разделения функций и стоимости.</p></div>
         </div>
       </article>
 
-      <!-- ВАРИАНТ 3 -->
+      <!-- ВАРИАНТ C -->
       <article class="variant">
         <div class="vhead">
-          <span class="vnum">Вариант 3</span>
-          <h3>«Два корпуса» — шумный и тихий, тёплый переход между ними</h3>
+          <span class="vnum">Вариант C</span>
+          <h3>Два крыла под углом</h3>
         </div>
         <div class="facts">
-          <span>Пятно <b>1 300–1 600 м²</b></span>
-          <span>Высота <b>~11 м</b></span>
-          <span>Конструктив <b>простой</b></span>
-          <span>Стоимость <b>+5 %</b></span>
+          <span>Пятно <b>1 250–1 300 м²</b></span>
+          <span>Высота <b>~8 м</b></span>
+          <span>Стоимость <b>+5–8 %</b></span>
+          <span>Очередями <b>да</b></span>
         </div>
 
         <div class="split two-blocks">
           <div>
-            <p class="blocklabel">Корпус А · публичный</p>
+            <p class="blocklabel">Крыло А · публичное · 1 этаж</p>
             <div class="diagram">
               <div class="stack">
-                <div class="floor" data-zone="public">
-                  <span class="lvl">2 этаж</span>
-                  <span class="fn">Кафе с отдельным входом · столовая с кухней</span>
-                  <span class="area">183 м²</span>
-                </div>
-                <div class="floor tall" data-zone="sport">
-                  <span class="lvl">1 этаж<br>h = 6 м</span>
-                  <span class="fn">Спортзал 1 · Спортзал 2 · раздевалки</span>
-                  <span class="area">572 м²</span>
+                <div class="floor tall" data-zone="public">
+                  <span class="lvl">1 этаж</span>
+                  <span class="fn">Спорт: 2 зала с раздевалками · кафе со своим входом · столовая с кухней · зал общих встреч с фойе<em>работает по своему графику, можно сдавать</em></span>
+                  <span class="area">613 м²</span>
                 </div>
               </div>
               <div class="ground"></div>
             </div>
           </div>
           <div>
-            <p class="blocklabel">Корпус Б · приватный</p>
+            <p class="blocklabel">Крыло Б · приватное · 2 этажа</p>
             <div class="diagram">
               <div class="stack">
                 <div class="floor" data-zone="sleep">
-                  <span class="lvl">3 этаж</span>
-                  <span class="fn">Спальный уровень<em>3 квартиры, 5 комнат</em></span>
-                  <span class="area">287 м²</span>
+                  <span class="lvl">2 этаж</span>
+                  <span class="fn">Спальный уровень<em>3 квартиры + 5 комнат</em></span>
+                  <span class="area">291 м²</span>
                 </div>
                 <div class="floor" data-zone="class">
-                  <span class="lvl">2 этаж</span>
-                  <span class="fn">8 классов, включая студию</span>
-                  <span class="area">305 м²</span>
-                </div>
-                <div class="floor" data-zone="service">
                   <span class="lvl">1 этаж</span>
-                  <span class="fn">Вестибюль · зал общих встреч с фойе · администрация</span>
-                  <span class="area">235 м²</span>
+                  <span class="fn">Вестибюль · 8 классов, включая студию · администрация</span>
+                  <span class="area">430 м²</span>
                 </div>
               </div>
               <div class="ground"></div>
             </div>
           </div>
         </div>
-        <p class="link-strip">Тёплый переход</p>
+        <p class="link-strip">Связь между крыльями</p>
 
         <div class="pros">
-          <div><h4>Плюс</h4><p>Полное разделение режимов и контроля доступа: кафе и спорт живут своим графиком, учебная и жилая часть закрыты. Две очереди строительства. Пожарные отсеки разделены естественно.</p></div>
-          <div><h4>Минус</h4><p>Самый большой участок, две инженерные трассы, дублирование лестниц, санузлов и вестибюлей — плюс 5–8 % площади. Переход зимой — отдельная статья.</p></div>
-          <div><h4>Когда брать</h4><p>Участок большой, строим очередями, спорт и кафе планируем монетизировать отдельно.</p></div>
-        </div>
-      </article>
-
-      <!-- ВАРИАНТ 4 -->
-      <article class="variant">
-        <div class="vhead">
-          <span class="vnum">Вариант 4</span>
-          <h3>«Башня» — 5 уровней на минимальном пятне</h3>
-        </div>
-        <div class="facts">
-          <span>Пятно <b>450–500 м²</b></span>
-          <span>Высота <b>~24 м</b></span>
-          <span>Конструктив <b>очень сложный</b></span>
-          <span>Стоимость <b>+30–40 %</b></span>
-        </div>
-
-        <div class="diagram">
-          <div class="stack">
-            <div class="floor" data-zone="sleep">
-              <span class="lvl">5 этаж</span>
-              <span class="fn">Спальный уровень</span>
-              <span class="area">287 м²</span>
-            </div>
-            <div class="floor" data-zone="class">
-              <span class="lvl">4 этаж</span>
-              <span class="fn">8 классов, включая студию</span>
-              <span class="area">305 м²</span>
-            </div>
-            <div class="floor" data-zone="public">
-              <span class="lvl">3 этаж</span>
-              <span class="fn">Зал встреч · кафе · столовая с кухней<em>кухня требует грузового лифта и шахты через два жилых уровня</em></span>
-              <span class="area">355 м²</span>
-            </div>
-            <div class="floor tall" data-zone="sport">
-              <span class="lvl">2 этаж<br>h = 6 м</span>
-              <span class="fn">Спортзал 2 · раздевалки<em>зал над залом: перекрытие 18 м под спортивную нагрузку</em></span>
-              <span class="area">274 м²</span>
-            </div>
-            <div class="floor tall" data-zone="sport">
-              <span class="lvl">1 этаж<br>h = 6 м</span>
-              <span class="fn">Спортзал 1 · раздевалки · инвентарные · вестибюль</span>
-              <span class="area">343 м²</span>
-            </div>
-          </div>
-          <div class="ground"></div>
-        </div>
-
-        <div class="pros">
-          <div><h4>Плюс</h4><p>Минимально возможное пятно застройки.</p></div>
-          <div><h4>Минус</h4><p>Почти всё остальное. Отметка верхнего этажа около 24 м — во многих нормах это уже высотное здание: пожарные лифты, незадымляемые лестницы, спринклеры.</p></div>
-          <div><h4>Когда брать</h4><p>Только если участок физически не даёт другого решения.</p></div>
+          <div><h4>Плюс</h4><p>Полное разделение режимов: крыло А открыто, когда центр закрыт, крыло Б на СКУД. Строится двумя очередями. Пожарные отсеки разделены естественно. Всего 2 этажа — лифт нужен только в Б.</p></div>
+          <div><h4>Минус</h4><p>Самое большое пятно, длиннее инженерные трассы, дублируются санузлы и лестницы — плюс 5–8 % площади, больше наружных стен и кровли.</p></div>
+          <div><h4>Когда брать</h4><p>Участок большой; строим этапами; спорт и кафе планируем монетизировать отдельно.</p></div>
         </div>
       </article>
 
@@ -975,7 +936,7 @@
   <!-- ================= СРАВНЕНИЕ ================= -->
   <section>
     <div class="head">
-      <p class="eyebrow">05 — Выбор</p>
+      <p class="eyebrow">06 — Выбор</p>
       <h2>Сравнение и рекомендация</h2>
       <div class="rule"></div>
     </div>
@@ -985,87 +946,87 @@
         <thead>
           <tr>
             <th>Критерий</th>
-            <th>В1 Компактный</th>
-            <th class="pick">В2 Т-образный</th>
-            <th>В3 Два корпуса</th>
-            <th>В4 Башня</th>
+            <th>A — 2 этажа</th>
+            <th class="pick">B — 3 этажа</th>
+            <th>C — два крыла</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>Пятно застройки</td><td>750–800 м²</td><td class="pick">~1 200 м²</td><td>1 300–1 600 м²</td><td>450–500 м²</td></tr>
-          <tr><td>Этажность</td><td>3</td><td class="pick">1 + 3</td><td>2 и 3</td><td>5</td></tr>
-          <tr><td>Высота здания</td><td>~13 м</td><td class="pick">~13 м</td><td>~11 м</td><td>~24 м</td></tr>
-          <tr><td>Сложность конструктива</td><td>Высокая</td><td class="pick">Низкая</td><td>Низкая</td><td>Очень высокая</td></tr>
-          <tr><td>Стоимость м²</td><td>+10–15 %</td><td class="pick">База</td><td>+5 %</td><td>+30–40 %</td></tr>
-          <tr><td>Развязка шума спорта</td><td>Средняя</td><td class="pick">Отличная</td><td>Отличная</td><td>Плохая</td></tr>
-          <tr><td>Контроль доступа</td><td>Средний</td><td class="pick">Хороший</td><td>Отличный</td><td>Средний</td></tr>
-          <tr><td>Строительство очередями</td><td>Нет</td><td class="pick">Да, спортблок</td><td>Да, по корпусам</td><td>Нет</td></tr>
-          <tr><td>Эксплуатация и инженерия</td><td>Компактно</td><td class="pick">Компактно</td><td>Дублирование</td><td>Сложно</td></tr>
+          <tr><td>Пятно застройки</td><td>950–1 000 м²</td><td class="pick">750–780 м²</td><td>1 250–1 300 м²</td></tr>
+          <tr><td>Этажность</td><td>2</td><td class="pick">3</td><td>1 и 2</td></tr>
+          <tr><td>Высота здания</td><td>~8 м</td><td class="pick">~11 м</td><td>~8 м</td></tr>
+          <tr><td>Стоимость м²</td><td>База</td><td class="pick">+3–5 %</td><td>+5–8 %</td></tr>
+          <tr><td>Обособленность спального уровня</td><td>Средняя — крыло</td><td class="pick">Отличная — этаж</td><td>Отличная — крыло</td></tr>
+          <tr><td>Контроль доступа</td><td>Средний</td><td class="pick">Хороший</td><td>Отличный</td></tr>
+          <tr><td>Кухня на земле</td><td>Да</td><td class="pick">Да</td><td>Да</td></tr>
+          <tr><td>Строительство очередями</td><td>Нет</td><td class="pick">Нет</td><td>Да</td></tr>
+          <tr><td>Свободное место на участке</td><td>Мало</td><td class="pick">Много</td><td>Мало</td></tr>
         </tbody>
       </table>
     </div>
 
     <p class="callout">
-      <strong>Рекомендация — вариант 2.</strong> Он снимает главный конфликт
-      задачи: спортзал высотой в два обычных этажа внутри трёхэтажного здания.
-      Поставив спортблок на землю отдельным объёмом, вы получаете дешёвый
-      конструктив, честную шумоизоляцию, возможность строить в два этапа и
-      сдавать спорт в аренду. Вариант 3 — если участок большой и монетизация
-      принципиальна. Вариант 1 — если участок тесный. Вариант 4 — только при
-      отсутствии альтернатив.
+      <strong>Рекомендация — вариант B.</strong> После уточнения по спорту
+      здание стало компактным, и трёхэтажная схема даёт лучшее: спальный уровень
+      получает целый отдельный этаж, кухня и спорт остаются на земле, а пятно на
+      четверть меньше, чем в двухэтажном варианте — освободившееся место уйдёт
+      на парковку и детскую площадку, которые всё равно понадобятся.
+      Вариант C — если участок большой и важно строить очередями. Вариант A —
+      если приоритет строго минимальная стоимость, а участок широкий.
+    </p>
+
+    <p class="callout quiet">
+      К первой редакции: там рекомендовался Т-образный вариант с отдельным
+      одноэтажным спортблоком. Его единственный смысл был в том, чтобы вынести
+      из здания зал высотой 6 м с пролётом 18 м. При 230 м² такого зала нет —
+      вместе с ним отпала и причина усложнять форму здания.
     </p>
 
     <p class="note">
-      Отдельно к сведению: зал общих встреч на 120 м² вмещает 100–120 человек и
-      остаётся ниже порога в 200 посетителей, с которого во многих юрисдикциях
+      Отдельно: зал общих встреч на 120 м² вмещает 100–120 человек и остаётся
+      ниже порога в 200 посетителей, с которого во многих юрисдикциях
       включаются требования к зрелищным залам. Увеличение зала «на всякий
-      случай» может оказаться дороже, чем кажется — стоит проверить по нормам
-      страны строительства.
+      случай» может выйти дороже, чем кажется — проверить по нормам страны
+      строительства.
     </p>
   </section>
 
   <!-- ================= ВОПРОСЫ ================= -->
   <section>
     <div class="head">
-      <p class="eyebrow">06 — Открытые вопросы</p>
-      <h2>Что нужно уточнить до эскиза</h2>
+      <p class="eyebrow">07 — Открытые вопросы</p>
+      <h2>Что нужно уточнить</h2>
       <div class="rule"></div>
-      <p class="note">Пока нет ответов, цифры выше — рабочая гипотеза, а не проект.</p>
+      <p class="note">Закрыто: состав и площадь спорта, состав восьми классов, площадь зала встреч.</p>
     </div>
 
     <div class="qgroup">
-      <h3>По участку</h3>
+      <h3>Влияет на площадь</h3>
       <ol class="questions">
-        <li>Размеры, форма и уклон участка; сколько метров можно застроить.</li>
-        <li>Ограничения по этажности и высоте по местным правилам застройки.</li>
-        <li>Требуемое число парковочных мест — при 250–300 посетителях это съест значительную часть участка.</li>
-        <li>Страна и нормы проектирования: от них зависят эвакуация, зал встреч, кухня, спальный уровень.</li>
-      </ol>
-    </div>
-
-    <div class="qgroup">
-      <h3>По функции</h3>
-      <ol class="questions" style="--start: 4">
-        <li>«2 помещения 230 кв» — каждое по 230 или 230 суммарно?</li>
-        <li>Какой спорт в залах: игровые виды (высота 7 м, пролёт 18 м) или групповые занятия и фитнес (хватит 5,5 м)?</li>
+        <li>Кафе: сколько посадочных мест? Сейчас принято 70 м² на ~40 мест.</li>
         <li>«Столовая с кухней 80 кв» — 80 м² вместе с кухней или кухня сверху?</li>
-        <li>Кафе и столовая — одна кухня или две? Кафе работает на улицу или только для своих?</li>
-        <li>Сколько человек в самом большом классе: 2,0–2,5 м² на человека для сидячих занятий, от 3 м² для малышей.</li>
-        <li>Спальный уровень: постоянное проживание или гостевой формат, состав квартир, нужны ли санузлы в каждой комнате.</li>
+        <li>Кафе и столовая — одна кухня или две? Общая экономит около 25 м² и второй комплект вытяжки.</li>
+        <li>Квартиры: 40, 50, 65 или 80 м²? Разброс — 160 м² брутто; выбор варианта не блокирует.</li>
+        <li>Комнаты: санузел в каждой или общий санблок? Индивидуальные — плюс 25 м².</li>
+        <li>Классы: сколько человек в самом большом? 2,0–2,5 м² на человека для сидячих занятий, от 3 м² для малышей.</li>
       </ol>
     </div>
 
     <div class="qgroup">
-      <h3>По проекту</h3>
-      <ol class="questions" style="--start: 10">
-        <li>Бюджет и очерёдность: строим всё сразу или этапами.</li>
-        <li>Требования по доступности для маломобильных — лифт, пандусы, доступные санузлы; обычно они есть и влияют на планировку всех уровней.</li>
+      <h3>Влияет на выбор варианта</h3>
+      <ol class="questions" style="--start: 6">
+        <li><strong>Размеры и форма участка</strong>, сколько метров можно застроить. Главный вопрос: он один решает между A, B и C.</li>
+        <li>Ограничения по этажности и высоте по местным правилам застройки.</li>
+        <li>Парковка: сколько мест требуется. При 250–280 посетителях это может съесть больше площади, чем само здание.</li>
+        <li>Строим сразу или очередями? Если очередями — вариант C.</li>
+        <li>Страна и нормы проектирования: от них зависят эвакуация, зал встреч, кухня, спальный уровень.</li>
+        <li>Доступность для маломобильных: лифт, пандусы, доступные санузлы. Обычно требуется и влияет на планировку всех уровней.</li>
       </ol>
     </div>
   </section>
 
   <footer>
-    Предпроектная проработка · площади ориентировочные · перед эскизом нужен обмер участка и местный архитектор
+    Редакция 2 · площади ориентировочные · перед эскизом нужен обмер участка и местный архитектор
   </footer>
 
 </div>
