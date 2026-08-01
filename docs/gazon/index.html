@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Покос травы по абонементу</title>
+<meta name="description" content="Регулярный покос газона по абонементу: фиксированная плата в месяц, свой день недели, договор.">
+<meta name="theme-color" content="#2f5d34">
+<style>
+  :root{
+    --green:#2f5d34; --green-d:#224526; --green-l:#e7f0e4;
+    --sun:#e0b53f; --ink:#1b1f1c; --muted:#5d665e;
+    --line:#d8ded6; --bg:#f6f7f3; --card:#fff;
+    --r:14px; --shadow:0 1px 3px rgba(20,40,20,.08),0 6px 20px rgba(20,40,20,.06);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  .wrap{max-width:620px;margin:0 auto;padding:0 16px}
+  h1,h2,h3{line-height:1.2;margin:0}
+  h2{font-size:22px;margin:0 0 12px}
+  p{margin:0 0 10px}
+
+  header{
+    position:sticky;top:0;z-index:20;background:var(--green);color:#fff;
+    padding:10px 0;box-shadow:0 1px 8px rgba(0,0,0,.15)
+  }
+  header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{font-weight:800;font-size:16px;letter-spacing:-.01em}
+  .brand span{display:block;font-weight:500;font-size:11px;opacity:.85;letter-spacing:.04em}
+  .lang{display:flex;background:rgba(255,255,255,.16);border-radius:999px;padding:3px;gap:2px}
+  .lang button{
+    border:0;background:transparent;color:#fff;font:inherit;font-size:13px;font-weight:700;
+    padding:5px 11px;border-radius:999px;cursor:pointer;opacity:.75
+  }
+  .lang button[aria-pressed="true"]{background:#fff;color:var(--green);opacity:1}
+
+  .hero{background:var(--green);color:#fff;padding:22px 0 30px;text-align:center}
+  .hero h1{font-size:27px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+  .hero p{color:#dbe8d8;margin:0 auto 18px;max-width:26em}
+  .cta{
+    display:inline-block;background:var(--sun);color:#241f00;text-decoration:none;
+    font-weight:800;font-size:16px;padding:13px 26px;border-radius:999px;border:0;
+    cursor:pointer;font-family:inherit;box-shadow:0 3px 0 #b8901f
+  }
+  .cta:active{transform:translateY(2px);box-shadow:0 1px 0 #b8901f}
+  .pills{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:18px}
+  .pills span{
+    background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);
+    font-size:12.5px;padding:5px 11px;border-radius:999px
+  }
+
+  section{padding:26px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--shadow)}
+
+  .calc{margin-top:-22px;scroll-margin-top:62px}
+  .calc .card{border-color:#c6d4c2}
+  label.fld{display:block;font-size:13px;font-weight:700;color:var(--muted);margin:0 0 6px}
+  .unit{display:flex;gap:8px;align-items:stretch;margin-bottom:14px}
+  .unit input{
+    flex:1;min-width:0;font:inherit;font-size:20px;font-weight:700;padding:11px 13px;
+    border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)
+  }
+  .unit input:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
+  .seg{display:flex;background:#eceee9;border-radius:10px;padding:3px;gap:2px}
+  .seg button{
+    border:0;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--muted);
+    padding:0 12px;border-radius:8px;cursor:pointer;white-space:nowrap
+  }
+  .seg button[aria-pressed="true"]{background:#fff;color:var(--green);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+  input[type=range]{width:100%;margin:0 0 16px;accent-color:var(--green)}
+
+  .plans{display:grid;gap:8px;margin-bottom:14px}
+  .plan{
+    display:flex;align-items:center;gap:11px;border:1.5px solid var(--line);border-radius:11px;
+    padding:11px 13px;cursor:pointer;background:#fff
+  }
+  .plan input{accent-color:var(--green);width:19px;height:19px;flex:none;margin:0}
+  .plan .t{flex:1;min-width:0}
+  .plan .t b{display:block;font-size:15px}
+  .plan .t small{color:var(--muted);font-size:12.5px}
+  .plan .pr{font-weight:800;font-size:17px;white-space:nowrap;text-align:right}
+  .plan .pr small{display:block;font-weight:600;font-size:11px;color:var(--muted)}
+  .plan[data-on="1"]{border-color:var(--green);background:var(--green-l)}
+  .badge{
+    display:inline-block;background:var(--sun);color:#241f00;font-size:10.5px;font-weight:800;
+    padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;letter-spacing:.03em
+  }
+
+  .total{background:var(--green-l);border-radius:11px;padding:13px 15px;margin-bottom:14px}
+  .total .big{font-size:30px;font-weight:800;color:var(--green-d);letter-spacing:-.02em;line-height:1.1}
+  .total .sub{font-size:13.5px;color:#42604a;margin-top:4px}
+  .save{font-size:13.5px;color:var(--green-d);font-weight:700;margin-top:8px}
+
+  .form{display:grid;gap:9px;margin-bottom:13px}
+  .form input{
+    font:inherit;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;
+    background:#fff;color:var(--ink);width:100%
+  }
+  .form input:focus{outline:2px solid var(--green);outline-offset:1px;border-color:var(--green)}
+  .actions{display:grid;gap:8px}
+  .btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+    font:inherit;font-weight:800;font-size:16px;padding:14px;border-radius:11px;border:0;
+    cursor:pointer;text-align:center
+  }
+  .btn-wa{background:#25d366;color:#052b13}
+  .btn-tg{background:#2ba0da;color:#03212f}
+  .btn-tel{background:var(--green);color:#fff}
+  .btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+  .btn:active{transform:translateY(1px)}
+  .fineprint{font-size:12px;color:var(--muted);margin:10px 0 0;text-align:center}
+
+  ul.ticks{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+  ul.ticks li{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+  ul.ticks li::before{content:"";flex:none;width:20px;height:20px;margin-top:1px;border-radius:50%;
+    background:var(--green-l) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232f5d34' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center/13px no-repeat}
+
+  table.px{width:100%;border-collapse:collapse;font-size:14.5px}
+  table.px td{padding:9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  table.px tr:last-child td{border-bottom:0}
+  table.px td+td{text-align:right;font-weight:700;white-space:nowrap;padding-left:12px}
+  table.px td small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+
+  ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:13px}
+  ol.steps li{display:flex;gap:12px;align-items:flex-start;font-size:15px}
+  ol.steps li::before{
+    counter-increment:s;content:counter(s);flex:none;width:27px;height:27px;border-radius:50%;
+    background:var(--green);color:#fff;font-weight:800;font-size:14px;
+    display:flex;align-items:center;justify-content:center
+  }
+
+  details{border-bottom:1px solid var(--line);padding:11px 0}
+  details:last-of-type{border-bottom:0}
+  summary{font-weight:700;cursor:pointer;list-style:none;font-size:15px;display:flex;gap:10px;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";margin-left:auto;color:var(--green);font-weight:800;font-size:20px;line-height:1}
+  details[open] summary::after{content:"–"}
+  details p{margin:8px 0 0;color:var(--muted);font-size:14.5px}
+
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .gallery figure{margin:0}
+  .gallery img{width:100%;border-radius:10px;display:block;background:#e5e9e2}
+  .gallery figcaption{font-size:12px;color:var(--muted);margin-top:4px;text-align:center}
+
+  footer{background:var(--green-d);color:#cfe0cd;padding:26px 0 34px;text-align:center;font-size:14px}
+  footer a{color:#fff;font-weight:700}
+  footer .tel{font-size:21px;font-weight:800;color:#fff;text-decoration:none;display:inline-block;margin:6px 0 12px}
+
+  .sticky{
+    position:sticky;bottom:0;z-index:15;background:rgba(246,247,243,.94);
+    backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px 0 max(10px,env(safe-area-inset-bottom))
+  }
+  .sticky .wrap{display:flex;gap:8px}
+  .sticky .btn{flex:1;font-size:15px;padding:13px}
+  .hidden{display:none!important}
+  .toast{
+    position:fixed;left:50%;bottom:86px;transform:translateX(-50%) translateY(12px);
+    background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:14px;font-weight:700;
+    opacity:0;transition:.2s;pointer-events:none;z-index:40
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- ================================================================
+     НАСТРОЙКИ. Меняются только эти два блока — остальное трогать не нужно.
+     ================================================================ -->
+<script>
+const CONTACT = {
+  name:     "",                 // как называться: имя или название («Газон Сервис»)
+  area:     "",                 // где работаете: «Кишинёв и пригороды»
+  whatsapp: "",                 // номер без + и без пробелов, например 37360123456
+  telegram: "",                 // username без @
+  phone:    ""                  // для кнопки «позвонить», например +37360123456
+};
+
+// ЦЕНЫ — ЭТО ПРИМЕР. Подставьте свои, посчитанные по формуле из dogovor-gazon/README.md
+const PRICING = {
+  ratePerSotka:   120,          // лей в месяц за сотку (базовая ставка)
+  tiers:        [[3,1],[10,.8],[999,.65]],  // до 3 соток — 100% ставки, до 10 — 80%, дальше — 65%
+  minMonthly:     350,          // минимальная абонплата, лей
+  seasonMonths:     7,          // апрель–октябрь
+  visitsPerSeason: 19,          // сколько выездов за сезон в среднем
+  oneTimeMarkup:  1.4,          // насколько разовый выезд дороже абонементного
+  prepayDiscount: .10,          // скидка при оплате всего сезона вперёд
+  round:           10           // до скольки лей округлять
+};
+
+const EXTRAS = [
+  { ru:["Покос запущенного участка","трава выше 30 см"],  ro:["Tunderea terenului neîngrijit","iarbă peste 30 cm"], price:{ru:"от 200 лей / сотка",ro:"de la 200 lei / ar"} },
+  { ru:["Вывоз скошенной травы",""],                       ro:["Evacuarea ierbii tăiate",""],                        price:{ru:"от 150 лей",ro:"de la 150 lei"} },
+  { ru:["Стрижка живой изгороди",""],                      ro:["Tunderea gardului viu",""],                          price:{ru:"от 40 лей / п.м.",ro:"de la 40 lei / m.l."} },
+  { ru:["Формовочная стрижка кустов",""],                  ro:["Tunderea decorativă a arbuștilor",""],                price:{ru:"от 60 лей / куст",ro:"de la 60 lei / tufă"} },
+  { ru:["Уборка листьев осенью",""],                       ro:["Strângerea frunzelor toamna",""],                    price:{ru:"от 100 лей / сотка",ro:"de la 100 lei / ar"} },
+  { ru:["Аэрация газона",""],                              ro:["Aerarea gazonului",""],                              price:{ru:"от 150 лей / сотка",ro:"de la 150 lei / ar"} },
+  { ru:["Уборка снега зимой",""],                          ro:["Curățarea zăpezii iarna",""],                        price:{ru:"договорная",ro:"negociabil"} }
+];
+
+// Фото до/после. Положите файлы рядом с этим index.html и впишите имена.
+// Пример: { before:"1-do.jpg", after:"1-posle.jpg" }
+const PHOTOS = [];
+</script>
+<!-- ================================================================ -->
+
+<header>
+  <div class="wrap">
+    <div class="brand"><span data-t="brandTop">ПОКОС ТРАВЫ</span><b id="brandName">—</b></div>
+    <div class="lang">
+      <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+      <button type="button" data-lang="ro" aria-pressed="false">RO</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <h1 data-t="heroH1"></h1>
+    <p data-t="heroP"></p>
+    <button class="cta" type="button" id="toCalc" data-t="heroCta"></button>
+    <div class="pills">
+      <span data-t="pill1"></span><span data-t="pill2"></span><span data-t="pill3"></span>
+    </div>
+  </div>
+</div>
+
+<section class="calc" id="calc">
+  <div class="wrap">
+    <div class="card">
+      <h2 data-t="calcH"></h2>
+
+      <label class="fld" for="area" data-t="areaLbl"></label>
+      <div class="unit">
+        <input id="area" type="number" inputmode="decimal" min="0.5" step="0.5" value="5">
+        <div class="seg" id="unit">
+          <button type="button" data-u="ar" aria-pressed="true" data-t="unitAr"></button>
+          <button type="button" data-u="m2" aria-pressed="false" data-t="m2"></button>
+        </div>
+      </div>
+      <input type="range" id="areaRange" min="1" max="30" step="0.5" value="5" aria-label="area">
+
+      <div class="plans" id="plans">
+        <label class="plan" data-plan="sub" data-on="1">
+          <input type="radio" name="plan" value="sub" checked>
+          <span class="t"><b data-t="planSub"></b><small data-t="planSubS"></small></span>
+          <span class="pr" id="prSub">—<small data-t="perMonth"></small></span>
+        </label>
+        <label class="plan" data-plan="season">
+          <input type="radio" name="plan" value="season">
+          <span class="t"><b><span data-t="planSeason"></span><span class="badge" data-t="badgeSave"></span></b><small data-t="planSeasonS"></small></span>
+          <span class="pr" id="prSeason">—<small data-t="perSeason"></small></span>
+        </label>
+        <label class="plan" data-plan="once">
+          <input type="radio" name="plan" value="once">
+          <span class="t"><b data-t="planOnce"></b><small data-t="planOnceS"></small></span>
+          <span class="pr" id="prOnce">—<small data-t="perVisit"></small></span>
+        </label>
+      </div>
+
+      <div class="total">
+        <div class="big" id="totalBig">—</div>
+        <div class="sub" id="totalSub"></div>
+        <div class="save" id="totalSave"></div>
+      </div>
+
+      <div class="form">
+        <input id="fName" type="text" autocomplete="name" data-tp="phName">
+        <input id="fAddr" type="text" autocomplete="street-address" data-tp="phAddr">
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-wa hidden" id="btnWa" target="_blank" rel="noopener"><span data-t="btnWa"></span></a>
+        <button class="btn btn-tg hidden" type="button" id="btnTg"><span data-t="btnTg"></span></button>
+        <a class="btn btn-tel hidden" id="btnTel"><span data-t="btnTel"></span></a>
+        <button class="btn btn-ghost" type="button" id="btnCopy"><span data-t="btnCopy"></span></button>
+      </div>
+      <p class="fineprint" data-t="fine"></p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="card">
+      <h2 data-t="inclH"></h2>
+      <ul class="ticks">
+        <li data-t="in1"></li><li data-t="in2"></li><li data-t="in3"></li>
+        <li data-t="in4"></li><li data-t="in5"></li><li data-t="in6"></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="card">
+      <h2 data-t="exH"></h2>
+      <table class="px"><tbody id="exBody"></tbody></table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="card">
+      <h2 data-t="howH"></h2>
+      <ol class="steps">
+        <li data-t="st1"></li><li data-t="st2"></li><li data-t="st3"></li><li data-t="st4"></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section id="photosSec" class="hidden">
+  <div class="wrap">
+    <div class="card">
+      <h2 data-t="phH"></h2>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="card">
+      <h2 data-t="faqH"></h2>
+      <details><summary data-t="q1"></summary><p data-t="a1"></p></details>
+      <details><summary data-t="q2"></summary><p data-t="a2"></p></details>
+      <details><summary data-t="q3"></summary><p data-t="a3"></p></details>
+      <details><summary data-t="q4"></summary><p data-t="a4"></p></details>
+      <details><summary data-t="q5"></summary><p data-t="a5"></p></details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div id="fName2" style="font-weight:800;color:#fff;font-size:17px"></div>
+    <div id="fArea" style="margin:4px 0"></div>
+    <a class="tel" id="fTel" href="#"></a>
+    <p style="font-size:12.5px;opacity:.75;margin:0" data-t="footNote"></p>
+  </div>
+</footer>
+
+<div class="sticky" id="sticky">
+  <div class="wrap">
+    <a class="btn btn-wa hidden" id="sWa" target="_blank" rel="noopener"><span data-t="sOrder"></span></a>
+    <a class="btn btn-tel hidden" id="sTel"><span data-t="btnTel"></span></a>
+    <button class="btn btn-ghost hidden" type="button" id="sCopy"><span data-t="btnCopy"></span></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const T = {
+ru:{
+  brandTop:"ПОКОС ТРАВЫ",
+  heroH1:"Газон под присмотром весь сезон",
+  heroP:"Не ищите косильщика каждый раз. Фиксированная плата в месяц, свой день недели, договор — и трава всегда подстрижена.",
+  heroCta:"Узнать цену за минуту",
+  pill1:"Свой день недели", pill2:"Цена не меняется весь сезон", pill3:"Работаю по договору",
+  calcH:"Сколько это будет стоить",
+  areaLbl:"Площадь газона", unitAr:"соток",
+  planSub:"Абонемент", planSubS:"платите раз в месяц, апрель–октябрь",
+  planSeason:"Весь сезон вперёд", planSeasonS:"одна оплата за 7 месяцев",
+  planOnce:"Разовый выезд", planOnceS:"без договора, по звонку",
+  badgeSave:"−10%",
+  perMonth:"в месяц", perSeason:"за сезон", perVisit:"за выезд",
+  phName:"Ваше имя", phAddr:"Адрес или район",
+  btnWa:"Написать в WhatsApp", btnTg:"Написать в Telegram", btnTel:"Позвонить", btnCopy:"Скопировать заявку",
+  sOrder:"Заказать",
+  fine:"Расчёт предварительный. Точную цену назову после осмотра участка — это бесплатно.",
+  inclH:"Что входит в абонемент",
+  in1:"Покос газона газонокосилкой на нужную высоту",
+  in2:"Обкос триммером вдоль забора, дорожек, вокруг деревьев и построек",
+  in3:"Уборка скошенной травы с дорожек и террасы",
+  in4:"Приезжаю в свой день недели — вам не нужно звонить и напоминать",
+  in5:"Своя техника, топливо и расходники — от вас ничего не нужно",
+  in6:"Договор с фиксированной ценой на весь сезон",
+  exH:"Дополнительно, по желанию",
+  howH:"Как это работает",
+  st1:"Считаете цену здесь и пишете мне — в заявке уже всё будет указано",
+  st2:"Приезжаю, смотрю участок, называю точную цену. Бесплатно и ни к чему не обязывает",
+  st3:"Подписываем договор, выбираем удобный день недели",
+  st4:"Дальше просто плачу́ раз в месяц — приезжаю сам, вам ничего делать не надо",
+  phH:"Было — стало", phBefore:"было", phAfter:"стало",
+  faqH:"Частые вопросы",
+  q1:"А если в августе трава почти не растёт — я плачу зря?",
+  a1:"Нет. Плата усреднена по сезону: весной трава прёт и я приезжаю чаще, в жару — реже. За весь сезон по абонементу выходит заметно дешевле, чем вызывать разово каждый раз.",
+  q2:"А если дождь?",
+  a2:"Переношу на ближайший подходящий день, обычно в пределах пары дней. Доплаты за это нет.",
+  q3:"Мне нужно быть дома, когда вы приедете?",
+  a3:"Нет. Достаточно, чтобы был доступ на участок — открытая калитка, код или ключ. После работы пришлю фото.",
+  q4:"А если я захочу отказаться?",
+  a4:"Можно в любой момент, предупредив за 30 дней. Есть и пауза на месяц — например, на время отпуска.",
+  q5:"Вы работаете с кафе, гостиницами, кондоминиумами?",
+  a5:"Да. Для юрлиц — договор, счёт и фотоотчёт после каждого выезда. Пишите, посчитаю отдельно.",
+  footNote:"Работаю по договору. Цены на странице — ориентировочные.",
+  copied:"Заявка скопирована",
+  msgHead:"Здравствуйте! Заявка на покос травы.",
+  msgPlan:"Тариф", msgArea:"Площадь", msgName:"Имя", msgAddr:"Адрес",
+  msgPaste:"Текст скопирован — вставьте его в чат",
+  ar:"соток", m2:"м²", lei:"лей",
+  subLine:a=>`Абонемент на ${a} — с апреля по октябрь`,
+  saveLine:s=>`Экономия против разовых выездов: ${s} лей за сезон`,
+  seasonSub:(m,d)=>`${m} лей × 7 месяцев, минус скидка ${d}%`,
+  onceSub:"Разовый выезд, без договора"
+},
+ro:{
+  brandTop:"TUNS IARBA",
+  heroH1:"Gazon îngrijit tot sezonul",
+  heroP:"Nu mai căutați pe cineva de fiecare dată. Plată fixă lunară, zi stabilită, contract — și iarba e mereu tunsă.",
+  heroCta:"Aflați prețul într-un minut",
+  pill1:"Zi fixă în săptămână", pill2:"Preț neschimbat tot sezonul", pill3:"Lucrez în bază de contract",
+  calcH:"Cât va costa",
+  areaLbl:"Suprafața gazonului", unitAr:"ari",
+  planSub:"Abonament", planSubS:"plătiți o dată pe lună, aprilie–octombrie",
+  planSeason:"Tot sezonul în avans", planSeasonS:"o singură plată pentru 7 luni",
+  planOnce:"Vizită unică", planOnceS:"fără contract, la cerere",
+  badgeSave:"−10%",
+  perMonth:"pe lună", perSeason:"pe sezon", perVisit:"pe vizită",
+  phName:"Numele dvs.", phAddr:"Adresa sau sectorul",
+  btnWa:"Scrieți pe WhatsApp", btnTg:"Scrieți pe Telegram", btnTel:"Sunați", btnCopy:"Copiați comanda",
+  sOrder:"Comandă",
+  fine:"Calcul orientativ. Prețul exact îl spun după ce văd terenul — gratuit.",
+  inclH:"Ce include abonamentul",
+  in1:"Tunderea gazonului cu mașina, la înălțimea potrivită",
+  in2:"Tunderea cu trimmerul de-a lungul gardului, aleilor, în jurul copacilor și construcțiilor",
+  in3:"Curățarea aleilor și a terasei de iarba tăiată",
+  in4:"Vin în ziua stabilită — nu trebuie să sunați și să reamintiți",
+  in5:"Cu tehnica, combustibilul și consumabilele mele — dvs. nu aduceți nimic",
+  in6:"Contract cu preț fix pentru tot sezonul",
+  exH:"Servicii suplimentare, la cerere",
+  howH:"Cum funcționează",
+  st1:"Calculați prețul aici și îmi scrieți — comanda va conține deja toate datele",
+  st2:"Vin, văd terenul și spun prețul exact. Gratuit și fără obligații",
+  st3:"Semnăm contractul și alegem ziua potrivită a săptămânii",
+  st4:"Apoi doar plătiți o dată pe lună — vin singur, dvs. nu faceți nimic",
+  phH:"Înainte și după", phBefore:"înainte", phAfter:"după",
+  faqH:"Întrebări frecvente",
+  q1:"Dacă în august iarba aproape nu crește — plătesc degeaba?",
+  a1:"Nu. Plata este mediată pe sezon: primăvara iarba crește repede și vin mai des, pe caniculă — mai rar. Pe tot sezonul, abonamentul iese vizibil mai ieftin decât vizitele separate.",
+  q2:"Dacă plouă?",
+  a2:"Amân pentru cea mai apropiată zi potrivită, de obicei în câteva zile. Fără costuri suplimentare.",
+  q3:"Trebuie să fiu acasă când veniți?",
+  a3:"Nu. E suficient accesul pe teren — poarta deschisă, codul sau cheia. După lucru trimit poze.",
+  q4:"Dacă vreau să renunț?",
+  a4:"Puteți oricând, anunțând cu 30 de zile înainte. Există și pauză de o lună — de exemplu, pe perioada concediului.",
+  q5:"Lucrați cu cafenele, hoteluri, asociații de locatari?",
+  a5:"Da. Pentru persoane juridice — contract, factură și raport foto după fiecare vizită. Scrieți-mi și calculez separat.",
+  footNote:"Lucrez în bază de contract. Prețurile de pe pagină sunt orientative.",
+  copied:"Comanda a fost copiată",
+  msgHead:"Bună ziua! Comandă pentru tuns iarba.",
+  msgPlan:"Tarif", msgArea:"Suprafața", msgName:"Nume", msgAddr:"Adresa",
+  msgPaste:"Textul a fost copiat — inserați-l în chat",
+  ar:"ari", m2:"m²", lei:"lei",
+  subLine:a=>`Abonament pentru ${a} — din aprilie până în octombrie`,
+  saveLine:s=>`Economie față de vizitele separate: ${s} lei pe sezon`,
+  seasonSub:(m,d)=>`${m} lei × 7 luni, minus reducerea de ${d}%`,
+  onceSub:"Vizită unică, fără contract"
+}};
+
+let lang = (localStorage.getItem("gazon.lang")) ||
+           (/^ro/i.test(navigator.language||"") ? "ro" : "ru");
+let unit = "ar";
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const roundTo = (v,s) => Math.round(v/s)*s;
+
+function monthlyFor(ar){
+  let sum = 0, prev = 0;
+  for (const [upto,k] of PRICING.tiers){
+    const part = Math.max(0, Math.min(ar, upto) - prev);
+    sum += part * PRICING.ratePerSotka * k;
+    prev = upto;
+    if (ar <= upto) break;
+  }
+  return roundTo(Math.max(sum, PRICING.minMonthly), PRICING.round);
+}
+// Разовый выезд считается от абонемента, чтобы он всегда был дороже —
+// на этом держится и продажа абонемента, и перерасчёт по п. 7.3 договора.
+const onceFor = m => roundTo(m * PRICING.seasonMonths / PRICING.visitsPerSeason * PRICING.oneTimeMarkup, PRICING.round);
+const seasonFor = m => roundTo(m * PRICING.seasonMonths * (1 - PRICING.prepayDiscount), PRICING.round);
+
+const nf = n => new Intl.NumberFormat(lang === "ro" ? "ro-MD" : "ru-MD").format(Math.round(n));
+const getAr = () => {
+  const v = parseFloat($("#area").value.replace(",", ".")) || 0;
+  return Math.max(0.5, unit === "ar" ? v : v / 100);
+};
+
+function state(){
+  const ar = getAr();
+  const m = monthlyFor(ar);
+  return { ar, m, once: onceFor(m), season: seasonFor(m),
+           plan: document.querySelector('input[name=plan]:checked').value };
+}
+
+function areaText(t){
+  const ar = getAr();
+  return unit === "ar" ? `${nf2(ar)} ${t.ar} (${nf(ar*100)} ${t.m2})`
+                       : `${nf(ar*100)} ${t.m2} (${nf2(ar)} ${t.ar})`;
+}
+const nf2 = n => (Math.round(n*10)/10).toString().replace(".", ",");
+
+function render(){
+  const t = T[lang], s = state();
+  document.documentElement.lang = lang;
+
+  $$("[data-t]").forEach(el => { const v = t[el.dataset.t]; if (typeof v === "string") el.textContent = v; });
+  $$("[data-tp]").forEach(el => { el.placeholder = t[el.dataset.tp] || ""; });
+  $$(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+
+  $("#prSub").firstChild.nodeValue = nf(s.m) + " ";
+  $("#prSeason").firstChild.nodeValue = nf(s.season) + " ";
+  $("#prOnce").firstChild.nodeValue = nf(s.once) + " ";
+
+  $$(".plan").forEach(p => p.dataset.on = (p.dataset.plan === s.plan ? "1" : "0"));
+
+  const seasonFull = s.m * PRICING.seasonMonths;
+  const onceFull = s.once * PRICING.visitsPerSeason;
+  if (s.plan === "sub"){
+    $("#totalBig").textContent = `${nf(s.m)} ${t.lei} / ${t.perMonth}`;
+    $("#totalSub").textContent = t.subLine(areaText(t));
+    $("#totalSave").textContent = t.saveLine(nf(onceFull - seasonFull));
+  } else if (s.plan === "season"){
+    $("#totalBig").textContent = `${nf(s.season)} ${t.lei}`;
+    $("#totalSub").textContent = t.seasonSub(nf(s.m), Math.round(PRICING.prepayDiscount*100));
+    $("#totalSave").textContent = t.saveLine(nf(onceFull - s.season));
+  } else {
+    $("#totalBig").textContent = `${nf(s.once)} ${t.lei}`;
+    $("#totalSub").textContent = t.onceSub;
+    $("#totalSave").textContent = "";
+  }
+
+  $("#exBody").innerHTML = EXTRAS.map(e => {
+    const [a,b] = e[lang];
+    return `<tr><td>${a}${b ? `<small>${b}</small>` : ""}</td><td>${e.price[lang]}</td></tr>`;
+  }).join("");
+
+  if (PHOTOS.length){
+    $("#photosSec").classList.remove("hidden");
+    $("#gallery").innerHTML = PHOTOS.map(p =>
+      `<figure><img src="${p.before}" alt="" loading="lazy"><figcaption>${t.phBefore}</figcaption></figure>
+       <figure><img src="${p.after}" alt="" loading="lazy"><figcaption>${t.phAfter}</figcaption></figure>`).join("");
+  }
+
+  $("#brandName").textContent = CONTACT.name || "";
+  $("#fName2").textContent = CONTACT.name || "";
+  $("#fArea").textContent = CONTACT.area || "";
+  if (CONTACT.phone){ $("#fTel").textContent = CONTACT.phone; $("#fTel").href = "tel:" + CONTACT.phone.replace(/\s/g,""); }
+  else $("#fTel").style.display = "none";
+
+  wireLinks();
+}
+
+function message(){
+  const t = T[lang], s = state();
+  const planName = { sub:`${t.planSub} — ${nf(s.m)} ${t.lei} / ${t.perMonth}`,
+                     season:`${t.planSeason} — ${nf(s.season)} ${t.lei}`,
+                     once:`${t.planOnce} — ${nf(s.once)} ${t.lei}` }[s.plan];
+  const lines = [ t.msgHead, `${t.msgPlan}: ${planName}`, `${t.msgArea}: ${areaText(t)}` ];
+  if ($("#fName").value.trim()) lines.push(`${t.msgName}: ${$("#fName").value.trim()}`);
+  if ($("#fAddr").value.trim()) lines.push(`${t.msgAddr}: ${$("#fAddr").value.trim()}`);
+  return lines.join("\n");
+}
+
+function wireLinks(){
+  const url = CONTACT.whatsapp ? `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(message())}` : "";
+  [["#btnWa",url],["#sWa",url]].forEach(([sel,u]) => {
+    const el = $(sel);
+    el.classList.toggle("hidden", !CONTACT.whatsapp);
+    if (u) el.href = u;
+  });
+  $("#btnTg").classList.toggle("hidden", !CONTACT.telegram);
+  const tel = CONTACT.phone ? "tel:" + CONTACT.phone.replace(/\s/g,"") : "";
+  [["#btnTel",tel],["#sTel",tel]].forEach(([sel,u]) => {
+    const el = $(sel);
+    el.classList.toggle("hidden", !CONTACT.phone || (sel === "#sTel" && !!CONTACT.whatsapp));
+    if (u) el.href = u;
+  });
+  $("#sCopy").classList.toggle("hidden", !!(CONTACT.whatsapp || CONTACT.phone));
+  // пока контакты не заполнены, нижняя панель просто дублировала бы кнопку из карточки
+  $("#sticky").classList.toggle("hidden", !CONTACT.whatsapp && !CONTACT.phone);
+}
+
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2200);
+}
+async function copyMsg(){
+  const txt = message();
+  try { await navigator.clipboard.writeText(txt); }
+  catch { const ta = document.createElement("textarea"); ta.value = txt; document.body.append(ta);
+          ta.select(); document.execCommand("copy"); ta.remove(); }
+  toast(T[lang].copied);
+}
+
+$$(".lang button").forEach(b => b.onclick = () => {
+  lang = b.dataset.lang; localStorage.setItem("gazon.lang", lang); render();
+});
+$$("#unit button").forEach(b => b.onclick = () => {
+  const ar = getAr();
+  unit = b.dataset.u;
+  $$("#unit button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("#area").value = unit === "ar" ? ar : Math.round(ar*100);
+  $("#area").step = unit === "ar" ? 0.5 : 50;
+  syncRange(); render();
+});
+function syncRange(){
+  const r = $("#areaRange"), ar = getAr();
+  r.min = unit === "ar" ? 1 : 100; r.max = unit === "ar" ? 30 : 3000;
+  r.step = unit === "ar" ? 0.5 : 50;
+  r.value = unit === "ar" ? Math.min(ar,30) : Math.min(ar*100,3000);
+}
+$("#area").oninput = () => { syncRange(); render(); };
+$("#areaRange").oninput = e => { $("#area").value = e.target.value; render(); };
+$$('input[name=plan]').forEach(r => r.onchange = render);
+["#fName","#fAddr"].forEach(s => $(s).oninput = wireLinks);
+$("#btnCopy").onclick = copyMsg;
+$("#sCopy").onclick = copyMsg;
+$("#btnTg").onclick = async () => {
+  await copyMsg(); toast(T[lang].msgPaste);
+  setTimeout(() => window.open("https://t.me/" + CONTACT.telegram, "_blank"), 600);
+};
+$("#toCalc").onclick = () => $("#calc").scrollIntoView({behavior:"smooth", block:"start"});
+
+syncRange();
+render();
+</script>
+</body>
+</html>
