@@ -1,0 +1,35 @@
+<%- include('partials/top', { title: 'Профиль — Рядом' }) %>
+
+<% if (notice) { %><p class="notice"><%= notice %></p><% } %>
+
+<h1>Профиль</h1>
+
+<form method="POST" action="/ryadom/me" class="card stack">
+  <label for="name">Имя</label>
+  <input id="name" name="name" maxlength="40" required value="<%= profile.name %>" />
+
+  <label for="about">О себе</label>
+  <input id="about" name="about" maxlength="120" value="<%= profile.about %>" />
+
+  <button type="submit">Сохранить</button>
+</form>
+
+<h2>Мои встречи</h2>
+<% if (!meets.length) { %>
+  <div class="empty">
+    <p>Вы пока никуда не идёте.</p>
+    <p><a class="btn-primary" href="/ryadom">Посмотреть, что рядом</a></p>
+  </div>
+<% } else { %>
+  <div class="feed">
+    <% meets.forEach(function (m) { %>
+      <%- include('partials/card', { m: m }) %>
+    <% }) %>
+  </div>
+<% } %>
+
+<form method="POST" action="/ryadom/logout" class="center logout">
+  <button type="submit" class="btn-ghost">Выйти и забыть профиль на этом устройстве</button>
+</form>
+
+<%- include('partials/bottom') %>

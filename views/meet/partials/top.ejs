@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f97316" />
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/css/meet.css" />
+</head>
+<body class="meet">
+  <header class="meet-top">
+    <a class="meet-logo" href="/ryadom">Рядом</a>
+    <% if (typeof profile !== 'undefined' && profile) { %>
+      <nav class="meet-nav">
+        <a href="/ryadom/new">+ Позвать</a>
+        <a href="/ryadom/me"><%= profile.name %></a>
+      </nav>
+    <% } %>
+  </header>
+  <main class="meet-main">

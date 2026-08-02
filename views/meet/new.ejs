@@ -1,0 +1,57 @@
+<%- include('partials/top', { title: 'Позвать людей — Рядом' }) %>
+
+<h1>Кого-то зовём</h1>
+<p class="muted">Встреча появится у людей поблизости. Выбирайте людное место.</p>
+
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+
+<form method="POST" action="/ryadom/new" class="card stack" id="new-meet-form">
+  <label>Чем займёмся</label>
+  <div class="chips">
+    <% activities.forEach(function (a, i) { %>
+      <label class="chip">
+        <input type="radio" name="activity" value="<%= a.id %>"
+               <%= form.activity === a.id || (!form.activity && i === 0) ? 'checked' : '' %> />
+        <span><%= a.emoji %> <%= a.label %></span>
+      </label>
+    <% }) %>
+  </div>
+
+  <label for="place">Где</label>
+  <input id="place" name="place" maxlength="80" required
+         value="<%= form.place %>" placeholder="Кофейня на Садовой / парк у фонтана" />
+
+  <label for="starts_at">Когда</label>
+  <input id="starts_at" name="starts_at" type="datetime-local" required />
+  <div class="quick-times">
+    <button type="button" data-minutes="30">через 30 мин</button>
+    <button type="button" data-minutes="60">через час</button>
+    <button type="button" data-minutes="180">через 3 часа</button>
+    <button type="button" data-tonight="19">сегодня в 19:00</button>
+  </div>
+
+  <label for="max_people">Сколько человек максимум (включая вас)</label>
+  <input id="max_people" name="max_people" type="number" min="2" max="12" value="<%= form.max_people %>" />
+
+  <label for="note">Детали <span class="muted">(необязательно)</span></label>
+  <textarea id="note" name="note" rows="3" maxlength="300"
+            placeholder="Буду в жёлтой куртке, сидим до восьми"><%= form.note %></textarea>
+
+  <input type="hidden" name="tz_offset" id="tz_offset" value="0" />
+  <input type="hidden" name="lat" id="lat" value="<%= coords ? coords.lat : '' %>" />
+  <input type="hidden" name="lon" id="lon" value="<%= coords ? coords.lon : '' %>" />
+
+  <div class="geo-row">
+    <span id="geo-label" class="<%= coords ? 'ok' : 'muted' %>">
+      <%= coords ? 'Место возьмём по вашей текущей геолокации' : 'Геолокация не определена' %>
+    </span>
+    <button type="button" id="use-my-location">Я на месте — взять точку</button>
+  </div>
+
+  <button type="submit">Опубликовать встречу</button>
+  <p class="fine">
+    Другие увидят название места, время и расстояние до него — точные координаты не показываются.
+  </p>
+</form>
+
+<%- include('partials/bottom') %>

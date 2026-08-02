@@ -1,0 +1,36 @@
+<%- include('partials/top', { title: 'Рядом — с кем выпить кофе и погулять' }) %>
+
+<section class="hero">
+  <h1>С кем сегодня выпить кофе?</h1>
+  <p class="lead">
+    Люди рядом с вами пишут, куда и когда идут — в бар, на прогулку, на кофе.
+    Выбираете то, что нравится, и приходите. Без переписок на неделю вперёд.
+  </p>
+</section>
+
+<section class="card">
+  <h2>Как вас зовут?</h2>
+  <% if (error) { %><p class="error"><%= error %></p><% } %>
+  <form method="POST" action="/ryadom/start" class="stack">
+    <label for="name">Имя</label>
+    <input id="name" name="name" maxlength="40" required autocomplete="nickname"
+           placeholder="Как к вам обращаться" />
+
+    <label for="about">Пара слов о себе <span class="muted">(необязательно)</span></label>
+    <input id="about" name="about" maxlength="120"
+           placeholder="Например: люблю кофе и настолки" />
+
+    <button type="submit">Начать</button>
+    <p class="fine">
+      Регистрации нет: профиль привязан к этому браузеру. Телефон и почта не нужны.
+    </p>
+  </form>
+</section>
+
+<section class="steps">
+  <div><span>1</span><p>Разрешаете показать, что рядом</p></div>
+  <div><span>2</span><p>Видите встречи поблизости — время, место, кто идёт</p></div>
+  <div><span>3</span><p>Присоединяетесь или зовёте сами</p></div>
+</section>
+
+<%- include('partials/bottom') %>

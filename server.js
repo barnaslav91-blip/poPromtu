@@ -7,6 +7,7 @@ const path = require('path');
 const { init: initDb } = require('./db');
 const adminRoutes = require('./routes/admin');
 const moderationRoutes = require('./routes/moderation');
+const meetRoutes = require('./routes/meet');
 
 const app = express();
 
@@ -27,8 +28,9 @@ app.use(
 
 app.use('/', moderationRoutes);
 app.use('/admin', adminRoutes);
+app.use('/ryadom', meetRoutes);
 
-app.get('/', (req, res) => res.redirect('/admin'));
+app.get('/', (req, res) => res.redirect('/ryadom'));
 
 app.use((req, res) => {
   res.status(404).render('404');

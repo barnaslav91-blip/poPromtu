@@ -1,0 +1,58 @@
+<%- include('partials/top', { title: 'Что рядом — Рядом' }) %>
+
+<% if (notice) { %><p class="notice"><%= notice %></p><% } %>
+
+<% if (!coords) { %>
+  <section class="card geo-ask">
+    <h2>Показать, что происходит рядом</h2>
+    <p class="muted">
+      Нужен доступ к геолокации. Точное место никому не показывается — только
+      расстояние до встречи, округлённое до сотен метров.
+    </p>
+    <button type="button" id="ask-location">Разрешить геолокацию</button>
+    <p class="fine" id="location-status"></p>
+  </section>
+<% } %>
+
+<div class="feed-head">
+  <h1>Встречи <%= coords ? 'рядом' : 'сейчас' %></h1>
+  <a class="btn-primary" href="/ryadom/new">Позвать людей</a>
+</div>
+
+<form class="filters" method="GET" action="/ryadom">
+  <select name="activity" onchange="this.form.submit()">
+    <option value="">Все занятия</option>
+    <% activities.forEach(function (a) { %>
+      <option value="<%= a.id %>" <%= activity === a.id ? 'selected' : '' %>>
+        <%= a.emoji %> <%= a.label %>
+      </option>
+    <% }) %>
+  </select>
+  <select name="radius" onchange="this.form.submit()" <%= coords ? '' : 'disabled' %>>
+    <% radiusOptions.forEach(function (o) { %>
+      <option value="<%= o.value %>" <%= radius === o.value ? 'selected' : '' %>><%= o.label %></option>
+    <% }) %>
+  </select>
+  <noscript><button type="submit">Показать</button></noscript>
+</form>
+
+<% if (!meets.length) { %>
+  <div class="empty">
+    <p>Пока рядом ничего не запланировано.</p>
+    <% if (hiddenByRadius > 0) { %>
+      <p class="muted">Есть <%= hiddenByRadius %> встреч(и) дальше выбранного радиуса — увеличьте расстояние.</p>
+    <% } %>
+    <p><a class="btn-primary" href="/ryadom/new">Позвать первым</a></p>
+  </div>
+<% } else { %>
+  <div class="feed">
+    <% meets.forEach(function (m) { %>
+      <%- include('partials/card', { m: m }) %>
+    <% }) %>
+  </div>
+  <% if (hiddenByRadius > 0) { %>
+    <p class="muted center">Ещё <%= hiddenByRadius %> встреч(и) дальше <%= Math.round(radius / 1000) %> км</p>
+  <% } %>
+<% } %>
+
+<%- include('partials/bottom') %>

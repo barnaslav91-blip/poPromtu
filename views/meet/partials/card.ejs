@@ -1,0 +1,15 @@
+<a class="meet-card<%= m.isFull && !m.joined ? ' is-full' : '' %>" href="/ryadom/p/<%= m.slug %>">
+  <span class="meet-emoji"><%= m.activityInfo.emoji %></span>
+  <span class="meet-body">
+    <span class="meet-title"><%= m.activityInfo.label %> · <%= m.place %></span>
+    <span class="meet-when js-time" data-iso="<%= isoString(m.starts_at) %>"><%= fallbackWhen(m.starts_at) %></span>
+    <span class="meet-meta">
+      <% if (m.distanceText) { %><span class="pill"><%= m.distanceText %> от вас</span><% } %>
+      <span class="pill"><%= m.people %>/<%= m.max_people %> идёт</span>
+      <% if (m.joined) { %><span class="pill pill-on">вы идёте</span><% } %>
+      <% if (m.isHost) { %><span class="pill pill-on">вы зовёте</span><% } %>
+      <% if (m.isFull && !m.joined) { %><span class="pill">мест нет</span><% } %>
+    </span>
+    <span class="meet-host">Зовёт <%= m.host_name %></span>
+  </span>
+</a>

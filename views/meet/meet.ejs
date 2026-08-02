@@ -1,0 +1,101 @@
+<%- include('partials/top', { title: meet.activityInfo.label + ' · ' + meet.place + ' — Рядом' }) %>
+
+<% if (notice) { %><p class="notice"><%= notice %></p><% } %>
+<% if (error) { %><p class="error"><%= error %></p><% } %>
+
+<article class="card meet-page">
+  <p class="meet-emoji big"><%= meet.activityInfo.emoji %></p>
+  <h1><%= meet.activityInfo.label %></h1>
+  <p class="meet-place"><%= meet.place %></p>
+  <p class="meet-when js-time" data-iso="<%= isoString(meet.starts_at) %>"><%= fallbackWhen(meet.starts_at) %></p>
+
+  <p class="meet-meta">
+    <% if (meet.distanceText) { %><span class="pill"><%= meet.distanceText %> от вас</span><% } %>
+    <span class="pill"><%= meet.people %>/<%= meet.max_people %> идёт</span>
+    <% if (meet.canceled) { %><span class="pill pill-off">отменена</span><% } %>
+  </p>
+
+  <% if (meet.note) { %><p class="meet-note"><%= meet.note %></p><% } %>
+
+  <p class="muted">Зовёт <strong><%= meet.host_name %></strong></p>
+
+  <% if (!meet.canceled) { %>
+    <div class="actions">
+      <% if (meet.isHost) { %>
+        <form method="POST" action="/ryadom/p/<%= meet.slug %>/cancel"
+              onsubmit="return confirm('Отменить встречу? Участники увидят, что она отменена.')">
+          <button type="submit" class="btn-danger">Отменить встречу</button>
+        </form>
+      <% } else if (meet.joined) { %>
+        <form method="POST" action="/ryadom/p/<%= meet.slug %>/leave">
+          <button type="submit" class="btn-ghost">Я передумал(а)</button>
+        </form>
+      <% } else { %>
+        <form method="POST" action="/ryadom/p/<%= meet.slug %>/join">
+          <button type="submit" <%= meet.isFull ? 'disabled' : '' %>>
+            <%= meet.isFull ? 'Мест нет' : 'Я иду' %>
+          </button>
+        </form>
+      <% } %>
+    </div>
+  <% } %>
+</article>
+
+<section class="card">
+  <h2>Кто идёт (<%= people.length %>)</h2>
+  <ul class="people">
+    <% people.forEach(function (p) { %>
+      <li>
+        <span class="avatar"><%= p.name.trim().charAt(0).toUpperCase() %></span>
+        <span>
+          <strong><%= p.name %></strong>
+          <% if (p.id === meet.host_id) { %><span class="pill">организатор</span><% } %>
+          <% if (p.about) { %><br /><span class="muted"><%= p.about %></span><% } %>
+        </span>
+      </li>
+    <% }) %>
+  </ul>
+</section>
+
+<section class="card" id="chat">
+  <h2>Чат встречи</h2>
+  <% if (!messages.length) { %>
+    <p class="muted">Сообщений пока нет — договоритесь, где именно пересечься.</p>
+  <% } %>
+  <ul class="messages">
+    <% messages.forEach(function (msg) { %>
+      <li class="<%= profile && msg.author_id === profile.id ? 'own' : '' %>">
+        <span class="msg-author"><%= msg.author %></span>
+        <span class="msg-text"><%= msg.text %></span>
+        <span class="msg-time js-time" data-iso="<%= isoString(msg.created_at) %>" data-format="short"><%= fallbackWhen(msg.created_at) %></span>
+      </li>
+    <% }) %>
+  </ul>
+
+  <% if (meet.joined && !meet.canceled) { %>
+    <form method="POST" action="/ryadom/p/<%= meet.slug %>/messages" class="chat-form">
+      <input name="text" maxlength="500" required placeholder="Написать участникам" autocomplete="off" />
+      <button type="submit">Отправить</button>
+    </form>
+  <% } else if (!meet.canceled) { %>
+    <p class="muted">Присоединитесь к встрече, чтобы писать в чат.</p>
+  <% } %>
+</section>
+
+<% if (!meet.isHost) { %>
+  <section class="card report">
+    <details>
+      <summary>Пожаловаться на встречу</summary>
+      <form method="POST" action="/ryadom/p/<%= meet.slug %>/report" class="stack">
+        <label for="reason">Что не так?</label>
+        <input id="reason" name="reason" maxlength="200" placeholder="Спам, реклама, грубость…" />
+        <button type="submit" class="btn-danger">Пожаловаться и скрыть</button>
+        <p class="fine">Встреча пропадёт из вашей ленты, а жалоба сохранится для модерации.</p>
+      </form>
+    </details>
+  </section>
+<% } %>
+
+<p class="center"><a href="/ryadom">← Ко всем встречам</a></p>
+
+<%- include('partials/bottom') %>
