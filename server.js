@@ -11,6 +11,8 @@ const meetRoutes = require('./routes/meet');
 
 const app = express();
 
+// На Render (и за любым обратным прокси) без этого req.secure всегда false
+app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 

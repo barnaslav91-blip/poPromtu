@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>poPromtu — Сводка «Рядом»</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><a href="/admin">poPromtu</a> · Рядом</h1>
+    <form method="POST" action="/admin/logout"><button class="link-btn" type="submit">Выйти</button></form>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Главное</h2>
+      <ul class="stats">
+        <li><strong><%= totals.meets_with_guests %></strong> из <%= totals.meets %> встреч собрали хотя бы одного гостя</li>
+        <li><strong><%= totals.profiles %></strong> человек завели профиль (<%= totals.profiles_week %> за последние 7 дней)</li>
+        <li><strong><%= totals.meets_upcoming %></strong> встреч впереди прямо сейчас</li>
+      </ul>
+      <p class="muted">
+        Первая строка — единственная цифра, которая говорит, работает идея или нет.
+        Если встречи создаются, но гостей нет, дело не в приложении, а в том,
+        что рядом мало людей.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Остальное</h2>
+      <ul class="stats">
+        <li><strong><%= totals.participants %></strong> участий во встречах (включая организаторов)</li>
+        <li><strong><%= totals.messages %></strong> сообщений в чатах</li>
+        <li><strong><%= totals.meets_canceled %></strong> встреч отменено</li>
+        <li><strong><%= totals.reports %></strong> жалоб</li>
+      </ul>
+    </section>
+
+    <h3>Последние встречи</h3>
+    <% if (!recent.length) { %>
+      <p class="muted">Встреч пока нет</p>
+    <% } else { %>
+      <table class="videos-table">
+        <thead>
+          <tr><th>Что и где</th><th>Когда</th><th>Людей</th></tr>
+        </thead>
+        <tbody>
+          <% recent.forEach(function (m) { %>
+            <tr>
+              <td>
+                <%= m.activityInfo.emoji %> <%= m.place %><br />
+                <span class="muted">зовёт <%= m.host_name %><%= m.canceled ? ' · отменена' : '' %></span>
+              </td>
+              <td class="muted"><%= new Date(m.starts_at).toISOString().slice(0, 16).replace('T', ' ') %> UTC</td>
+              <td><%= m.people %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+
+    <h3>Жалобы</h3>
+    <% if (!reports.length) { %>
+      <p class="muted">Жалоб нет</p>
+    <% } else { %>
+      <ul class="comment-list">
+        <% reports.forEach(function (r) { %>
+          <li>
+            <div class="comment-meta">
+              <strong><%= r.reporter %></strong>
+              <span class="muted">на встречу «<%= r.place %>»</span>
+            </div>
+            <p class="comment-text"><%= r.reason || 'без комментария' %></p>
+            <a class="muted" href="/ryadom/p/<%= r.slug %>">открыть встречу</a>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+
+    <p><a href="/admin">← К модерации видео</a></p>
+  </main>
+</body>
+</html>

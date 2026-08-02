@@ -3,6 +3,7 @@ const { nanoid } = require('nanoid');
 
 const { pool } = require('../db');
 const { extractYoutubeId } = require('../lib/youtube');
+const { getActivity } = require('../lib/activities');
 
 const router = express.Router();
 
@@ -54,6 +55,52 @@ router.get('/', async (req, res, next) => {
       reviewers,
       error: req.query.error || null,
       baseUrl: `${req.protocol}://${req.get('host')}`,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Сводка по «Рядом» — чтобы после живого теста было видно, что реально произошло
+router.get('/ryadom', async (req, res, next) => {
+  try {
+    const [{ rows: totals }, { rows: recent }, { rows: reports }] = await Promise.all([
+      pool.query(`
+        SELECT
+          (SELECT COUNT(*) FROM meet_profiles)::int AS profiles,
+          (SELECT COUNT(*) FROM meet_profiles WHERE created_at > now() - interval '7 days')::int AS profiles_week,
+          (SELECT COUNT(*) FROM meets)::int AS meets,
+          (SELECT COUNT(*) FROM meets WHERE NOT canceled AND starts_at > now())::int AS meets_upcoming,
+          (SELECT COUNT(*) FROM meets WHERE canceled)::int AS meets_canceled,
+          (SELECT COUNT(*) FROM meet_participants)::int AS participants,
+          (SELECT COUNT(*) FROM meet_messages)::int AS messages,
+          (SELECT COUNT(*) FROM meet_reports)::int AS reports,
+          (SELECT COUNT(*) FROM (
+             SELECT meet_id FROM meet_participants GROUP BY meet_id HAVING COUNT(*) > 1
+           ) AS joined_meets)::int AS meets_with_guests
+      `),
+      pool.query(`
+        SELECT m.slug, m.activity, m.place, m.starts_at, m.canceled, p.name AS host_name,
+               (SELECT COUNT(*) FROM meet_participants mp WHERE mp.meet_id = m.id)::int AS people
+        FROM meets m
+        JOIN meet_profiles p ON p.id = m.host_id
+        ORDER BY m.created_at DESC
+        LIMIT 30
+      `),
+      pool.query(`
+        SELECT r.reason, r.created_at, m.place, m.slug, p.name AS reporter
+        FROM meet_reports r
+        JOIN meets m ON m.id = r.meet_id
+        JOIN meet_profiles p ON p.id = r.profile_id
+        ORDER BY r.created_at DESC
+        LIMIT 20
+      `),
+    ]);
+
+    res.render('admin/ryadom', {
+      totals: totals[0],
+      recent: recent.map((row) => ({ ...row, activityInfo: getActivity(row.activity) })),
+      reports,
     });
   } catch (err) {
     next(err);

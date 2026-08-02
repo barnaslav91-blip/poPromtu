@@ -247,3 +247,17 @@ button:hover {
   padding: 2px 8px;
   border-radius: 999px;
 }
+
+.stats {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats strong {
+  font-size: 1.15rem;
+  color: var(--accent);
+}
