@@ -48,6 +48,8 @@ async function main() {
 
   let openContractId = null;
   let openDirection = null;
+  let openExtremePrice = null;
+  let selling = false;
   let opening = false;
 
   client.on('error', (err) => {
@@ -73,6 +75,8 @@ async function main() {
     });
     openContractId = null;
     openDirection = null;
+    openExtremePrice = null;
+    selling = false;
   });
 
   client.on('tick', async (tick) => {
@@ -86,11 +90,29 @@ async function main() {
     strategy.ingestTick({ epoch: tick.epoch, quote: tick.quote });
 
     if (openContractId) {
+      openExtremePrice =
+        openDirection === 'up'
+          ? Math.max(openExtremePrice, tick.quote)
+          : Math.min(openExtremePrice, tick.quote);
+
+      let trailHit = false;
+      if (strategy.atr !== null) {
+        const trailDistance = strategy.atr * strategy.opts.trailAtrMultiple;
+        const trailStopPrice =
+          openDirection === 'up' ? openExtremePrice - trailDistance : openExtremePrice + trailDistance;
+        trailHit = openDirection === 'up' ? tick.quote <= trailStopPrice : tick.quote >= trailStopPrice;
+      }
+
       const closeSignal = strategy.evaluate({ inPosition: true, positionDirection: openDirection });
-      if (closeSignal.action === 'close') {
+
+      if ((trailHit || closeSignal.action === 'close') && !selling) {
+        selling = true;
         client
           .sellContract(openContractId)
-          .catch((err) => console.error('Не удалось закрыть позицию:', err.message));
+          .catch((err) => console.error('Не удалось закрыть позицию:', err.message))
+          .finally(() => {
+            selling = false;
+          });
       }
       return;
     }
@@ -119,6 +141,7 @@ async function main() {
       });
       openContractId = bought.contract_id;
       openDirection = signal.direction;
+      openExtremePrice = tick.quote;
       await client.subscribeContract(openContractId);
       logTrade({
         event: 'opened',

@@ -20,6 +20,7 @@ function strategyOptsFromEnv() {
     tickDirectionWindow: numOrUndefined(process.env.TICK_DIRECTION_WINDOW),
     tickDirectionUpThreshold: numOrUndefined(process.env.TICK_DIRECTION_UP_THRESHOLD),
     tickDirectionDownThreshold: numOrUndefined(process.env.TICK_DIRECTION_DOWN_THRESHOLD),
+    trailAtrMultiple: numOrUndefined(process.env.TRAIL_ATR_MULTIPLE),
   };
 }
 

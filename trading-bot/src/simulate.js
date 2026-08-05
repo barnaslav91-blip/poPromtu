@@ -37,6 +37,27 @@ function simulate({ prices, times, startBalance = 1000, strategyOpts = {}, riskO
         closePosition(-position.stopLossUsd, 'stop-loss');
         continue;
       }
+
+      position.extremePrice =
+        position.direction === 'up'
+          ? Math.max(position.extremePrice, tick.quote)
+          : Math.min(position.extremePrice, tick.quote);
+
+      if (strategy.atr !== null) {
+        const trailDistance = strategy.atr * strategy.opts.trailAtrMultiple;
+        const trailStopPrice =
+          position.direction === 'up'
+            ? position.extremePrice - trailDistance
+            : position.extremePrice + trailDistance;
+        const trailHit =
+          position.direction === 'up' ? tick.quote <= trailStopPrice : tick.quote >= trailStopPrice;
+
+        if (trailHit) {
+          const trailPnl = position.stake * position.multiplier * priceChangePct * directionSign;
+          closePosition(trailPnl, 'trailing-stop');
+          continue;
+        }
+      }
     }
 
     const signal = strategy.evaluate({
@@ -55,6 +76,7 @@ function simulate({ prices, times, startBalance = 1000, strategyOpts = {}, riskO
         const sizing = riskManager.sizeTrade({ balance, stopDistancePct: signal.stopDistancePct });
         position = {
           entryPrice: tick.quote,
+          extremePrice: tick.quote,
           direction: signal.direction,
           stake: sizing.stake,
           multiplier: sizing.multiplier,
