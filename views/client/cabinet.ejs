@@ -43,16 +43,17 @@
       <% } %>
       <ul class="row-list">
         <% leads.forEach(function (l) { %>
-          <li class="lead-<%= l.status %>">
+          <li class="lead-<%= l.effective %>">
             <div class="row-main">
               <strong><a href="tel:<%= l.phone %>"><%= l.phone %></a></strong>
               <% if (l.name) { %> · <%= l.name %><% } %>
-              <span class="chip chip-<%= l.status %>"><%= leadStatuses[l.status] %></span>
+              <span class="chip chip-<%= l.effective %>"><%= leadStatuses[l.effective] %></span>
+              <% if (l.auto) { %><span class="chip">срок возражения истёк</span><% } %>
               <% if (l.is_duplicate) { %><span class="chip chip-dup">дубль — не тарифицируется</span><% } %>
               <% if (l.message) { %><div class="lead-message"><%= l.message %></div><% } %>
               <div class="muted small">
                 <%= new Date(l.created_at).toLocaleString('ru-RU') %>
-                <% if (l.status === 'new') { %>
+                <% if (l.canDispute) { %>
                   · на возражение осталось <%= Math.floor(l.hoursLeft) %> ч
                 <% } %>
                 <% if (l.reject_reason) { %> · причина: <%= l.reject_reason %><% } %>
@@ -74,8 +75,6 @@
                   </select>
                   <button class="secondary" type="submit">Отклонить</button>
                 </form>
-              <% } else if (l.status === 'new') { %>
-                <span class="muted small">срок возражения истёк</span>
               <% } %>
             </div>
           </li>

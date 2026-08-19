@@ -117,6 +117,12 @@ async function init() {
 
     ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS telegram_chat_id TEXT NOT NULL DEFAULT '';
 
+    -- Реквизиты для акта оказанных услуг.
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS contract_number TEXT NOT NULL DEFAULT '';
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS contract_date TEXT NOT NULL DEFAULT '';
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'MDL';
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS vat_percent NUMERIC(5, 2) NOT NULL DEFAULT 0;
+
     CREATE INDEX IF NOT EXISTS promo_posts_group_idx
       ON promo_posts (group_id, status, posted_at DESC);
     CREATE INDEX IF NOT EXISTS promo_leads_client_idx
