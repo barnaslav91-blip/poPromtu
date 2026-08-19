@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spendenaktion</title>
+<meta name="description" content="Wir sammeln für unseren Imbiss. Betrag wählen und per PayPal, Karte oder Überweisung beitragen.">
+<meta name="theme-color" content="#D7C9AD" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14100D" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spendenaktion">
+<link rel="icon" href="../icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta property="og:title" content="Spendenaktion">
+<meta property="og:description" content="Jeder Beitrag bringt uns näher ans Ziel.">
+<meta property="og:type" content="website">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --paper:      #D7C9AD;
+    --paper-2:    #E3D8C1;
+    --paper-3:    #EDE4D2;
+    --ink:        #241E18;
+    --ink-soft:   #5F5546;
+    --pill-bg:    #2B241E;
+    --pill-ink:   #F1E8D7;
+    --accent:     #97281F;
+    --accent-ink: #FFF3E6;
+    --rule:       rgba(36, 30, 24, .18);
+    --rule-firm:  rgba(36, 30, 24, .34);
+    --shadow:     0 1px 2px rgba(36, 30, 24, .10), 0 8px 24px -16px rgba(36, 30, 24, .5);
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --measure: 34rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:      #14100D;
+      --paper-2:    #1F1913;
+      --paper-3:    #2A231B;
+      --ink:        #EFE5D2;
+      --ink-soft:   #A2947C;
+      --pill-bg:    #EADCC0;
+      --pill-ink:   #191410;
+      --accent:     #E0715F;
+      --accent-ink: #1A0F0C;
+      --rule:       rgba(234, 220, 192, .18);
+      --rule-firm:  rgba(234, 220, 192, .34);
+      --shadow:     0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .9);
+    }
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.45;
+    -webkit-text-size-adjust: 100%;
+    padding-bottom: 3rem;
+  }
+
+  .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 1.1rem; }
+
+  header.top { padding: 2rem 0 1.2rem; text-align: center; }
+  .eyebrow {
+    margin: 0 0 .5rem; font-size: .7rem; font-weight: 700;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--ink-soft);
+  }
+  h1 { margin: 0; font-size: 1.9rem; line-height: 1.15; letter-spacing: -.01em; }
+  .lede { margin: .7rem 0 0; color: var(--ink-soft); font-size: .96rem; }
+
+  .card {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    box-shadow: var(--shadow);
+    padding: 1.1rem 1.1rem 1.2rem;
+    margin: 1.1rem 0;
+  }
+  .card h2 {
+    margin: 0 0 .7rem; font-size: .78rem; font-weight: 700;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft);
+  }
+
+  /* ---- Fortschritt ---- */
+  .goal { display: flex; align-items: baseline; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
+  .goal .now { font-size: 2.1rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .goal .of { font-size: .95rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+  .bar {
+    position: relative; height: .85rem; margin: .8rem 0 .55rem;
+    background: var(--paper-3); border: 1px solid var(--rule-firm); border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar i {
+    position: absolute; inset: 0 auto 0 0; display: block;
+    background: var(--accent); border-radius: 999px;
+    transition: width .5s ease;
+  }
+  .bar-note { display: flex; justify-content: space-between; gap: .6rem; font-size: .84rem; color: var(--ink-soft); }
+  .bar-note b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .deadline { margin: .7rem 0 0; font-size: .84rem; color: var(--ink-soft); }
+
+  /* ---- Betrag ---- */
+  .amounts { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .amounts button {
+    font: inherit; font-weight: 700; font-variant-numeric: tabular-nums;
+    padding: .5rem .85rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--rule-firm); background: var(--paper-3); color: var(--ink);
+  }
+  .amounts button[aria-pressed="true"] { background: var(--pill-bg); color: var(--pill-ink); border-color: var(--pill-bg); }
+  .amounts button:focus-visible, .own input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .own { display: flex; align-items: center; gap: .5rem; margin-top: .7rem; }
+  .own label { font-size: .86rem; color: var(--ink-soft); }
+  .own input {
+    font: inherit; font-weight: 700; width: 6.5rem; text-align: right;
+    padding: .45rem .6rem; border-radius: 3px;
+    border: 1px solid var(--rule-firm); background: var(--paper-3); color: var(--ink);
+  }
+  .own span { font-weight: 700; }
+
+  /* ---- Zahlwege ---- */
+  .pay { display: grid; gap: .55rem; }
+  .btn {
+    display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+    font: inherit; font-weight: 700; text-align: left; text-decoration: none;
+    padding: .8rem .95rem; border-radius: 3px; cursor: pointer;
+    border: 1px solid var(--rule-firm); background: var(--paper-3); color: var(--ink);
+  }
+  .btn > span:first-child { min-width: 0; }
+  .btn small { display: block; font-weight: 400; font-size: .8rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.primary small { color: inherit; opacity: .85; }
+  .btn .amt { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .bank { margin-top: .9rem; border-top: 1px solid var(--rule); padding-top: .9rem; }
+  .bank dl { display: grid; grid-template-columns: auto 1fr; gap: .35rem .8rem; margin: 0 0 .8rem; font-size: .9rem; }
+  .bank dt { color: var(--ink-soft); }
+  .bank dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+  .bank dd.mono { font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+
+  .qr { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .qr svg { width: 8.6rem; height: 8.6rem; background: #fff; padding: .4rem; border-radius: 3px; border: 1px solid var(--rule); }
+  .qr p { margin: 0; font-size: .84rem; color: var(--ink-soft); flex: 1 1 9rem; }
+
+  /* ---- Liste ---- */
+  ul.gifts { list-style: none; margin: 0; padding: 0; }
+  ul.gifts li {
+    display: flex; align-items: baseline; justify-content: space-between; gap: .8rem;
+    padding: .5rem 0; border-bottom: 1px solid var(--rule);
+  }
+  ul.gifts li:last-child { border-bottom: 0; }
+  ul.gifts .who { font-weight: 600; }
+  ul.gifts .when { display: block; font-size: .78rem; color: var(--ink-soft); font-weight: 400; }
+  ul.gifts .sum { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .none { margin: 0; color: var(--ink-soft); font-size: .9rem; }
+
+  .footnote { margin: 1.6rem 0 0; font-size: .78rem; color: var(--ink-soft); }
+  .setup {
+    margin: 1.1rem 0; padding: .9rem 1rem; border-radius: 3px;
+    border: 1px dashed var(--rule-firm); background: var(--paper-2);
+    font-size: .86rem; color: var(--ink-soft);
+  }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 2rem; transform: translate(-50%, 12px);
+    z-index: 50; background: var(--pill-bg); color: var(--pill-ink);
+    padding: .6rem 1rem; border-radius: 999px; font-size: .86rem; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+    box-shadow: var(--shadow);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  [hidden] { display: none !important; }
+
+  @media print {
+    body { background: #fff; color: #000; padding: 0; }
+    .card { box-shadow: none; background: #fff; break-inside: avoid; }
+    .amounts, .pay a.btn, .pay button.btn, .share, .toast { display: none !important; }
+    .qr svg { width: 11rem; height: 11rem; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow" id="eyebrow">Spendenaktion</p>
+    <h1 id="titel">Spendenaktion</h1>
+    <p class="lede" id="zweck"></p>
+  </header>
+
+  <section class="card" aria-labelledby="stand-h">
+    <h2 id="stand-h">Stand der Sammlung</h2>
+    <div class="goal">
+      <span class="now" id="stand">0,00 &euro;</span>
+      <span class="of">von <b id="ziel">1.000,00 &euro;</b></span>
+    </div>
+    <div class="bar" role="progressbar" id="bar" aria-labelledby="stand-h" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <i id="bar-fill" style="width: 0%"></i>
+    </div>
+    <p class="bar-note">
+      <span id="prozent">0&nbsp;%</span>
+      <span>noch <b id="rest">1.000,00 &euro;</b></span>
+    </p>
+    <p class="deadline" id="frist" hidden></p>
+  </section>
+
+  <section class="card" aria-labelledby="betrag-h">
+    <h2 id="betrag-h">Betrag w&auml;hlen</h2>
+    <div class="amounts" id="amounts" role="group" aria-labelledby="betrag-h"></div>
+    <p class="own">
+      <label for="own-input">Eigener Betrag</label>
+      <input id="own-input" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00" aria-describedby="betrag-h">
+      <span aria-hidden="true">&euro;</span>
+    </p>
+  </section>
+
+  <section class="card" aria-labelledby="zahlen-h">
+    <h2 id="zahlen-h">So k&ouml;nnen Sie beitragen</h2>
+    <div class="pay">
+      <a class="btn primary" id="paypal" href="#" hidden>
+        <span>PayPal<small>In der PayPal-App bezahlen</small></span>
+        <span class="amt" id="paypal-amt"></span>
+      </a>
+      <a class="btn" id="karte" href="#" target="_blank" rel="noopener" hidden>
+        <span>Karte oder Sofort&uuml;berweisung<small>Betrag auf der Bezahlseite eingeben</small></span>
+      </a>
+    </div>
+
+    <div class="bank" id="bank" hidden>
+      <dl>
+        <dt>Empf&auml;nger</dt><dd id="bank-name"></dd>
+        <dt>IBAN</dt><dd class="mono" id="bank-iban"></dd>
+        <dt id="bic-dt" hidden>BIC</dt><dd class="mono" id="bank-bic" hidden></dd>
+        <dt>Verwendungszweck</dt><dd id="bank-zweck"></dd>
+      </dl>
+      <div class="pay">
+        <button type="button" class="btn" id="copy-iban">
+          <span>IBAN kopieren<small>F&uuml;r die &Uuml;berweisung in der Banking-App</small></span>
+        </button>
+      </div>
+      <div class="qr" id="giro" style="margin-top: .9rem">
+        <div id="giro-qr"></div>
+        <p>Banking-App &ouml;ffnen, QR-Code scannen &ndash; Empf&auml;nger, IBAN und Betrag sind dann schon ausgef&uuml;llt.</p>
+      </div>
+    </div>
+
+    <p class="none" id="kein-weg" hidden>
+      Zahlungswege sind noch nicht hinterlegt. Bitte sprechen Sie uns direkt an.
+    </p>
+  </section>
+
+  <section class="card" aria-labelledby="eingang-h">
+    <h2 id="eingang-h">Bereits eingegangen</h2>
+    <ul class="gifts" id="gifts"></ul>
+    <p class="none" id="gifts-none" hidden>Noch keine Eintr&auml;ge &ndash; Ihr Beitrag w&auml;re der erste.</p>
+  </section>
+
+  <section class="card share" aria-labelledby="teilen-h">
+    <h2 id="teilen-h">Weitersagen</h2>
+    <div class="pay">
+      <button type="button" class="btn" id="share-native" hidden>
+        <span>Seite teilen<small>&Uuml;ber die Freigabe des Telefons</small></span>
+      </button>
+      <a class="btn" id="share-wa" target="_blank" rel="noopener">
+        <span>Per WhatsApp teilen<small>Link an Freunde und Stammg&auml;ste</small></span>
+      </a>
+      <a class="btn" id="share-tg" target="_blank" rel="noopener">
+        <span>Per Telegram teilen<small>Link in Chat oder Kanal</small></span>
+      </a>
+      <button type="button" class="btn" id="copy-link">
+        <span>Link kopieren<small id="link-note"></small></span>
+      </button>
+    </div>
+    <div class="qr" style="margin-top: .9rem">
+      <div id="page-qr"></div>
+      <p>QR-Code zum Ausdrucken f&uuml;r Tresen, Fenster oder Flyer &ndash; f&uuml;hrt direkt auf diese Seite.</p>
+    </div>
+  </section>
+
+  <div class="setup" id="setup" hidden></div>
+
+  <p class="footnote" id="footnote"></p>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ==================================================================
+   AKTION — Ziel und Text der Sammlung.
+   ziel:  Zielbetrag in Euro (Zahl, ohne Währungszeichen)
+   frist: Enddatum "JJJJ-MM-TT" oder "" für eine Sammlung ohne Frist
+================================================================== */
+const AKTION = {
+  ziel:    1000,
+  eyebrow: "Spendenaktion",
+  titel:   "1.000 € für den Imbiss",
+  zweck:   "Wir sammeln für eine neue Ausstattung in der Küche. Jeder Beitrag zählt – " +
+           "und Sie sehen hier jederzeit, wie weit wir schon sind.",
+  frist:   "",
+  hinweis: "Private Sammlung ohne Gegenleistung. Eine Spendenquittung können wir nicht ausstellen."
+};
+
+/* ==================================================================
+   ZAHLWEGE — hier die eigenen Daten eintragen.
+   Jedes leere Feld blendet den zugehörigen Weg einfach aus.
+
+   paypal:  PayPal.me-Name ohne "paypal.me/"      ("meinimbiss")
+   karte:   Bezahllink (Stripe, SumUp, GoFundMe …) — kompletter Link
+   name:    Kontoinhaber, genau wie bei der Bank hinterlegt
+   iban:    IBAN mit oder ohne Leerzeichen
+   bic:     nur nötig für Konten außerhalb des SEPA-Raums
+   zweck:   Verwendungszweck der Überweisung (max. 140 Zeichen)
+================================================================== */
+const ZAHLWEGE = {
+  paypal: "",
+  karte:  "",
+  name:   "",
+  iban:   "",
+  bic:    "",
+  zweck:  "Spendenaktion"
+};
+
+/* ==================================================================
+   EINGANG — was schon zusammengekommen ist. Eine Zeile pro Beitrag:
+   ["JJJJ-MM-TT", Betrag, "Name"]   —  Name leer = "Anonym".
+   Bareinnahmen einfach als eigene Zeile eintragen.
+================================================================== */
+const EINGANG = [
+  // ["2026-08-12", 50, "Familie Müller"],
+  // ["2026-08-13", 20, ""],
+];
+
+const BETRAEGE = [5, 10, 20, 50, 100];
+
+document.documentElement.lang = "de";
+
+const euro = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
+const datum = new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "long", year: "numeric" });
+const $ = (id) => document.getElementById(id);
+
+/* ---------------- QR-Code: Byte-Modus, Fehlerkorrektur M ---------------- */
+function qrMatrix(text) {
+  const EC_M = {
+    1:  [10, [[1, 16]]],           2:  [16, [[1, 28]]],
+    3:  [26, [[1, 44]]],           4:  [18, [[2, 32]]],
+    5:  [24, [[2, 43]]],           6:  [16, [[4, 27]]],
+    7:  [18, [[4, 31]]],           8:  [22, [[2, 38], [2, 39]]],
+    9:  [22, [[3, 36], [2, 37]]],  10: [26, [[4, 43], [1, 44]]],
+    11: [30, [[1, 50], [4, 51]]],  12: [22, [[6, 36], [2, 37]]],
+    13: [22, [[8, 37], [1, 38]]],  14: [24, [[4, 40], [5, 41]]],
+    15: [24, [[5, 41], [5, 42]]],  16: [28, [[7, 45], [3, 46]]],
+    17: [28, [[10, 46], [1, 47]]], 18: [26, [[9, 43], [4, 44]]],
+    19: [26, [[3, 44], [11, 45]]], 20: [26, [[3, 41], [13, 42]]]
+  };
+  const ALIGN = {
+    1: [], 2: [6, 18], 3: [6, 22], 4: [6, 26], 5: [6, 30], 6: [6, 34],
+    7: [6, 22, 38], 8: [6, 24, 42], 9: [6, 26, 46], 10: [6, 28, 50],
+    11: [6, 30, 54], 12: [6, 32, 58], 13: [6, 34, 62], 14: [6, 26, 46, 66],
+    15: [6, 26, 48, 70], 16: [6, 26, 50, 74], 17: [6, 30, 54, 78],
+    18: [6, 30, 56, 82], 19: [6, 30, 58, 86], 20: [6, 34, 62, 90]
+  };
+  const remainderBits = (v) => (v === 1 ? 0 : v <= 6 ? 7 : v <= 13 ? 0 : 3);
+
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  for (let i = 0, x = 1; i < 255; i++) {
+    EXP[i] = x; LOG[x] = i;
+    x <<= 1; if (x & 0x100) x ^= 0x11d;
+  }
+  for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+  const mul = (a, b) => (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]];
+
+  function ecBytes(data, ecLen) {
+    let gen = [1];
+    for (let i = 0; i < ecLen; i++) {
+      const next = new Array(gen.length + 1).fill(0);
+      for (let j = 0; j < gen.length; j++) {
+        next[j] ^= gen[j];
+        next[j + 1] ^= mul(gen[j], EXP[i]);
+      }
+      gen = next;
+    }
+    const res = new Array(ecLen).fill(0);
+    for (const byte of data) {
+      const factor = byte ^ res[0];
+      res.shift(); res.push(0);
+      if (factor !== 0) for (let i = 0; i < ecLen; i++) res[i] ^= mul(gen[i + 1], factor);
+    }
+    return res;
+  }
+
+  const bytes = Array.from(new TextEncoder().encode(text));
+  let version = 0, ecLen = 0, groups = null, dataCw = 0;
+  for (let v = 1; v <= 20; v++) {
+    const total = EC_M[v][1].reduce((s, [n, len]) => s + n * len, 0);
+    if (4 + (v < 10 ? 8 : 16) + 8 * bytes.length <= total * 8) {
+      version = v; ecLen = EC_M[v][0]; groups = EC_M[v][1]; dataCw = total;
+      break;
+    }
+  }
+  if (!version) throw new Error("Inhalt zu lang für einen QR-Code");
+
+  const bits = [];
+  const push = (val, len) => { for (let i = len - 1; i >= 0; i--) bits.push((val >> i) & 1); };
+  push(0b0100, 4);
+  push(bytes.length, version < 10 ? 8 : 16);
+  for (const b of bytes) push(b, 8);
+  for (let i = 0; i < 4 && bits.length < dataCw * 8; i++) bits.push(0);
+  while (bits.length % 8) bits.push(0);
+  const cw = [];
+  for (let i = 0; i < bits.length; i += 8) cw.push(bits.slice(i, i + 8).reduce((a, b) => (a << 1) | b, 0));
+  for (let i = 0; cw.length < dataCw; i++) cw.push(i % 2 ? 0x11 : 0xec);
+
+  const dataBlocks = [], ecBlocks = [];
+  let offset = 0;
+  for (const [count, len] of groups) {
+    for (let i = 0; i < count; i++) {
+      const chunk = cw.slice(offset, offset + len);
+      offset += len;
+      dataBlocks.push(chunk);
+      ecBlocks.push(ecBytes(chunk, ecLen));
+    }
+  }
+  const finalBits = [];
+  const longest = Math.max(...dataBlocks.map((b) => b.length));
+  const pushByte = (b) => { for (let i = 7; i >= 0; i--) finalBits.push((b >> i) & 1); };
+  for (let i = 0; i < longest; i++) for (const b of dataBlocks) if (i < b.length) pushByte(b[i]);
+  for (let i = 0; i < ecLen; i++) for (const b of ecBlocks) pushByte(b[i]);
+  for (let i = 0; i < remainderBits(version); i++) finalBits.push(0);
+
+  const size = version * 4 + 17;
+  const mod = Array.from({ length: size }, () => new Array(size).fill(0));
+  const fixed = Array.from({ length: size }, () => new Array(size).fill(false));
+  const set = (r, c, v) => { mod[r][c] = v; fixed[r][c] = true; };
+
+  const finder = (row, col) => {
+    for (let r = -1; r <= 7; r++) {
+      for (let c = -1; c <= 7; c++) {
+        const rr = row + r, cc = col + c;
+        if (rr < 0 || rr >= size || cc < 0 || cc >= size) continue;
+        const ring = (r >= 0 && r <= 6 && (c === 0 || c === 6)) || (c >= 0 && c <= 6 && (r === 0 || r === 6));
+        const core = r >= 2 && r <= 4 && c >= 2 && c <= 4;
+        set(rr, cc, ring || core ? 1 : 0);
+      }
+    }
+  };
+  finder(0, 0); finder(0, size - 7); finder(size - 7, 0);
+
+  for (let i = 8; i < size - 8; i++) {
+    set(6, i, i % 2 === 0 ? 1 : 0);
+    set(i, 6, i % 2 === 0 ? 1 : 0);
+  }
+
+  for (const r of ALIGN[version]) {
+    for (const c of ALIGN[version]) {
+      if ((r <= 8 && c <= 8) || (r <= 8 && c >= size - 9) || (r >= size - 9 && c <= 8)) continue;
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          set(r + dr, c + dc, Math.max(Math.abs(dr), Math.abs(dc)) === 1 ? 0 : 1);
+        }
+      }
+    }
+  }
+
+  set(size - 8, 8, 1); // immer dunkles Modul
+  for (let i = 0; i < 9; i++) {
+    if (!fixed[8][i]) set(8, i, 0);
+    if (!fixed[i][8]) set(i, 8, 0);
+  }
+  for (let i = 0; i < 8; i++) {
+    if (!fixed[8][size - 1 - i]) set(8, size - 1 - i, 0);
+    if (!fixed[size - 1 - i][8]) set(size - 1 - i, 8, 0);
+  }
+
+  if (version >= 7) {
+    let rem = version;
+    for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1f25);
+    const info = (version << 12) | rem;
+    for (let i = 0; i < 18; i++) {
+      const bit = (info >> i) & 1, a = Math.floor(i / 3), b = i % 3;
+      set(size - 11 + b, a, bit);
+      set(a, size - 11 + b, bit);
+    }
+  }
+
+  let idx = 0, upward = true;
+  for (let right = size - 1; right >= 1; right -= 2) {
+    if (right === 6) right = 5;
+    for (let step = 0; step < size; step++) {
+      const row = upward ? size - 1 - step : step;
+      for (const col of [right, right - 1]) {
+        if (fixed[row][col]) continue;
+        mod[row][col] = idx < finalBits.length ? finalBits[idx] : 0;
+        idx++;
+      }
+    }
+    upward = !upward;
+  }
+
+  const MASKS = [
+    (r, c) => (r + c) % 2 === 0,
+    (r) => r % 2 === 0,
+    (r, c) => c % 3 === 0,
+    (r, c) => (r + c) % 3 === 0,
+    (r, c) => (Math.floor(r / 2) + Math.floor(c / 3)) % 2 === 0,
+    (r, c) => ((r * c) % 2) + ((r * c) % 3) === 0,
+    (r, c) => (((r * c) % 2) + ((r * c) % 3)) % 2 === 0,
+    (r, c) => (((r + c) % 2) + ((r * c) % 3)) % 2 === 0
+  ];
+
+  function formatBits(mask) {
+    const data = mask; // Fehlerkorrektur M = 00
+    let rem = data;
+    for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537);
+    return ((data << 10) | rem) ^ 0b101010000010010;
+  }
+
+  function penalty(m) {
+    let score = 0;
+    const pat1 = [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0];
+    const pat2 = [0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1];
+    for (let i = 0; i < size; i++) {
+      const lines = [m[i], m.map((row) => row[i])];
+      for (const line of lines) {
+        let run = 1;
+        for (let j = 1; j < size; j++) {
+          if (line[j] === line[j - 1]) {
+            run++;
+            if (run === 5) score += 3; else if (run > 5) score += 1;
+          } else run = 1;
+        }
+        for (let j = 0; j + 11 <= size; j++) {
+          if (pat1.every((p, k) => line[j + k] === p)) score += 40;
+          if (pat2.every((p, k) => line[j + k] === p)) score += 40;
+        }
+      }
+    }
+    for (let r = 0; r < size - 1; r++) {
+      for (let c = 0; c < size - 1; c++) {
+        const v = m[r][c];
+        if (v === m[r][c + 1] && v === m[r + 1][c] && v === m[r + 1][c + 1]) score += 3;
+      }
+    }
+    let dark = 0;
+    for (let r = 0; r < size; r++) for (let c = 0; c < size; c++) dark += m[r][c];
+    score += Math.floor(Math.abs((dark * 100) / (size * size) - 50) / 5) * 10;
+    return score;
+  }
+
+  let best = null, bestScore = Infinity;
+  for (let mask = 0; mask < 8; mask++) {
+    const m = mod.map((row) => row.slice());
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) if (!fixed[r][c] && MASKS[mask](r, c)) m[r][c] ^= 1;
+    }
+    const fmt = formatBits(mask);
+    for (let i = 0; i < 15; i++) {
+      const bit = (fmt >> (14 - i)) & 1;
+      if (i < 6) m[8][i] = bit;
+      else if (i < 8) m[8][i + 1] = bit;
+      else if (i === 8) m[7][8] = bit;
+      else m[14 - i][8] = bit;
+
+      if (i < 7) m[size - 1 - i][8] = bit;
+      else m[8][size - 15 + i] = bit;
+    }
+    const score = penalty(m);
+    if (score < bestScore) { bestScore = score; best = m; }
+  }
+  return { size, modules: best };
+}
+
+function qrSvg(text, label) {
+  const { size, modules } = qrMatrix(text);
+  const quiet = 4, dim = size + quiet * 2;
+  let path = "";
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (modules[r][c]) path += `M${c + quiet} ${r + quiet}h1v1h-1z`;
+    }
+  }
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${dim} ${dim}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", label);
+  svg.setAttribute("shape-rendering", "crispEdges");
+  const bg = document.createElementNS(svg.namespaceURI, "rect");
+  bg.setAttribute("width", dim); bg.setAttribute("height", dim); bg.setAttribute("fill", "#fff");
+  const fg = document.createElementNS(svg.namespaceURI, "path");
+  fg.setAttribute("d", path); fg.setAttribute("fill", "#000");
+  svg.append(bg, fg);
+  return svg;
+}
+
+/* ---------------- IBAN ---------------- */
+const ibanKompakt = (iban) => (iban || "").replace(/\s+/g, "").toUpperCase();
+
+function ibanGueltig(iban) {
+  const s = ibanKompakt(iban);
+  if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]{10,30}$/.test(s)) return false;
+  const umgestellt = s.slice(4) + s.slice(0, 4);
+  let rest = 0;
+  for (const zeichen of umgestellt) {
+    const wert = zeichen >= "A" ? (zeichen.charCodeAt(0) - 55).toString() : zeichen;
+    for (const ziffer of wert) rest = (rest * 10 + Number(ziffer)) % 97;
+  }
+  return rest === 1;
+}
+
+const ibanLesbar = (iban) => ibanKompakt(iban).replace(/(.{4})/g, "$1 ").trim();
+
+/* ---------------- Stand der Sammlung ---------------- */
+const eingang = EINGANG
+  .map(([tag, betrag, name]) => ({ tag, betrag: Number(betrag) || 0, name: (name || "").trim() }))
+  .filter((e) => e.betrag > 0)
+  .sort((a, b) => String(b.tag).localeCompare(String(a.tag)));
+
+const gesammelt = eingang.reduce((summe, e) => summe + e.betrag, 0);
+const rest = Math.max(0, AKTION.ziel - gesammelt);
+const prozent = AKTION.ziel > 0 ? Math.min(100, (gesammelt / AKTION.ziel) * 100) : 0;
+
+function zeigeStand() {
+  $("eyebrow").textContent = AKTION.eyebrow;
+  $("titel").textContent = AKTION.titel;
+  $("zweck").textContent = AKTION.zweck;
+  document.title = AKTION.titel;
+
+  $("stand").textContent = euro.format(gesammelt);
+  $("ziel").textContent = euro.format(AKTION.ziel);
+  $("rest").textContent = euro.format(rest);
+  $("prozent").textContent = Math.round(prozent).toLocaleString("de-DE") + " %";
+  $("bar-fill").style.width = prozent + "%";
+  $("bar").setAttribute("aria-valuenow", Math.round(prozent));
+  $("bar").setAttribute("aria-valuetext", `${euro.format(gesammelt)} von ${euro.format(AKTION.ziel)}`);
+
+  if (rest === 0) {
+    $("prozent").textContent = "Ziel erreicht – danke!";
+    $("rest").parentElement.hidden = true;
+  }
+
+  if (AKTION.frist) {
+    const ende = new Date(AKTION.frist + "T23:59:59");
+    if (!isNaN(ende)) {
+      const tage = Math.ceil((ende - Date.now()) / 86400000);
+      $("frist").textContent = tage > 0
+        ? `Noch ${tage} ${tage === 1 ? "Tag" : "Tage"} – bis ${datum.format(ende)}.`
+        : `Die Sammlung lief bis ${datum.format(ende)}.`;
+      $("frist").hidden = false;
+    }
+  }
+
+  const liste = $("gifts");
+  if (!eingang.length) {
+    $("gifts-none").hidden = false;
+    return;
+  }
+  for (const e of eingang) {
+    const li = document.createElement("li");
+    const wer = document.createElement("span");
+    wer.className = "who";
+    wer.textContent = e.name || "Anonym";
+    const wann = document.createElement("span");
+    wann.className = "when";
+    const d = new Date(e.tag + "T12:00:00");
+    wann.textContent = isNaN(d) ? e.tag : datum.format(d);
+    wer.append(wann);
+    const sum = document.createElement("span");
+    sum.className = "sum";
+    sum.textContent = euro.format(e.betrag);
+    li.append(wer, sum);
+    liste.append(li);
+  }
+}
+
+/* ---------------- Betrag ---------------- */
+let betrag = Math.min(20, AKTION.ziel) || 20;
+
+function betragAusText(text) {
+  const roh = String(text).replace(/[^\d,.]/g, "");
+  /* "12,50" und "1.234,50" -> Komma trennt die Cent; "12.50" -> Punkt trennt die Cent. */
+  const normal = roh.includes(",")
+    ? roh.replace(/\./g, "").replace(",", ".")
+    : /^\d+\.\d{1,2}$/.test(roh) ? roh : roh.replace(/\./g, "");
+  const zahl = Number(normal);
+  return Number.isFinite(zahl) && zahl > 0 ? Math.round(zahl * 100) / 100 : null;
+}
+
+function zeichneBetraege() {
+  const box = $("amounts");
+  box.textContent = "";
+  for (const wert of BETRAEGE) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = euro.format(wert);
+    b.setAttribute("aria-pressed", String(wert === betrag));
+    b.addEventListener("click", () => {
+      betrag = wert;
+      $("own-input").value = "";
+      aktualisiere();
+    });
+    box.append(b);
+  }
+}
+
+/* ---------------- Zahlwege ---------------- */
+const iban = ibanKompakt(ZAHLWEGE.iban);
+const bankOk = Boolean(ZAHLWEGE.name.trim()) && ibanGueltig(iban);
+const zweckText = (ZAHLWEGE.zweck || "").slice(0, 140);
+
+function epcNutzlast(wert) {
+  return [
+    "BCD",
+    "002",
+    "1",
+    "SCT",
+    ZAHLWEGE.bic.trim(),
+    ZAHLWEGE.name.trim().slice(0, 70),
+    iban,
+    wert ? "EUR" + wert.toFixed(2) : "",
+    "",
+    "",
+    zweckText,
+    ""
+  ].join("\n");
+}
+
+function zeichneGirocode() {
+  const box = $("giro-qr");
+  box.textContent = "";
+  try {
+    box.append(qrSvg(epcNutzlast(betrag), `QR-Code für eine Überweisung von ${euro.format(betrag)}`));
+    $("giro").hidden = false;
+  } catch (err) {
+    $("giro").hidden = true; // z. B. zu langer Verwendungszweck
+  }
+}
+
+function aktualisiere() {
+  for (const b of $("amounts").children) {
+    b.setAttribute("aria-pressed", String(betragAusText(b.textContent) === betrag));
+  }
+  const anzeige = euro.format(betrag);
+
+  if (ZAHLWEGE.paypal.trim()) {
+    const konto = encodeURIComponent(ZAHLWEGE.paypal.trim().replace(/^.*paypal\.me\//i, ""));
+    $("paypal").href = `https://www.paypal.com/paypalme/${konto}/${betrag.toFixed(2)}EUR`;
+    $("paypal-amt").textContent = anzeige;
+    $("paypal").hidden = false;
+  }
+  if (ZAHLWEGE.karte.trim()) {
+    $("karte").href = ZAHLWEGE.karte.trim();
+    $("karte").hidden = false;
+  }
+  if (bankOk) {
+    $("bank-name").textContent = ZAHLWEGE.name.trim();
+    $("bank-iban").textContent = ibanLesbar(iban);
+    $("bank-zweck").textContent = zweckText || "–";
+    if (ZAHLWEGE.bic.trim()) {
+      $("bic-dt").hidden = false;
+      $("bank-bic").hidden = false;
+      $("bank-bic").textContent = ZAHLWEGE.bic.trim().toUpperCase();
+    }
+    $("bank").hidden = false;
+    zeichneGirocode();
+  }
+  $("kein-weg").hidden = Boolean(ZAHLWEGE.paypal.trim() || ZAHLWEGE.karte.trim() || bankOk);
+}
+
+/* ---------------- Kopieren und Teilen ---------------- */
+let toastTimer = null;
+function toast(text) {
+  const el = $("toast");
+  el.textContent = text;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+async function kopiere(text, meldung) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(meldung);
+  } catch (err) {
+    const hilfe = document.createElement("textarea");
+    hilfe.value = text;
+    hilfe.setAttribute("readonly", "");
+    hilfe.style.position = "fixed";
+    hilfe.style.opacity = "0";
+    document.body.append(hilfe);
+    hilfe.select();
+    try { document.execCommand("copy"); toast(meldung); }
+    catch (e) { toast("Kopieren hat nicht geklappt"); }
+    hilfe.remove();
+  }
+}
+
+function zeichneTeilen() {
+  const link = location.href.split("#")[0];
+  const text = `${AKTION.titel} – wir sammeln ${euro.format(AKTION.ziel)}. Aktueller Stand: ${euro.format(gesammelt)}.`;
+  $("share-wa").href = `https://wa.me/?text=${encodeURIComponent(text + "\n" + link)}`;
+  $("share-tg").href = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+  $("link-note").textContent = link.replace(/^https?:\/\//, "");
+  $("copy-link").addEventListener("click", () => kopiere(link, "Link kopiert"));
+
+  if (navigator.share) {
+    $("share-native").hidden = false;
+    $("share-native").addEventListener("click", () => {
+      navigator.share({ title: AKTION.titel, text, url: link }).catch(() => {});
+    });
+  }
+
+  const box = $("page-qr");
+  box.textContent = "";
+  box.append(qrSvg(link, "QR-Code zu dieser Seite"));
+}
+
+/* ---------------- Start ---------------- */
+zeigeStand();
+zeichneBetraege();
+aktualisiere();
+zeichneTeilen();
+
+$("own-input").addEventListener("input", (e) => {
+  const wert = betragAusText(e.target.value);
+  if (wert) { betrag = Math.min(wert, 999999); aktualisiere(); }
+});
+$("own-input").addEventListener("blur", (e) => {
+  if (e.target.value.trim() && !betragAusText(e.target.value)) e.target.value = "";
+});
+$("copy-iban").addEventListener("click", () => kopiere(iban, "IBAN kopiert"));
+
+$("footnote").textContent = AKTION.hinweis;
+
+if (ZAHLWEGE.iban.trim() && !bankOk) {
+  const hinweis = $("setup");
+  hinweis.hidden = false;
+  hinweis.textContent = ZAHLWEGE.name.trim()
+    ? "Hinweis für den Betreiber: Die hinterlegte IBAN ist nicht gültig – bitte in index.html unter ZAHLWEGE prüfen."
+    : "Hinweis für den Betreiber: Für die Überweisung fehlt noch der Kontoinhaber unter ZAHLWEGE.name.";
+}
+</script>
+</body>
+</html>
