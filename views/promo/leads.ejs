@@ -19,11 +19,16 @@
     <h2 class="page-title">Заявки — <%= client.name %></h2>
 
     <section class="card">
-      <form method="GET" class="inline-form">
-        <label for="period" class="muted">Период</label>
-        <input type="month" id="period" name="period" value="<%= period %>" />
-        <button type="submit">Показать</button>
-      </form>
+      <div class="inline-form">
+        <form method="GET" class="inline-form">
+          <label for="period" class="muted">Период</label>
+          <input type="month" id="period" name="period" value="<%= period %>" />
+          <button type="submit">Показать</button>
+        </form>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/act?period=<%= period %>">
+          Акт за период →
+        </a>
+      </div>
 
       <div class="stats">
         <div><span class="stat-value"><%= billing.accepted %></span><span class="muted small">принято</span></div>
@@ -59,11 +64,12 @@
       <% } %>
       <ul class="row-list">
         <% leads.forEach(function (l) { %>
-          <li class="lead-<%= l.status %>">
+          <li class="lead-<%= l.effective %>">
             <div class="row-main">
               <strong><%= l.phone %></strong>
               <% if (l.name) { %> · <%= l.name %><% } %>
-              <span class="chip chip-<%= l.status %>"><%= leadStatuses[l.status] %></span>
+              <span class="chip chip-<%= l.effective %>"><%= leadStatuses[l.effective] %></span>
+              <% if (l.auto) { %><span class="chip">по сроку, п. 4.6</span><% } %>
               <% if (l.is_duplicate) { %><span class="chip chip-dup">дубль</span><% } %>
               <% if (l.message) { %><div class="lead-message"><%= l.message %></div><% } %>
               <div class="muted small">

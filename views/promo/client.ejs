@@ -248,6 +248,27 @@
           <input type="number" id="s-dedup" name="dedup_days" min="0" max="365"
                  value="<%= client.dedup_days %>" />
 
+          <label for="s-currency">Валюта расчётов</label>
+          <select id="s-currency" name="currency">
+            <% Object.keys(currencies).forEach(function (code) { %>
+              <option value="<%= code %>" <%= client.currency === code ? 'selected' : '' %>>
+                <%= code %> — <%= currencies[code].label %>
+              </option>
+            <% }) %>
+          </select>
+
+          <label for="s-vat">НДС, % (0 — без НДС)</label>
+          <input type="number" id="s-vat" name="vat_percent" step="0.01" min="0" max="100"
+                 value="<%= client.vat_percent %>" />
+
+          <label for="s-contract-num">Номер договора (для акта)</label>
+          <input type="text" id="s-contract-num" name="contract_number"
+                 value="<%= client.contract_number %>" placeholder="12/2026" />
+
+          <label for="s-contract-date">Дата договора (для акта)</label>
+          <input type="text" id="s-contract-date" name="contract_date"
+                 value="<%= client.contract_date %>" placeholder="15 апреля 2026 г." />
+
           <label for="s-tg">Telegram chat id клиента</label>
           <input type="text" id="s-tg" name="telegram_chat_id"
                  value="<%= client.telegram_chat_id %>" placeholder="123456789" />

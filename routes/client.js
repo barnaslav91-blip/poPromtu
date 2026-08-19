@@ -7,6 +7,8 @@ const {
   DISPUTE_HOURS,
   normalizePhone,
   phoneKey,
+  isAutoAccepted,
+  effectiveStatus,
 } = require('../lib/promo');
 const { notifyLead } = require('../lib/telegram');
 
@@ -212,8 +214,13 @@ router.get('/c/:token', loadByToken, async (req, res, next) => {
       [req.client.id, period]
     );
 
-    const leads = rows.map((lead) => ({ ...lead, ...disputeState(lead) }));
-    const billable = leads.filter((l) => l.status === 'accepted');
+    const leads = rows.map((lead) => ({
+      ...lead,
+      ...disputeState(lead),
+      effective: effectiveStatus(lead),
+      auto: isAutoAccepted(lead),
+    }));
+    const billable = leads.filter((l) => l.effective === 'accepted');
 
     res.render('client/cabinet', {
       client: req.client,
@@ -224,9 +231,9 @@ router.get('/c/:token', loadByToken, async (req, res, next) => {
       rejectReasons: REJECT_REASONS,
       summary: {
         total: leads.length,
-        pending: leads.filter((l) => l.status === 'new').length,
+        pending: leads.filter((l) => l.effective === 'new').length,
         accepted: billable.length,
-        rejected: leads.filter((l) => l.status === 'rejected').length,
+        rejected: leads.filter((l) => l.effective === 'rejected').length,
         amount: billable.reduce((sum, l) => sum + Number(l.price), 0),
       },
       error: req.query.error || null,

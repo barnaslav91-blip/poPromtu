@@ -9,15 +9,19 @@ const {
   TEMPLATE_KINDS,
   LEAD_STATUSES,
   REJECT_REASONS,
+  DISPUTE_HOURS,
   buildCombos,
   composeText,
   pickCombo,
   pickImage,
   groupLink,
   hasLinkPlaceholder,
+  isAutoAccepted,
+  effectiveStatus,
   seedTemplates,
 } = require('../lib/promo');
 const { isEnabled, sendMessage, escapeHtml } = require('../lib/telegram');
+const { amountInWords, currencyLabel, CURRENCIES } = require('../lib/money');
 
 const router = express.Router();
 
@@ -184,6 +188,7 @@ router.get('/clients/:id', loadClient, async (req, res, next) => {
       networks: NETWORKS,
       templateKinds: TEMPLATE_KINDS,
       tab: req.query.tab || 'groups',
+      currencies: CURRENCIES,
       error: req.query.error || null,
       notice: req.query.notice || null,
       telegramReady: isEnabled(),
@@ -204,8 +209,9 @@ router.post('/clients/:id/update', loadClient, async (req, res, next) => {
       `UPDATE promo_clients
        SET name = $1, service = $2, city = $3, phone = $4, price_from = $5,
            price_per_lead = $6, posts_per_day = $7, dedup_days = $8, active = $9,
-           telegram_chat_id = $10
-       WHERE id = $11`,
+           telegram_chat_id = $10, contract_number = $11, contract_date = $12,
+           currency = $13, vat_percent = $14
+       WHERE id = $15`,
       [
         (req.body.name || '').trim() || req.client.name,
         (req.body.service || '').trim(),
@@ -217,6 +223,10 @@ router.post('/clients/:id/update', loadClient, async (req, res, next) => {
         dedupDays,
         req.body.active === 'on',
         (req.body.telegram_chat_id || '').trim(),
+        (req.body.contract_number || '').trim(),
+        (req.body.contract_date || '').trim(),
+        CURRENCIES[req.body.currency] ? req.body.currency : 'MDL',
+        Math.min(100, Math.max(0, parseFloat(req.body.vat_percent) || 0)),
         req.client.id,
       ]
     );
@@ -611,32 +621,106 @@ router.get('/clients/:id/leads', loadClient, async (req, res, next) => {
     const { rows: bySource } = await pool.query(
       `SELECT COALESCE(g.name, 'Без источника') AS group_name,
               COUNT(*)::int AS total,
-              COUNT(*) FILTER (WHERE l.status = 'accepted')::int AS accepted
+              COUNT(*) FILTER (
+                WHERE l.status = 'accepted'
+                   OR (l.status = 'new'
+                       AND l.created_at <= now() - ($3 || ' hours')::interval)
+              )::int AS accepted
        FROM promo_leads l
        LEFT JOIN promo_groups g ON g.id = l.group_id
        WHERE l.client_id = $1 AND to_char(l.created_at, 'YYYY-MM') = $2
        GROUP BY g.name
        ORDER BY total DESC`,
-      [req.client.id, period]
+      [req.client.id, period, String(DISPUTE_HOURS)]
     );
 
-    const accepted = leads.filter((l) => l.status === 'accepted');
+    const rows = leads.map((lead) => ({
+      ...lead,
+      effective: effectiveStatus(lead),
+      auto: isAutoAccepted(lead),
+    }));
+
+    const accepted = rows.filter((l) => l.effective === 'accepted');
     const billing = {
       accepted: accepted.length,
-      rejected: leads.filter((l) => l.status === 'rejected').length,
-      pending: leads.filter((l) => l.status === 'new').length,
-      duplicates: leads.filter((l) => l.is_duplicate).length,
+      rejected: rows.filter((l) => l.effective === 'rejected').length,
+      pending: rows.filter((l) => l.effective === 'new').length,
+      duplicates: rows.filter((l) => l.is_duplicate).length,
       total: accepted.reduce((sum, l) => sum + Number(l.price), 0),
     };
 
     res.render('promo/leads', {
       client: req.client,
-      leads,
+      leads: rows,
       bySource,
       billing,
       period,
       leadStatuses: LEAD_STATUSES,
       rejectReasons: REJECT_REASONS,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/clients/:id/act', loadClient, async (req, res, next) => {
+  try {
+    const period = /^\d{4}-\d{2}$/.test(req.query.period || '')
+      ? req.query.period
+      : new Date().toISOString().slice(0, 7);
+
+    const { rows: leads } = await pool.query(
+      `SELECT l.*, g.name AS group_name
+       FROM promo_leads l
+       LEFT JOIN promo_groups g ON g.id = l.group_id
+       WHERE l.client_id = $1 AND to_char(l.created_at, 'YYYY-MM') = $2
+       ORDER BY l.created_at`,
+      [req.client.id, period]
+    );
+
+    // Заявки, по которым срок возражения истёк, считаются принятыми (п. 4.6).
+    const rows = leads.map((lead) => ({
+      ...lead,
+      effective: effectiveStatus(lead),
+      auto: isAutoAccepted(lead),
+    }));
+
+    const accepted = rows.filter((l) => l.effective === 'accepted');
+    const subtotal = accepted.reduce((sum, l) => sum + Number(l.price), 0);
+    const vat = subtotal * (Number(req.client.vat_percent) / 100);
+    const total = subtotal + vat;
+
+    const [year, month] = period.split('-');
+    // Последний день месяца — обычная дата для акта за период.
+    const actDate = new Date(Date.UTC(Number(year), Number(month), 0));
+
+    res.render('promo/act', {
+      client: req.client,
+      period,
+      leads: rows,
+      accepted,
+      actNumber: (req.query.number || `${month}/${year}`).slice(0, 40),
+      actDate,
+      periodStart: new Date(Date.UTC(Number(year), Number(month) - 1, 1)),
+      periodEnd: actDate,
+      agencyName: process.env.AGENCY_NAME || '',
+      money: {
+        pricePerLead: Number(req.client.price_per_lead),
+        subtotal,
+        vat,
+        vatPercent: Number(req.client.vat_percent),
+        total,
+        inWords: amountInWords(total, req.client.currency),
+        label: currencyLabel(req.client.currency),
+      },
+      stats: {
+        total: rows.length,
+        accepted: accepted.length,
+        autoAccepted: rows.filter((l) => l.auto).length,
+        rejected: rows.filter((l) => l.effective === 'rejected').length,
+        pending: rows.filter((l) => l.effective === 'new').length,
+        duplicates: rows.filter((l) => l.is_duplicate).length,
+      },
     });
   } catch (err) {
     next(err);

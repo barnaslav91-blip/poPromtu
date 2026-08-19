@@ -24,5 +24,7 @@ services:
         sync: false
       - key: TELEGRAM_ADMIN_CHAT_ID
         sync: false
+      - key: AGENCY_NAME
+        sync: false
       - key: NODE_ENV
         value: production
