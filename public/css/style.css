@@ -590,3 +590,16 @@ body.landing .container {
 .notice {
   color: #16a34a;
 }
+
+.warn {
+  background: rgba(217, 119, 6, 0.12);
+  border: 1px solid #d97706;
+  color: inherit;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+}
+
+.warn a {
+  color: var(--accent);
+}

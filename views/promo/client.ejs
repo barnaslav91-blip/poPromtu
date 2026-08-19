@@ -35,6 +35,15 @@
       <a class="<%= tab === 'settings' ? 'active' : '' %>" href="?tab=settings">Настройки</a>
     </nav>
 
+    <% if (combosWithoutLink > 0) { %>
+      <p class="warn">
+        Вариантов без <code>{{link}}</code>: <strong><%= combosWithoutLink %></strong> из
+        <%= combosCount %>. Заявки из таких публикаций придут без источника —
+        не будет видно, какая группа сработала.
+        <a href="?tab=templates">Поправить шаблоны</a>
+      </p>
+    <% } %>
+
     <% if (tab === 'groups') { %>
       <section class="card">
         <h3>Добавить группу</h3>
@@ -107,7 +116,13 @@
           Объявление собирается как <em>заголовок + основной текст + призыв</em>.
           Чем больше вариантов каждого блока, тем больше уникальных объявлений.
           Доступные подстановки: <code>{{city}}</code>, <code>{{phone}}</code>,
-          <code>{{service}}</code>, <code>{{name}}</code>, <code>{{price}}</code>.
+          <code>{{service}}</code>, <code>{{name}}</code>, <code>{{price}}</code>,
+          <code>{{link}}</code>.
+        </p>
+        <p class="muted small">
+          <code>{{link}}</code> подставляет ссылку на заявку <strong>той группы</strong>,
+          куда идёт публикация. Без неё не будет видно, откуда пришёл человек, —
+          добавьте её хотя бы в один вариант призыва.
         </p>
         <form method="POST" action="/promo/clients/<%= client.id %>/templates" class="stacked-form">
           <label for="t-kind">Тип блока</label>

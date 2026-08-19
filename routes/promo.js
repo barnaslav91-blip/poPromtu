@@ -13,6 +13,8 @@ const {
   composeText,
   pickCombo,
   pickImage,
+  groupLink,
+  hasLinkPlaceholder,
   seedTemplates,
 } = require('../lib/promo');
 const { isEnabled, sendMessage, escapeHtml } = require('../lib/telegram');
@@ -172,6 +174,13 @@ router.get('/clients/:id', loadClient, async (req, res, next) => {
       templates,
       images,
       combosCount: combos.length,
+      // Сочетание без ссылки даст заявку без источника — предупреждаем заранее.
+      combosWithoutLink: combos.filter(
+        (combo) =>
+          !hasLinkPlaceholder(combo.body.text) &&
+          !(combo.cta && hasLinkPlaceholder(combo.cta.text)) &&
+          !hasLinkPlaceholder(combo.headline.text)
+      ).length,
       networks: NETWORKS,
       templateKinds: TEMPLATE_KINDS,
       tab: req.query.tab || 'groups',
@@ -450,16 +459,20 @@ router.post('/clients/:id/plan', loadClient, async (req, res, next) => {
     }
 
     const groups = (await eligibleGroups(req.client.id)).slice(0, req.client.posts_per_day);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
 
     for (const group of groups) {
       const recent = await recentInGroup(group.id);
       const combo = pickCombo(combos, recent.comboKeys);
       const image = pickImage(images, recent.imageIds);
+      const text = composeText(combo, req.client, {
+        link: groupLink(baseUrl, req.client, group.id),
+      });
 
       await pool.query(
         `INSERT INTO promo_posts (client_id, group_id, text, combo_key, image_id)
          VALUES ($1, $2, $3, $4, $5)`,
-        [req.client.id, group.id, composeText(combo, req.client), combo.key, image ? image.id : null]
+        [req.client.id, group.id, text, combo.key, image ? image.id : null]
       );
     }
 
@@ -561,8 +574,12 @@ router.post('/posts/:postId/regenerate', async (req, res, next) => {
     const combo = pickCombo(combos, [post.combo_key, ...recent.comboKeys]);
     const image = pickImage(images, [post.image_id, ...recent.imageIds]);
 
+    const text = composeText(combo, client, {
+      link: groupLink(`${req.protocol}://${req.get('host')}`, client, post.group_id),
+    });
+
     await pool.query('UPDATE promo_posts SET text = $1, combo_key = $2, image_id = $3 WHERE id = $4', [
-      composeText(combo, client),
+      text,
       combo.key,
       image ? image.id : null,
       post.id,
