@@ -52,7 +52,7 @@
         <% if (p.image_url) { %>
           <div class="post-image">
             <img src="<%= p.image_url %>" alt="<%= p.image_caption %>" loading="lazy" />
-            <a class="muted small" href="<%= p.image_url %>" download target="_blank" rel="noopener">
+            <a class="muted small" href="<%= p.image_download %>" download target="_blank" rel="noopener">
               Скачать картинку ↗
             </a>
           </div>

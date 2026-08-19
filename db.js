@@ -108,6 +108,13 @@ async function init() {
 
     ALTER TABLE promo_leads ADD COLUMN IF NOT EXISTS phone_key TEXT NOT NULL DEFAULT '';
 
+    -- Картинка либо лежит по внешней ссылке (url), либо загружена в базу (data).
+    -- Диск на free-плане Render не переживает перезапуск, поэтому файлы — в Postgres.
+    ALTER TABLE promo_images ADD COLUMN IF NOT EXISTS data BYTEA;
+    ALTER TABLE promo_images ADD COLUMN IF NOT EXISTS mime TEXT NOT NULL DEFAULT '';
+    ALTER TABLE promo_images ADD COLUMN IF NOT EXISTS filename TEXT NOT NULL DEFAULT '';
+    ALTER TABLE promo_images ALTER COLUMN url SET DEFAULT '';
+
     CREATE INDEX IF NOT EXISTS promo_posts_group_idx
       ON promo_posts (group_id, status, posted_at DESC);
     CREATE INDEX IF NOT EXISTS promo_leads_client_idx

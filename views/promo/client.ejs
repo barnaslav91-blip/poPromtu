@@ -150,19 +150,33 @@
 
     <% } else if (tab === 'images') { %>
       <section class="card">
-        <h3>Добавить картинку</h3>
+        <h3>Загрузить макет</h3>
+        <p class="muted small">JPEG, PNG или WebP, до 5 МБ. Файл хранится в базе.</p>
+        <form method="POST" action="/promo/clients/<%= client.id %>/images/upload"
+              enctype="multipart/form-data" class="stacked-form">
+          <label for="i-file">Файл</label>
+          <input type="file" id="i-file" name="file" accept="image/jpeg,image/png,image/webp" required />
+
+          <label for="i-file-caption">Подпись для себя</label>
+          <input type="text" id="i-file-caption" name="caption" placeholder="До/после, двор у дома" />
+
+          <button type="submit">Загрузить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Или добавить по ссылке</h3>
         <p class="muted small">
-          Нужна прямая ссылка на файл. Загрузите макеты в любое хранилище
-          (Google Drive с открытым доступом, Imgur, Cloudinary) и вставьте ссылку сюда.
+          Если макеты уже лежат в открытом хранилище — вставьте прямую ссылку на файл.
         </p>
         <form method="POST" action="/promo/clients/<%= client.id %>/images" class="stacked-form">
           <label for="i-url">Ссылка на картинку</label>
           <input type="url" id="i-url" name="url" required />
 
           <label for="i-caption">Подпись для себя</label>
-          <input type="text" id="i-caption" name="caption" placeholder="До/после, двор у дома" />
+          <input type="text" id="i-caption" name="caption" />
 
-          <button type="submit">Добавить</button>
+          <button class="secondary" type="submit">Добавить</button>
         </form>
       </section>
 
@@ -174,7 +188,7 @@
         <div class="image-grid">
           <% images.forEach(function (img) { %>
             <figure>
-              <img src="<%= img.url %>" alt="<%= img.caption %>" loading="lazy" />
+              <img src="<%= img.url || ('/img/' + img.id) %>" alt="<%= img.caption %>" loading="lazy" />
               <figcaption>
                 <span class="muted small"><%= img.caption || '—' %></span>
                 <form method="POST" action="/promo/images/<%= img.id %>/delete">

@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const { nanoid } = require('nanoid');
 
 const { pool } = require('../db');
@@ -17,13 +18,24 @@ const {
 
 const router = express.Router();
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter(req, file, cb) {
+    cb(null, ALLOWED_IMAGE_TYPES.includes(file.mimetype));
+  },
+});
+
 router.use(requireAuth);
 
 async function loadClient(req, res, next) {
   try {
-    const { rows } = await pool.query('SELECT * FROM promo_clients WHERE id = $1', [
-      req.params.id,
-    ]);
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(404).render('404');
+
+    const { rows } = await pool.query('SELECT * FROM promo_clients WHERE id = $1', [id]);
     if (!rows[0]) return res.status(404).render('404');
     req.client = rows[0];
     next();
@@ -77,8 +89,10 @@ async function loadContent(clientId) {
     'SELECT * FROM promo_templates WHERE client_id = $1 ORDER BY kind, id',
     [clientId]
   );
+  // data не выбираем: это байты файла, они нужны только при отдаче картинки.
   const { rows: images } = await pool.query(
-    'SELECT * FROM promo_images WHERE client_id = $1 ORDER BY id',
+    `SELECT id, client_id, url, caption, mime, filename, active
+     FROM promo_images WHERE client_id = $1 ORDER BY id`,
     [clientId]
   );
   return { templates, images, combos: buildCombos(templates) };
@@ -325,6 +339,41 @@ router.post('/clients/:id/images', loadClient, async (req, res, next) => {
   }
 });
 
+function uploadSingleImage(req, res, next) {
+  upload.single('file')(req, res, (err) => {
+    if (!err) return next();
+    const message =
+      err.code === 'LIMIT_FILE_SIZE'
+        ? 'Файл больше 5 МБ — сожмите картинку'
+        : 'Не удалось прочитать файл';
+    backToClient(res, req.params.id, 'images', message);
+  });
+}
+
+router.post('/clients/:id/images/upload', uploadSingleImage, loadClient, async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return backToClient(res, req.client.id, 'images', 'Выберите файл JPEG, PNG или WebP');
+    }
+
+    await pool.query(
+      `INSERT INTO promo_images (client_id, url, caption, data, mime, filename)
+       VALUES ($1, '', $2, $3, $4, $5)`,
+      [
+        req.client.id,
+        (req.body.caption || '').trim(),
+        req.file.buffer,
+        req.file.mimetype,
+        (req.file.originalname || 'image').slice(0, 120),
+      ]
+    );
+
+    backToClient(res, req.client.id, 'images');
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/images/:imageId/delete', async (req, res, next) => {
   try {
     const { rows } = await pool.query(
@@ -376,7 +425,11 @@ router.get('/clients/:id/queue', loadClient, async (req, res, next) => {
   try {
     const { rows: posts } = await pool.query(
       `SELECT p.*, g.name AS group_name, g.url AS group_url, g.network,
-              i.url AS image_url, i.caption AS image_caption
+              COALESCE(NULLIF(i.url, ''), '/img/' || i.id) AS image_url,
+              CASE WHEN i.id IS NULL THEN NULL
+                   WHEN i.url <> '' THEN i.url
+                   ELSE '/img/' || i.id || '?download=1' END AS image_download,
+              i.caption AS image_caption
        FROM promo_posts p
        JOIN promo_groups g ON g.id = p.group_id
        LEFT JOIN promo_images i ON i.id = p.image_id

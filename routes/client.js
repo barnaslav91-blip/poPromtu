@@ -75,6 +75,34 @@ async function resolveGroupId(clientId, rawId) {
   return rows[0] ? rows[0].id : null;
 }
 
+// ------------------------------------------------------------- картинки
+
+// Отдаёт загруженный в базу файл. Картинки всё равно уходят в публичные
+// группы, поэтому доступ по прямой ссылке — то, что нужно.
+router.get('/img/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(404).render('404');
+
+    const { rows } = await pool.query(
+      'SELECT data, mime, filename FROM promo_images WHERE id = $1',
+      [id]
+    );
+    const image = rows[0];
+    if (!image || !image.data) return res.status(404).render('404');
+
+    res.set('Content-Type', image.mime || 'application/octet-stream');
+    res.set('Cache-Control', 'public, max-age=86400');
+    if (req.query.download === '1') {
+      const safeName = (image.filename || 'image').replace(/[^\w.-]/g, '_');
+      res.set('Content-Disposition', `attachment; filename="${safeName}"`);
+    }
+    res.send(image.data);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ------------------------------------------------------- публичный лендинг
 
 router.get('/l/:token/:groupId?', loadByToken, async (req, res, next) => {
