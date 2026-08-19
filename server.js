@@ -7,6 +7,8 @@ const path = require('path');
 const { init: initDb } = require('./db');
 const adminRoutes = require('./routes/admin');
 const moderationRoutes = require('./routes/moderation');
+const promoRoutes = require('./routes/promo');
+const clientRoutes = require('./routes/client');
 
 const app = express();
 
@@ -26,7 +28,9 @@ app.use(
 );
 
 app.use('/', moderationRoutes);
+app.use('/', clientRoutes);
 app.use('/admin', adminRoutes);
+app.use('/promo', promoRoutes);
 
 app.get('/', (req, res) => res.redirect('/admin'));
 
