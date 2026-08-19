@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= client.name %> — poPromtu Промо</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><a href="/promo">poPromtu Промо</a></h1>
+    <nav class="topbar-nav">
+      <a href="/promo/clients/<%= client.id %>/queue">Очередь</a>
+      <a href="/promo/clients/<%= client.id %>/leads">Заявки</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2 class="page-title">
+      <%= client.name %>
+      <% if (!client.active) { %><span class="badge badge-off">выключен</span><% } %>
+    </h2>
+    <p class="muted">
+      <%= client.service || 'услуга не указана' %><% if (client.city) { %> · <%= client.city %><% } %>
+      · вариантов текста: <strong><%= combosCount %></strong>
+    </p>
+
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+    <% if (notice) { %><p class="notice"><%= notice %></p><% } %>
+
+    <nav class="tabs">
+      <a class="<%= tab === 'groups' ? 'active' : '' %>" href="?tab=groups">Группы</a>
+      <a class="<%= tab === 'templates' ? 'active' : '' %>" href="?tab=templates">Шаблоны</a>
+      <a class="<%= tab === 'images' ? 'active' : '' %>" href="?tab=images">Картинки</a>
+      <a class="<%= tab === 'settings' ? 'active' : '' %>" href="?tab=settings">Настройки</a>
+    </nav>
+
+    <% if (tab === 'groups') { %>
+      <section class="card">
+        <h3>Добавить группу</h3>
+        <form method="POST" action="/promo/clients/<%= client.id %>/groups" class="stacked-form">
+          <label for="g-name">Название группы</label>
+          <input type="text" id="g-name" name="name" placeholder="Тараклия — объявления" required />
+
+          <label for="g-network">Площадка</label>
+          <select id="g-network" name="network">
+            <% Object.keys(networks).forEach(function (key) { %>
+              <option value="<%= key %>"><%= networks[key] %></option>
+            <% }) %>
+          </select>
+
+          <label for="g-url">Ссылка на группу</label>
+          <input type="url" id="g-url" name="url" placeholder="https://facebook.com/groups/..." />
+
+          <label for="g-interval">Не чаще одного поста раз в N дней</label>
+          <input type="number" id="g-interval" name="min_interval_days" value="7" min="1" max="90" />
+
+          <button type="submit">Добавить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Группы (<%= groups.length %>)</h3>
+        <% if (!groups.length) { %>
+          <p class="muted">Пока пусто. Соберите ссылки на местные группы и добавьте их сюда.</p>
+        <% } %>
+        <ul class="row-list">
+          <% groups.forEach(function (g) { %>
+            <li class="<%= g.active ? '' : 'inactive' %>">
+              <div class="row-main">
+                <strong><%= g.name %></strong>
+                <span class="chip"><%= networks[g.network] || g.network %></span>
+                <div class="muted small">
+                  раз в <%= g.min_interval_days %> дн. · публикаций: <%= g.posts_count %>
+                  <% if (g.last_posted_at) { %>
+                    · последняя <%= new Date(g.last_posted_at).toLocaleDateString('ru-RU') %>
+                  <% } else { %>
+                    · ещё не постили
+                  <% } %>
+                </div>
+                <div class="muted small">
+                  Ссылка для заявок:
+                  <input class="link-input" type="text" readonly
+                         value="<%= baseUrl %>/l/<%= client.token %>/<%= g.id %>"
+                         onclick="this.select()" />
+                </div>
+              </div>
+              <div class="row-actions">
+                <% if (g.url) { %><a href="<%= g.url %>" target="_blank" rel="noopener">Открыть</a><% } %>
+                <form method="POST" action="/promo/groups/<%= g.id %>/toggle">
+                  <button class="link-btn" type="submit"><%= g.active ? 'Выключить' : 'Включить' %></button>
+                </form>
+                <form method="POST" action="/promo/groups/<%= g.id %>/delete"
+                      onsubmit="return confirm('Удалить группу и её историю публикаций?');">
+                  <button class="link-btn danger" type="submit">Удалить</button>
+                </form>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      </section>
+
+    <% } else if (tab === 'templates') { %>
+      <section class="card">
+        <h3>Добавить кусок текста</h3>
+        <p class="muted small">
+          Объявление собирается как <em>заголовок + основной текст + призыв</em>.
+          Чем больше вариантов каждого блока, тем больше уникальных объявлений.
+          Доступные подстановки: <code>{{city}}</code>, <code>{{phone}}</code>,
+          <code>{{service}}</code>, <code>{{name}}</code>, <code>{{price}}</code>.
+        </p>
+        <form method="POST" action="/promo/clients/<%= client.id %>/templates" class="stacked-form">
+          <label for="t-kind">Тип блока</label>
+          <select id="t-kind" name="kind">
+            <% Object.keys(templateKinds).forEach(function (key) { %>
+              <option value="<%= key %>"><%= templateKinds[key] %></option>
+            <% }) %>
+          </select>
+
+          <label for="t-text">Текст</label>
+          <textarea id="t-text" name="text" rows="4" required></textarea>
+
+          <button type="submit">Добавить</button>
+        </form>
+        <form method="POST" action="/promo/clients/<%= client.id %>/templates/seed" class="mt">
+          <button class="secondary" type="submit">Загрузить готовый набор-пример</button>
+        </form>
+      </section>
+
+      <% Object.keys(templateKinds).forEach(function (kind) { %>
+        <section class="card">
+          <h3><%= templateKinds[kind] %></h3>
+          <ul class="row-list">
+            <% var list = templates.filter(function (t) { return t.kind === kind; }); %>
+            <% if (!list.length) { %>
+              <li class="muted">Пусто</li>
+            <% } %>
+            <% list.forEach(function (t) { %>
+              <li>
+                <div class="row-main"><pre class="tpl-text"><%= t.text %></pre></div>
+                <div class="row-actions">
+                  <form method="POST" action="/promo/templates/<%= t.id %>/delete">
+                    <button class="link-btn danger" type="submit">Удалить</button>
+                  </form>
+                </div>
+              </li>
+            <% }) %>
+          </ul>
+        </section>
+      <% }) %>
+
+    <% } else if (tab === 'images') { %>
+      <section class="card">
+        <h3>Загрузить макет</h3>
+        <p class="muted small">JPEG, PNG или WebP, до 5 МБ. Файл хранится в базе.</p>
+        <form method="POST" action="/promo/clients/<%= client.id %>/images/upload"
+              enctype="multipart/form-data" class="stacked-form">
+          <label for="i-file">Файл</label>
+          <input type="file" id="i-file" name="file" accept="image/jpeg,image/png,image/webp" required />
+
+          <label for="i-file-caption">Подпись для себя</label>
+          <input type="text" id="i-file-caption" name="caption" placeholder="До/после, двор у дома" />
+
+          <button type="submit">Загрузить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Или добавить по ссылке</h3>
+        <p class="muted small">
+          Если макеты уже лежат в открытом хранилище — вставьте прямую ссылку на файл.
+        </p>
+        <form method="POST" action="/promo/clients/<%= client.id %>/images" class="stacked-form">
+          <label for="i-url">Ссылка на картинку</label>
+          <input type="url" id="i-url" name="url" required />
+
+          <label for="i-caption">Подпись для себя</label>
+          <input type="text" id="i-caption" name="caption" />
+
+          <button class="secondary" type="submit">Добавить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Картинки (<%= images.length %>)</h3>
+        <% if (!images.length) { %>
+          <p class="muted">Пока пусто. Без картинок объявления тоже собираются, но работают хуже.</p>
+        <% } %>
+        <div class="image-grid">
+          <% images.forEach(function (img) { %>
+            <figure>
+              <img src="<%= img.url || ('/img/' + img.id) %>" alt="<%= img.caption %>" loading="lazy" />
+              <figcaption>
+                <span class="muted small"><%= img.caption || '—' %></span>
+                <form method="POST" action="/promo/images/<%= img.id %>/delete">
+                  <button class="link-btn danger" type="submit">Удалить</button>
+                </form>
+              </figcaption>
+            </figure>
+          <% }) %>
+        </div>
+      </section>
+
+    <% } else { %>
+      <section class="card">
+        <h3>Настройки клиента</h3>
+        <form method="POST" action="/promo/clients/<%= client.id %>/update" class="stacked-form">
+          <label for="s-name">Имя или название</label>
+          <input type="text" id="s-name" name="name" value="<%= client.name %>" required />
+
+          <label for="s-service">Услуга</label>
+          <input type="text" id="s-service" name="service" value="<%= client.service %>" />
+
+          <label for="s-city">Город или район</label>
+          <input type="text" id="s-city" name="city" value="<%= client.city %>" />
+
+          <label for="s-phone">Телефон для объявлений</label>
+          <input type="text" id="s-phone" name="phone" value="<%= client.phone %>" />
+
+          <label for="s-price-from">Цена в объявлении (текстом)</label>
+          <input type="text" id="s-price-from" name="price_from" value="<%= client.price_from %>"
+                 placeholder="от 150 лей за сотку" />
+
+          <label for="s-price-lead">Ваша цена за принятую заявку</label>
+          <input type="number" id="s-price-lead" name="price_per_lead" step="0.01" min="0"
+                 value="<%= client.price_per_lead %>" />
+
+          <label for="s-posts">Сколько публикаций планировать за раз</label>
+          <input type="number" id="s-posts" name="posts_per_day" min="1" max="20"
+                 value="<%= client.posts_per_day %>" />
+
+          <label for="s-dedup">Дубль по телефону в пределах, дней</label>
+          <input type="number" id="s-dedup" name="dedup_days" min="0" max="365"
+                 value="<%= client.dedup_days %>" />
+
+          <label for="s-tg">Telegram chat id клиента</label>
+          <input type="text" id="s-tg" name="telegram_chat_id"
+                 value="<%= client.telegram_chat_id %>" placeholder="123456789" />
+
+          <label class="checkbox">
+            <input type="checkbox" name="active" <%= client.active ? 'checked' : '' %> />
+            Клиент активен
+          </label>
+
+          <button type="submit">Сохранить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Уведомления в Telegram</h3>
+        <% if (!telegramReady) { %>
+          <p class="muted small">
+            На сервере не задан <code>TELEGRAM_BOT_TOKEN</code> — уведомления не отправляются.
+          </p>
+        <% } %>
+        <p class="muted small">
+          При новой заявке сообщение уходит вам (<code>TELEGRAM_ADMIN_CHAT_ID</code>)
+          и клиенту, если у него заполнен chat id.
+          Чтобы узнать chat id: напишите боту любое сообщение и откройте
+          <code>https://api.telegram.org/bot&lt;токен&gt;/getUpdates</code> —
+          он будет в поле <code>chat.id</code>.
+        </p>
+        <form method="POST" action="/promo/clients/<%= client.id %>/telegram/test">
+          <button class="secondary" type="submit">Проверить связь</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Ссылки</h3>
+        <label class="muted small">Кабинет клиента (он видит свои заявки и может их оспорить)</label>
+        <input class="link-input" type="text" readonly
+               value="<%= baseUrl %>/c/<%= client.token %>" onclick="this.select()" />
+
+        <label class="muted small mt">Лендинг без привязки к группе</label>
+        <input class="link-input" type="text" readonly
+               value="<%= baseUrl %>/l/<%= client.token %>" onclick="this.select()" />
+
+        <label class="muted small mt">Вебхук для n8n / внешних форм (POST, JSON)</label>
+        <input class="link-input" type="text" readonly
+               value="<%= baseUrl %>/api/lead/<%= client.token %>" onclick="this.select()" />
+      </section>
+
+      <section class="card">
+        <h3 class="danger">Удалить клиента</h3>
+        <p class="muted small">Вместе с группами, шаблонами, публикациями и заявками. Отменить нельзя.</p>
+        <form method="POST" action="/promo/clients/<%= client.id %>/delete"
+              onsubmit="return confirm('Удалить клиента со всеми данными?');">
+          <button class="danger-btn" type="submit">Удалить</button>
+        </form>
+      </section>
+    <% } %>
+  </main>
+</body>
+</html>

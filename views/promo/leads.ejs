@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Заявки — <%= client.name %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><a href="/promo">poPromtu Промо</a></h1>
+    <nav class="topbar-nav">
+      <a href="/promo/clients/<%= client.id %>">Настройки</a>
+      <a href="/promo/clients/<%= client.id %>/queue">Очередь</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2 class="page-title">Заявки — <%= client.name %></h2>
+
+    <section class="card">
+      <form method="GET" class="inline-form">
+        <label for="period" class="muted">Период</label>
+        <input type="month" id="period" name="period" value="<%= period %>" />
+        <button type="submit">Показать</button>
+      </form>
+
+      <div class="stats">
+        <div><span class="stat-value"><%= billing.accepted %></span><span class="muted small">принято</span></div>
+        <div><span class="stat-value"><%= billing.pending %></span><span class="muted small">ждут решения</span></div>
+        <div><span class="stat-value"><%= billing.rejected %></span><span class="muted small">отклонено</span></div>
+        <div><span class="stat-value"><%= billing.duplicates %></span><span class="muted small">дублей</span></div>
+        <div><span class="stat-value"><%= billing.total.toFixed(2) %></span><span class="muted small">к оплате</span></div>
+      </div>
+    </section>
+
+    <% if (bySource.length) { %>
+      <section class="card">
+        <h3>Откуда пришли</h3>
+        <table class="videos-table">
+          <thead><tr><th>Источник</th><th>Всего</th><th>Принято</th></tr></thead>
+          <tbody>
+            <% bySource.forEach(function (s) { %>
+              <tr>
+                <td><%= s.group_name %></td>
+                <td><%= s.total %></td>
+                <td><%= s.accepted %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </section>
+    <% } %>
+
+    <section class="card">
+      <h3>Список (<%= leads.length %>)</h3>
+      <% if (!leads.length) { %>
+        <p class="muted">За этот период заявок нет.</p>
+      <% } %>
+      <ul class="row-list">
+        <% leads.forEach(function (l) { %>
+          <li class="lead-<%= l.status %>">
+            <div class="row-main">
+              <strong><%= l.phone %></strong>
+              <% if (l.name) { %> · <%= l.name %><% } %>
+              <span class="chip chip-<%= l.status %>"><%= leadStatuses[l.status] %></span>
+              <% if (l.is_duplicate) { %><span class="chip chip-dup">дубль</span><% } %>
+              <% if (l.message) { %><div class="lead-message"><%= l.message %></div><% } %>
+              <div class="muted small">
+                <%= new Date(l.created_at).toLocaleString('ru-RU') %>
+                · <%= l.group_name || 'без источника' %>
+                · <%= Number(l.price).toFixed(2) %>
+                <% if (l.reject_reason) { %> · причина: <%= l.reject_reason %><% } %>
+              </div>
+            </div>
+            <div class="row-actions">
+              <form method="POST" action="/promo/leads/<%= l.id %>/status" class="inline-form">
+                <select name="status">
+                  <% Object.keys(leadStatuses).forEach(function (key) { %>
+                    <option value="<%= key %>" <%= l.status === key ? 'selected' : '' %>>
+                      <%= leadStatuses[key] %>
+                    </option>
+                  <% }) %>
+                </select>
+                <select name="reject_reason">
+                  <option value="">причина —</option>
+                  <% rejectReasons.forEach(function (r) { %>
+                    <option value="<%= r %>" <%= l.reject_reason === r ? 'selected' : '' %>><%= r %></option>
+                  <% }) %>
+                </select>
+                <button class="secondary" type="submit">Сохранить</button>
+              </form>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
