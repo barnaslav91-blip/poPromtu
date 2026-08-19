@@ -586,3 +586,7 @@ body.landing .container {
   text-decoration: none;
   font-variant-numeric: tabular-nums;
 }
+
+.notice {
+  color: #16a34a;
+}

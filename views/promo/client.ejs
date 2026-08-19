@@ -26,6 +26,7 @@
     </p>
 
     <% if (error) { %><p class="error"><%= error %></p><% } %>
+    <% if (notice) { %><p class="notice"><%= notice %></p><% } %>
 
     <nav class="tabs">
       <a class="<%= tab === 'groups' ? 'active' : '' %>" href="?tab=groups">Группы</a>
@@ -232,12 +233,35 @@
           <input type="number" id="s-dedup" name="dedup_days" min="0" max="365"
                  value="<%= client.dedup_days %>" />
 
+          <label for="s-tg">Telegram chat id клиента</label>
+          <input type="text" id="s-tg" name="telegram_chat_id"
+                 value="<%= client.telegram_chat_id %>" placeholder="123456789" />
+
           <label class="checkbox">
             <input type="checkbox" name="active" <%= client.active ? 'checked' : '' %> />
             Клиент активен
           </label>
 
           <button type="submit">Сохранить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h3>Уведомления в Telegram</h3>
+        <% if (!telegramReady) { %>
+          <p class="muted small">
+            На сервере не задан <code>TELEGRAM_BOT_TOKEN</code> — уведомления не отправляются.
+          </p>
+        <% } %>
+        <p class="muted small">
+          При новой заявке сообщение уходит вам (<code>TELEGRAM_ADMIN_CHAT_ID</code>)
+          и клиенту, если у него заполнен chat id.
+          Чтобы узнать chat id: напишите боту любое сообщение и откройте
+          <code>https://api.telegram.org/bot&lt;токен&gt;/getUpdates</code> —
+          он будет в поле <code>chat.id</code>.
+        </p>
+        <form method="POST" action="/promo/clients/<%= client.id %>/telegram/test">
+          <button class="secondary" type="submit">Проверить связь</button>
         </form>
       </section>
 

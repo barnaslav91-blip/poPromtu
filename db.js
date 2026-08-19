@@ -115,6 +115,8 @@ async function init() {
     ALTER TABLE promo_images ADD COLUMN IF NOT EXISTS filename TEXT NOT NULL DEFAULT '';
     ALTER TABLE promo_images ALTER COLUMN url SET DEFAULT '';
 
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS telegram_chat_id TEXT NOT NULL DEFAULT '';
+
     CREATE INDEX IF NOT EXISTS promo_posts_group_idx
       ON promo_posts (group_id, status, posted_at DESC);
     CREATE INDEX IF NOT EXISTS promo_leads_client_idx

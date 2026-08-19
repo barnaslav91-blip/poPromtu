@@ -8,8 +8,26 @@ const {
   normalizePhone,
   phoneKey,
 } = require('../lib/promo');
+const { notifyLead } = require('../lib/telegram');
 
 const router = express.Router();
+
+/**
+ * Уведомление в Telegram отправляется в фоне: заявка уже сохранена,
+ * и человек не должен ждать ответа от чужого API.
+ */
+function notifyInBackground(client, lead, baseUrl) {
+  (async () => {
+    let groupName = '';
+    if (lead.group_id) {
+      const { rows } = await pool.query('SELECT name FROM promo_groups WHERE id = $1', [
+        lead.group_id,
+      ]);
+      groupName = rows[0] ? rows[0].name : '';
+    }
+    await notifyLead(client, lead, groupName, `${baseUrl}/c/${client.token}`);
+  })().catch((err) => console.error('Telegram: сбой уведомления —', err.message));
+}
 
 async function loadByToken(req, res, next) {
   try {
@@ -129,7 +147,7 @@ router.post('/l/:token', loadByToken, async (req, res, next) => {
       return res.redirect(back + '?error=' + encodeURIComponent('Укажите номер телефона'));
     }
 
-    await createLead(req.client, {
+    const lead = await createLead(req.client, {
       name: req.body.name,
       phone,
       message: req.body.message,
@@ -137,6 +155,7 @@ router.post('/l/:token', loadByToken, async (req, res, next) => {
       groupId,
     });
 
+    notifyInBackground(req.client, lead, `${req.protocol}://${req.get('host')}`);
     res.redirect(back + '?sent=1');
   } catch (err) {
     next(err);
@@ -161,6 +180,7 @@ router.post('/api/lead/:token', express.json(), loadByToken, async (req, res, ne
       groupId,
     });
 
+    notifyInBackground(req.client, lead, `${req.protocol}://${req.get('host')}`);
     res.json({ ok: true, id: lead.id, duplicate: lead.is_duplicate });
   } catch (err) {
     next(err);

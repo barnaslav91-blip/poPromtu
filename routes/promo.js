@@ -15,6 +15,7 @@ const {
   pickImage,
   seedTemplates,
 } = require('../lib/promo');
+const { isEnabled, sendMessage, escapeHtml } = require('../lib/telegram');
 
 const router = express.Router();
 
@@ -44,8 +45,11 @@ async function loadClient(req, res, next) {
   }
 }
 
-function backToClient(res, clientId, tab, error) {
-  const suffix = error ? `&error=${encodeURIComponent(error)}` : '';
+function backToClient(res, clientId, tab, error, notice) {
+  const params = [];
+  if (error) params.push(`error=${encodeURIComponent(error)}`);
+  if (notice) params.push(`notice=${encodeURIComponent(notice)}`);
+  const suffix = params.length ? `&${params.join('&')}` : '';
   res.redirect(`/promo/clients/${clientId}?tab=${tab || 'groups'}${suffix}`);
 }
 
@@ -172,6 +176,8 @@ router.get('/clients/:id', loadClient, async (req, res, next) => {
       templateKinds: TEMPLATE_KINDS,
       tab: req.query.tab || 'groups',
       error: req.query.error || null,
+      notice: req.query.notice || null,
+      telegramReady: isEnabled(),
       baseUrl: `${req.protocol}://${req.get('host')}`,
     });
   } catch (err) {
@@ -188,8 +194,9 @@ router.post('/clients/:id/update', loadClient, async (req, res, next) => {
     await pool.query(
       `UPDATE promo_clients
        SET name = $1, service = $2, city = $3, phone = $4, price_from = $5,
-           price_per_lead = $6, posts_per_day = $7, dedup_days = $8, active = $9
-       WHERE id = $10`,
+           price_per_lead = $6, posts_per_day = $7, dedup_days = $8, active = $9,
+           telegram_chat_id = $10
+       WHERE id = $11`,
       [
         (req.body.name || '').trim() || req.client.name,
         (req.body.service || '').trim(),
@@ -200,11 +207,52 @@ router.post('/clients/:id/update', loadClient, async (req, res, next) => {
         postsPerDay,
         dedupDays,
         req.body.active === 'on',
+        (req.body.telegram_chat_id || '').trim(),
         req.client.id,
       ]
     );
 
     backToClient(res, req.client.id, 'settings');
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/clients/:id/telegram/test', loadClient, async (req, res, next) => {
+  try {
+    if (!isEnabled()) {
+      return backToClient(res, req.client.id, 'settings', 'TELEGRAM_BOT_TOKEN не задан на сервере');
+    }
+
+    const targets = [process.env.TELEGRAM_ADMIN_CHAT_ID, req.client.telegram_chat_id].filter(
+      Boolean
+    );
+    if (!targets.length) {
+      return backToClient(
+        res,
+        req.client.id,
+        'settings',
+        'Некуда слать: укажите chat id клиента или TELEGRAM_ADMIN_CHAT_ID'
+      );
+    }
+
+    const failures = [];
+    for (const chatId of new Set(targets)) {
+      const result = await sendMessage(
+        chatId,
+        `<b>poPromtu Промо</b>\nПроверка связи по клиенту «${escapeHtml(req.client.name)}». ` +
+          'Если вы это видите — уведомления о заявках будут приходить сюда.'
+      );
+      if (!result.ok) failures.push(`${chatId}: ${result.error}`);
+    }
+
+    backToClient(
+      res,
+      req.client.id,
+      'settings',
+      failures.length ? `Не доставлено — ${failures.join('; ')}` : null,
+      failures.length ? null : 'Проверочное сообщение отправлено'
+    );
   } catch (err) {
     next(err);
   }
