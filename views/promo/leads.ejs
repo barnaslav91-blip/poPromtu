@@ -108,21 +108,46 @@
       </section>
     <% } %>
 
-    <% if (bySource.length) { %>
-      <section class="card">
+    <% if (sourceChart) { %>
+      <section class="card viz-root">
         <h3>Откуда пришли</h3>
-        <table class="videos-table">
-          <thead><tr><th>Источник</th><th>Всего</th><th>Принято</th></tr></thead>
-          <tbody>
-            <% bySource.forEach(function (s) { %>
-              <tr>
-                <td><%= s.group_name %></td>
-                <td><%= s.total %></td>
-                <td><%= s.accepted %></td>
-              </tr>
+
+        <ul class="viz-legend">
+          <li><span class="viz-key viz-key-accepted"></span>Принято</li>
+          <li><span class="viz-key viz-key-other"></span>Не принято</li>
+        </ul>
+
+        <div class="viz-scroll">
+          <svg class="viz-svg" viewBox="0 0 <%= sourceChart.width %> <%= sourceChart.height %>"
+               role="img" aria-label="Полосовой график: заявки по источникам за <%= period %>">
+            <% sourceChart.bars.forEach(function (bar) { %>
+              <g>
+                <title><%= bar.hint %></title>
+                <text class="viz-tick viz-row-label" x="<%= sourceChart.labelX %>"
+                      y="<%= bar.labelY.toFixed(1) %>" text-anchor="end"><%= bar.label %></text>
+                <% bar.segments.forEach(function (seg) { %>
+                  <path class="viz-bar viz-bar-<%= seg.key %>" d="<%= seg.path %>" />
+                <% }) %>
+                <text class="viz-tick viz-row-value" x="<%= bar.valueX.toFixed(1) %>"
+                      y="<%= bar.labelY.toFixed(1) %>"><%= bar.total %></text>
+                <rect class="viz-hit" x="0" y="<%= bar.hit.y.toFixed(1) %>"
+                      width="<%= sourceChart.width %>" height="<%= bar.hit.height.toFixed(1) %>" />
+              </g>
             <% }) %>
-          </tbody>
-        </table>
+          </svg>
+        </div>
+
+        <details class="viz-table">
+          <summary>Показать таблицей</summary>
+          <table class="videos-table">
+            <thead><tr><th>Источник</th><th>Всего</th><th>Принято</th></tr></thead>
+            <tbody>
+              <% sourceChart.bars.forEach(function (bar) { %>
+                <tr><td><%= bar.name %></td><td><%= bar.total %></td><td><%= bar.accepted %></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </details>
       </section>
     <% } %>
 

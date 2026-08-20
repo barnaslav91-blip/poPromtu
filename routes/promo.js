@@ -10,7 +10,6 @@ const {
   LEAD_STATUSES,
   LANGS,
   REJECT_REASONS,
-  DISPUTE_HOURS,
   buildCombos,
   composeText,
   pickCombo,
@@ -25,7 +24,7 @@ const { isEnabled, sendMessage, escapeHtml } = require('../lib/telegram');
 const { amountInWords, currencyLabel, CURRENCIES } = require('../lib/money');
 const { buildLeadsWorkbook, contentDisposition } = require('../lib/excel');
 const { buildLeadsPdf } = require('../lib/pdf');
-const { buildDailyChart } = require('../lib/chart');
+const { buildDailyChart, buildSourceChart } = require('../lib/chart');
 
 const router = express.Router();
 
@@ -666,22 +665,6 @@ router.get('/clients/:id/leads', loadClient, async (req, res, next) => {
       [req.client.id, period]
     );
 
-    const { rows: bySource } = await pool.query(
-      `SELECT COALESCE(g.name, 'Без источника') AS group_name,
-              COUNT(*)::int AS total,
-              COUNT(*) FILTER (
-                WHERE l.status = 'accepted'
-                   OR (l.status = 'new'
-                       AND l.created_at <= now() - ($3 || ' hours')::interval)
-              )::int AS accepted
-       FROM promo_leads l
-       LEFT JOIN promo_groups g ON g.id = l.group_id
-       WHERE l.client_id = $1 AND to_char(l.created_at, 'YYYY-MM') = $2
-       GROUP BY g.name
-       ORDER BY total DESC`,
-      [req.client.id, period, String(DISPUTE_HOURS)]
-    );
-
     const rows = leads.map((lead) => ({
       ...lead,
       effective: effectiveStatus(lead),
@@ -700,8 +683,8 @@ router.get('/clients/:id/leads', loadClient, async (req, res, next) => {
     res.render('promo/leads', {
       client: req.client,
       chart: buildDailyChart(rows, period),
+      sourceChart: buildSourceChart(rows),
       leads: rows,
-      bySource,
       billing,
       period,
       leadStatuses: LEAD_STATUSES,
