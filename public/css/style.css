@@ -90,6 +90,8 @@ select,
 textarea,
 button {
   font: inherit;
+  /* Длинные варианты в select иначе распирают строку на узком экране. */
+  max-width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -126,6 +128,8 @@ button:hover {
   display: flex;
   gap: 8px;
   align-items: center;
+  /* Ряд ссылок на выгрузки длинный — без переноса он растягивает страницу. */
+  flex-wrap: wrap;
 }
 
 .muted {
@@ -756,4 +760,116 @@ body.doc-page {
   color: var(--muted);
   margin: 18px 0 8px;
   font-weight: 600;
+}
+
+/* ------------------------------------------------- график заявок по дням */
+
+.viz-root {
+  --viz-accepted: #2a78d6;
+  --viz-other: #eb6834;
+  --viz-grid: #e2e4de;
+  --viz-ink: var(--muted);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .viz-root {
+    --viz-accepted: #3987e5;
+    --viz-other: #d95926;
+    --viz-grid: #3a3a3c;
+  }
+}
+
+:root[data-theme="dark"] .viz-root {
+  --viz-accepted: #3987e5;
+  --viz-other: #d95926;
+  --viz-grid: #3a3a3c;
+}
+
+.viz-legend {
+  list-style: none;
+  display: flex;
+  gap: 18px;
+  padding: 0;
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.viz-legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.viz-key {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.viz-key-accepted { background: var(--viz-accepted); }
+.viz-key-other { background: var(--viz-other); }
+
+/* Узкий экран: график уезжает в свою прокрутку, страница не разъезжается. */
+.viz-scroll {
+  overflow-x: auto;
+}
+
+.viz-svg {
+  display: block;
+  width: 100%;
+  min-width: 420px;
+  height: auto;
+}
+
+.viz-bar-accepted { fill: var(--viz-accepted); }
+.viz-bar-other { fill: var(--viz-other); }
+
+.viz-grid {
+  stroke: var(--viz-grid);
+  stroke-width: 1;
+}
+
+.viz-tick {
+  fill: var(--viz-ink);
+  font-size: 9px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Прозрачная накладка во всю высоту: подсказка ловится по всему столбцу,
+   а не только по закрашенной части. */
+.viz-hit {
+  fill: transparent;
+}
+
+.viz-root g:hover .viz-bar {
+  opacity: 0.82;
+}
+
+.viz-table {
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.viz-table summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.viz-table table {
+  margin-top: 10px;
+  max-width: 320px;
+}
+
+/* На узком экране select с длинными вариантами («Телефон недоступен после
+   3 попыток») не даёт строке сжаться — ограничиваем его явно. */
+.row-actions .inline-form {
+  min-width: 0;
+}
+
+.row-actions select {
+  max-width: 190px;
+  min-width: 0;
 }
