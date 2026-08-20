@@ -15,6 +15,7 @@
     "express-session": "^1.18.1",
     "multer": "^2.2.0",
     "nanoid": "^3.3.8",
+    "pdfkit": "^0.19.1",
     "pg": "^8.22.0"
   },
   "overrides": {
