@@ -1,55 +1,52 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="<%= lang %>">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><%= client.service || client.name %><% if (client.city) { %> — <%= client.city %><% } %></title>
+  <title><%= L.service || L.name %><% if (L.city) { %> — <%= L.city %><% } %></title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="landing">
   <main class="container narrow">
     <section class="card">
       <h1 class="landing-title">
-        <%= client.service || 'Услуги' %><% if (client.city) { %><br /><span class="muted"><%= client.city %> и район</span><% } %>
+        <%= L.service || L.name %><% if (L.city) { %><br /><span class="muted"><%= L.city %> <%= t.region %></span><% } %>
       </h1>
 
-      <% if (client.price_from) { %>
-        <p class="landing-price"><%= client.price_from %></p>
+      <% if (L.price) { %>
+        <p class="landing-price"><%= L.price %></p>
       <% } %>
 
       <% if (client.phone) { %>
         <p><a class="phone-link" href="tel:<%= client.phone.replace(/\s/g, '') %>"><%= client.phone %></a></p>
-        <p class="muted small">Звоните или оставьте номер — перезвоню сам.</p>
+        <p class="muted small"><%= t.callHint %></p>
       <% } %>
     </section>
 
     <section class="card">
       <% if (sent) { %>
-        <h2>Заявка принята</h2>
-        <p>Спасибо! <%= client.name %> свяжется с вами в ближайшее время.</p>
+        <h2><%= t.sentTitle %></h2>
+        <p><%= t.sentThanks %> <%= L.name %> <%= t.sentBody %></p>
       <% } else { %>
-        <h2>Оставить заявку</h2>
+        <h2><%= t.formTitle %></h2>
         <% if (error) { %><p class="error"><%= error %></p><% } %>
         <form method="POST" action="/l/<%= client.token %>" class="stacked-form">
           <% if (groupId) { %>
             <input type="hidden" name="group_id" value="<%= groupId %>" />
           <% } %>
 
-          <label for="name">Как к вам обращаться</label>
+          <label for="name"><%= t.name %></label>
           <input type="text" id="name" name="name" />
 
-          <label for="phone">Телефон *</label>
+          <label for="phone"><%= t.phone %> *</label>
           <input type="tel" id="phone" name="phone" required />
 
-          <label for="message">Что нужно сделать</label>
+          <label for="message"><%= t.message %></label>
           <textarea id="message" name="message" rows="3"
-                    placeholder="Двор примерно 5 соток, трава по пояс"></textarea>
+                    placeholder="<%= t.messageHint %>"></textarea>
 
-          <button type="submit">Отправить</button>
-          <p class="muted small">
-            Отправляя заявку, вы соглашаетесь на обработку указанных данных
-            для связи с вами по этому обращению.
-          </p>
+          <button type="submit"><%= t.submit %></button>
+          <p class="muted small"><%= t.consent %></p>
         </form>
       <% } %>
     </section>

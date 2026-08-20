@@ -121,6 +121,18 @@ async function init() {
     ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS contract_number TEXT NOT NULL DEFAULT '';
     ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS contract_date TEXT NOT NULL DEFAULT '';
     ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'MDL';
+
+    -- Язык объявления: у группы — на каком языке она говорит, у блока текста —
+    -- на каком он написан. Сочетания собираются только внутри одного языка.
+    ALTER TABLE promo_groups ADD COLUMN IF NOT EXISTS lang TEXT NOT NULL DEFAULT 'ru';
+    ALTER TABLE promo_templates ADD COLUMN IF NOT EXISTS lang TEXT NOT NULL DEFAULT 'ru';
+
+    -- Название города и услуги по-румынски: «Тараклия» и «Taraclia» пишутся
+    -- по-разному, и в румынском объявлении кириллица выглядит ошибкой.
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS city_ro TEXT NOT NULL DEFAULT '';
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS service_ro TEXT NOT NULL DEFAULT '';
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS name_ro TEXT NOT NULL DEFAULT '';
+    ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS price_from_ro TEXT NOT NULL DEFAULT '';
     ALTER TABLE promo_clients ADD COLUMN IF NOT EXISTS vat_percent NUMERIC(5, 2) NOT NULL DEFAULT 0;
 
     CREATE INDEX IF NOT EXISTS promo_posts_group_idx

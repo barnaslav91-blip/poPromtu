@@ -58,6 +58,13 @@
             <% }) %>
           </select>
 
+          <label for="g-lang">Язык объявлений в этой группе</label>
+          <select id="g-lang" name="lang">
+            <% Object.keys(langs).forEach(function (code) { %>
+              <option value="<%= code %>"><%= langs[code] %></option>
+            <% }) %>
+          </select>
+
           <label for="g-url">Ссылка на группу</label>
           <input type="url" id="g-url" name="url" placeholder="https://facebook.com/groups/..." />
 
@@ -79,6 +86,7 @@
               <div class="row-main">
                 <strong><%= g.name %></strong>
                 <span class="chip"><%= networks[g.network] || g.network %></span>
+                <span class="chip"><%= langs[g.lang] || g.lang %></span>
                 <div class="muted small">
                   раз в <%= g.min_interval_days %> дн. · публикаций: <%= g.posts_count %>
                   <% if (g.last_posted_at) { %>
@@ -125,6 +133,13 @@
           добавьте её хотя бы в один вариант призыва.
         </p>
         <form method="POST" action="/promo/clients/<%= client.id %>/templates" class="stacked-form">
+          <label for="t-lang">Язык</label>
+          <select id="t-lang" name="lang">
+            <% Object.keys(langs).forEach(function (code) { %>
+              <option value="<%= code %>"><%= langs[code] %></option>
+            <% }) %>
+          </select>
+
           <label for="t-kind">Тип блока</label>
           <select id="t-kind" name="kind">
             <% Object.keys(templateKinds).forEach(function (key) { %>
@@ -137,30 +152,46 @@
 
           <button type="submit">Добавить</button>
         </form>
-        <form method="POST" action="/promo/clients/<%= client.id %>/templates/seed" class="mt">
-          <button class="secondary" type="submit">Загрузить готовый набор-пример</button>
-        </form>
+        <div class="inline-form mt">
+          <% Object.keys(langs).forEach(function (code) { %>
+            <form method="POST" action="/promo/clients/<%= client.id %>/templates/seed">
+              <input type="hidden" name="lang" value="<%= code %>" />
+              <button class="secondary" type="submit">Набор-пример: <%= langs[code] %></button>
+            </form>
+          <% }) %>
+        </div>
       </section>
 
-      <% Object.keys(templateKinds).forEach(function (kind) { %>
+      <% Object.keys(langs).forEach(function (code) { %>
+        <% var langTemplates = templates.filter(function (t) { return (t.lang || 'ru') === code; }); %>
         <section class="card">
-          <h3><%= templateKinds[kind] %></h3>
-          <ul class="row-list">
-            <% var list = templates.filter(function (t) { return t.kind === kind; }); %>
-            <% if (!list.length) { %>
-              <li class="muted">Пусто</li>
+          <h3>
+            <%= langs[code] %>
+            <span class="chip">вариантов: <%= combosByLang[code].length %></span>
+          </h3>
+          <% if (!langTemplates.length) { %>
+            <p class="muted small">
+              Шаблонов нет. Группы с этим языком будут пропускаться при сборке очереди.
+            </p>
+          <% } %>
+          <% Object.keys(templateKinds).forEach(function (kind) { %>
+            <% var list = langTemplates.filter(function (t) { return t.kind === kind; }); %>
+            <% if (list.length) { %>
+              <h4 class="tpl-kind"><%= templateKinds[kind] %></h4>
+              <ul class="row-list">
+                <% list.forEach(function (t) { %>
+                  <li>
+                    <div class="row-main"><pre class="tpl-text"><%= t.text %></pre></div>
+                    <div class="row-actions">
+                      <form method="POST" action="/promo/templates/<%= t.id %>/delete">
+                        <button class="link-btn danger" type="submit">Удалить</button>
+                      </form>
+                    </div>
+                  </li>
+                <% }) %>
+              </ul>
             <% } %>
-            <% list.forEach(function (t) { %>
-              <li>
-                <div class="row-main"><pre class="tpl-text"><%= t.text %></pre></div>
-                <div class="row-actions">
-                  <form method="POST" action="/promo/templates/<%= t.id %>/delete">
-                    <button class="link-btn danger" type="submit">Удалить</button>
-                  </form>
-                </div>
-              </li>
-            <% }) %>
-          </ul>
+          <% }) %>
         </section>
       <% }) %>
 
@@ -228,6 +259,22 @@
 
           <label for="s-city">Город или район</label>
           <input type="text" id="s-city" name="city" value="<%= client.city %>" />
+
+          <label for="s-service-ro">Услуга по-румынски (для румынских объявлений)</label>
+          <input type="text" id="s-service-ro" name="service_ro" value="<%= client.service_ro %>"
+                 placeholder="Cosit iarbă cu motocoasa" />
+
+          <label for="s-city-ro">Город по-румынски</label>
+          <input type="text" id="s-city-ro" name="city_ro" value="<%= client.city_ro %>"
+                 placeholder="Taraclia" />
+
+          <label for="s-name-ro">Имя по-румынски</label>
+          <input type="text" id="s-name-ro" name="name_ro" value="<%= client.name_ro %>"
+                 placeholder="Iura" />
+
+          <label for="s-price-ro">Цена в румынском объявлении</label>
+          <input type="text" id="s-price-ro" name="price_from_ro" value="<%= client.price_from_ro %>"
+                 placeholder="de la 150 lei/ar" />
 
           <label for="s-phone">Телефон для объявлений</label>
           <input type="text" id="s-phone" name="phone" value="<%= client.phone %>" />

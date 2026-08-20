@@ -8,6 +8,7 @@ const {
   NETWORKS,
   TEMPLATE_KINDS,
   LEAD_STATUSES,
+  LANGS,
   REJECT_REASONS,
   DISPUTE_HOURS,
   buildCombos,
@@ -96,7 +97,7 @@ async function recentInGroup(groupId, limit = 20) {
 
 async function loadContent(clientId) {
   const { rows: templates } = await pool.query(
-    'SELECT * FROM promo_templates WHERE client_id = $1 ORDER BY kind, id',
+    'SELECT * FROM promo_templates WHERE client_id = $1 ORDER BY lang, kind, id',
     [clientId]
   );
   // data не выбираем: это байты файла, они нужны только при отдаче картинки.
@@ -105,7 +106,13 @@ async function loadContent(clientId) {
      FROM promo_images WHERE client_id = $1 ORDER BY id`,
     [clientId]
   );
-  return { templates, images, combos: buildCombos(templates) };
+  // Сочетания считаются отдельно по каждому языку — смешивать нельзя.
+  const combos = {};
+  Object.keys(LANGS).forEach((lang) => {
+    combos[lang] = buildCombos(templates, lang);
+  });
+
+  return { templates, images, combos };
 }
 
 // ---------------------------------------------------------------- клиенты
@@ -177,14 +184,18 @@ router.get('/clients/:id', loadClient, async (req, res, next) => {
       groups,
       templates,
       images,
-      combosCount: combos.length,
+      combosCount: Object.values(combos).reduce((sum, list) => sum + list.length, 0),
+      combosByLang: combos,
       // Сочетание без ссылки даст заявку без источника — предупреждаем заранее.
-      combosWithoutLink: combos.filter(
-        (combo) =>
-          !hasLinkPlaceholder(combo.body.text) &&
-          !(combo.cta && hasLinkPlaceholder(combo.cta.text)) &&
-          !hasLinkPlaceholder(combo.headline.text)
-      ).length,
+      combosWithoutLink: Object.values(combos)
+        .flat()
+        .filter(
+          (combo) =>
+            !hasLinkPlaceholder(combo.body.text) &&
+            !(combo.cta && hasLinkPlaceholder(combo.cta.text)) &&
+            !hasLinkPlaceholder(combo.headline.text)
+        ).length,
+      langs: LANGS,
       networks: NETWORKS,
       templateKinds: TEMPLATE_KINDS,
       tab: req.query.tab || 'groups',
@@ -210,8 +221,9 @@ router.post('/clients/:id/update', loadClient, async (req, res, next) => {
        SET name = $1, service = $2, city = $3, phone = $4, price_from = $5,
            price_per_lead = $6, posts_per_day = $7, dedup_days = $8, active = $9,
            telegram_chat_id = $10, contract_number = $11, contract_date = $12,
-           currency = $13, vat_percent = $14
-       WHERE id = $15`,
+           currency = $13, vat_percent = $14, city_ro = $15, service_ro = $16,
+           name_ro = $17, price_from_ro = $18
+       WHERE id = $19`,
       [
         (req.body.name || '').trim() || req.client.name,
         (req.body.service || '').trim(),
@@ -227,6 +239,10 @@ router.post('/clients/:id/update', loadClient, async (req, res, next) => {
         (req.body.contract_date || '').trim(),
         CURRENCIES[req.body.currency] ? req.body.currency : 'MDL',
         Math.min(100, Math.max(0, parseFloat(req.body.vat_percent) || 0)),
+        (req.body.city_ro || '').trim(),
+        (req.body.service_ro || '').trim(),
+        (req.body.name_ro || '').trim(),
+        (req.body.price_from_ro || '').trim(),
         req.client.id,
       ]
     );
@@ -294,12 +310,13 @@ router.post('/clients/:id/groups', loadClient, async (req, res, next) => {
     if (!name) return backToClient(res, req.client.id, 'groups', 'Укажите название группы');
 
     const network = NETWORKS[req.body.network] ? req.body.network : 'other';
+    const lang = LANGS[req.body.lang] ? req.body.lang : 'ru';
     const interval = Math.min(90, Math.max(1, parseInt(req.body.min_interval_days, 10) || 7));
 
     await pool.query(
-      `INSERT INTO promo_groups (client_id, network, name, url, min_interval_days)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [req.client.id, network, name, (req.body.url || '').trim(), interval]
+      `INSERT INTO promo_groups (client_id, network, name, url, min_interval_days, lang)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [req.client.id, network, name, (req.body.url || '').trim(), interval, lang]
     );
 
     backToClient(res, req.client.id, 'groups');
@@ -345,11 +362,10 @@ router.post('/clients/:id/templates', loadClient, async (req, res, next) => {
       return backToClient(res, req.client.id, 'templates', 'Выберите тип и напишите текст');
     }
 
-    await pool.query('INSERT INTO promo_templates (client_id, kind, text) VALUES ($1, $2, $3)', [
-      req.client.id,
-      kind,
-      text,
-    ]);
+    await pool.query(
+      'INSERT INTO promo_templates (client_id, kind, text, lang) VALUES ($1, $2, $3, $4)',
+      [req.client.id, kind, text, LANGS[req.body.lang] ? req.body.lang : 'ru']
+    );
 
     backToClient(res, req.client.id, 'templates');
   } catch (err) {
@@ -359,11 +375,15 @@ router.post('/clients/:id/templates', loadClient, async (req, res, next) => {
 
 router.post('/clients/:id/templates/seed', loadClient, async (req, res, next) => {
   try {
-    const rows = seedTemplates(req.client.service);
+    const lang = LANGS[req.body.lang] ? req.body.lang : 'ru';
+    // Для румынского набора берём румынское название услуги, если оно задано.
+    const service =
+      lang === 'ro' ? req.client.service_ro || req.client.service : req.client.service;
+    const rows = seedTemplates(service, lang);
     for (const row of rows) {
       await pool.query(
-        'INSERT INTO promo_templates (client_id, kind, text) VALUES ($1, $2, $3)',
-        [req.client.id, row.kind, row.text]
+        'INSERT INTO promo_templates (client_id, kind, text, lang) VALUES ($1, $2, $3, $4)',
+        [req.client.id, row.kind, row.text, lang]
       );
     }
     backToClient(res, req.client.id, 'templates');
@@ -459,7 +479,7 @@ router.post('/images/:imageId/delete', async (req, res, next) => {
 router.post('/clients/:id/plan', loadClient, async (req, res, next) => {
   try {
     const { images, combos } = await loadContent(req.client.id);
-    if (!combos.length) {
+    if (!Object.values(combos).some((list) => list.length)) {
       return backToClient(
         res,
         req.client.id,
@@ -470,13 +490,24 @@ router.post('/clients/:id/plan', loadClient, async (req, res, next) => {
 
     const groups = (await eligibleGroups(req.client.id)).slice(0, req.client.posts_per_day);
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const skipped = [];
 
     for (const group of groups) {
+      const lang = LANGS[group.lang] ? group.lang : 'ru';
+      const langCombos = combos[lang];
+
+      // Группа говорит на языке, для которого шаблонов нет — молча пропускать нельзя.
+      if (!langCombos.length) {
+        skipped.push(`${group.name} (${LANGS[lang]})`);
+        continue;
+      }
+
       const recent = await recentInGroup(group.id);
-      const combo = pickCombo(combos, recent.comboKeys);
+      const combo = pickCombo(langCombos, recent.comboKeys);
       const image = pickImage(images, recent.imageIds);
       const text = composeText(combo, req.client, {
         link: groupLink(baseUrl, req.client, group.id),
+        lang,
       });
 
       await pool.query(
@@ -486,7 +517,14 @@ router.post('/clients/:id/plan', loadClient, async (req, res, next) => {
       );
     }
 
-    res.redirect(`/promo/clients/${req.client.id}/queue`);
+    const warning = skipped.length
+      ? `Нет шаблонов на нужном языке, пропущено: ${skipped.join(', ')}`
+      : '';
+
+    res.redirect(
+      `/promo/clients/${req.client.id}/queue` +
+        (warning ? `?error=${encodeURIComponent(warning)}` : '')
+    );
   } catch (err) {
     next(err);
   }
@@ -574,18 +612,25 @@ router.post('/posts/:postId/regenerate', async (req, res, next) => {
     ]);
     const client = clientRows[0];
 
+    const { rows: groupRows } = await pool.query(
+      'SELECT lang FROM promo_groups WHERE id = $1',
+      [post.group_id]
+    );
+    const lang = groupRows[0] && LANGS[groupRows[0].lang] ? groupRows[0].lang : 'ru';
+
     const { images, combos } = await loadContent(client.id);
-    if (!combos.length) {
+    if (!combos[lang].length) {
       return res.redirect(`/promo/clients/${client.id}/queue`);
     }
 
     const recent = await recentInGroup(post.group_id);
     // Текущий вариант тоже считаем «свежим», чтобы кнопка давала именно другой текст.
-    const combo = pickCombo(combos, [post.combo_key, ...recent.comboKeys]);
+    const combo = pickCombo(combos[lang], [post.combo_key, ...recent.comboKeys]);
     const image = pickImage(images, [post.image_id, ...recent.imageIds]);
 
     const text = composeText(combo, client, {
       link: groupLink(`${req.protocol}://${req.get('host')}`, client, post.group_id),
+      lang,
     });
 
     await pool.query('UPDATE promo_posts SET text = $1, combo_key = $2, image_id = $3 WHERE id = $4', [
