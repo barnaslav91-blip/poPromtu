@@ -51,6 +51,63 @@
       </div>
     </section>
 
+    <% if (chart) { %>
+      <section class="card viz-root">
+        <h3>Заявки по дням</h3>
+
+        <% if (!chart.hasData) { %>
+          <p class="muted">За этот период заявок не было.</p>
+        <% } else { %>
+          <ul class="viz-legend">
+            <li><span class="viz-key viz-key-accepted"></span>Принято</li>
+            <li><span class="viz-key viz-key-other"></span>Не принято</li>
+          </ul>
+
+          <div class="viz-scroll">
+            <svg class="viz-svg" viewBox="0 0 <%= chart.width %> <%= chart.height %>"
+                 role="img" aria-label="Столбчатый график: заявки по дням за <%= period %>">
+              <% chart.ticks.forEach(function (t) { %>
+                <line class="viz-grid" x1="<%= chart.plotLeft %>" y1="<%= t.y.toFixed(1) %>"
+                      x2="<%= chart.plotRight %>" y2="<%= t.y.toFixed(1) %>" />
+                <text class="viz-tick" x="<%= chart.plotLeft - 8 %>" y="<%= (t.y + 3.5).toFixed(1) %>"
+                      text-anchor="end"><%= t.value %></text>
+              <% }) %>
+
+              <% chart.columns.forEach(function (col) { %>
+                <g>
+                  <title><%= col.hint %></title>
+                  <% col.segments.forEach(function (seg) { %>
+                    <path class="viz-bar viz-bar-<%= seg.key %>" d="<%= seg.path %>" />
+                  <% }) %>
+                  <% if (col.total > 0) { %>
+                    <rect class="viz-hit" x="<%= col.x.toFixed(1) %>" y="<%= chart.ticks[chart.ticks.length - 1].y.toFixed(1) %>"
+                          width="<%= col.width.toFixed(1) %>"
+                          height="<%= (chart.baseline - chart.ticks[chart.ticks.length - 1].y).toFixed(1) %>" />
+                  <% } %>
+                </g>
+                <% if (col.showLabel) { %>
+                  <text class="viz-tick" x="<%= (col.x + col.width / 2).toFixed(1) %>"
+                        y="<%= chart.baseline + 15 %>" text-anchor="middle"><%= col.day %></text>
+                <% } %>
+              <% }) %>
+            </svg>
+          </div>
+
+          <details class="viz-table">
+            <summary>Показать таблицей</summary>
+            <table class="videos-table">
+              <thead><tr><th>День</th><th>Всего</th><th>Принято</th></tr></thead>
+              <tbody>
+                <% chart.columns.filter(function (c) { return c.total > 0; }).forEach(function (c) { %>
+                  <tr><td><%= c.day %></td><td><%= c.total %></td><td><%= c.accepted %></td></tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </details>
+        <% } %>
+      </section>
+    <% } %>
+
     <% if (bySource.length) { %>
       <section class="card">
         <h3>Откуда пришли</h3>

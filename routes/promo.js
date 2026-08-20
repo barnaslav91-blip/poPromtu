@@ -25,6 +25,7 @@ const { isEnabled, sendMessage, escapeHtml } = require('../lib/telegram');
 const { amountInWords, currencyLabel, CURRENCIES } = require('../lib/money');
 const { buildLeadsWorkbook, contentDisposition } = require('../lib/excel');
 const { buildLeadsPdf } = require('../lib/pdf');
+const { buildDailyChart } = require('../lib/chart');
 
 const router = express.Router();
 
@@ -698,6 +699,7 @@ router.get('/clients/:id/leads', loadClient, async (req, res, next) => {
 
     res.render('promo/leads', {
       client: req.client,
+      chart: buildDailyChart(rows, period),
       leads: rows,
       bySource,
       billing,
