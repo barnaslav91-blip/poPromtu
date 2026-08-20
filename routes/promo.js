@@ -24,6 +24,7 @@ const {
 const { isEnabled, sendMessage, escapeHtml } = require('../lib/telegram');
 const { amountInWords, currencyLabel, CURRENCIES } = require('../lib/money');
 const { buildLeadsWorkbook, contentDisposition } = require('../lib/excel');
+const { buildLeadsPdf } = require('../lib/pdf');
 
 const router = express.Router();
 
@@ -729,13 +730,54 @@ async function leadsForPeriod(clientId, period) {
   }));
 }
 
+/** Период из query: месяц YYYY-MM или 'all'. */
+function exportPeriod(raw) {
+  return raw === 'all' || /^\d{4}-\d{2}$/.test(raw || '')
+    ? raw
+    : new Date().toISOString().slice(0, 7);
+}
+
+function summarize(leads) {
+  const accepted = leads.filter((l) => l.effective === 'accepted');
+  return {
+    total: leads.length,
+    accepted: accepted.length,
+    rejected: leads.filter((l) => l.effective === 'rejected').length,
+    pending: leads.filter((l) => l.effective === 'new').length,
+    duplicates: leads.filter((l) => l.is_duplicate).length,
+    amount: accepted.reduce((sum, l) => sum + Number(l.price), 0),
+  };
+}
+
+router.get('/clients/:id/leads.pdf', loadClient, async (req, res, next) => {
+  try {
+    const period = exportPeriod(req.query.period);
+    const leads = await leadsForPeriod(req.client.id, period);
+    const label = period === 'all' ? 'за всё время' : period;
+
+    const buffer = await buildLeadsPdf({
+      client: req.client,
+      leads,
+      period: label,
+      moneyLabel: currencyLabel(req.client.currency),
+      summary: summarize(leads),
+    });
+
+    const safeName = req.client.name.replace(/[\\/:*?"<>|]/g, '').trim() || 'client';
+    res.set('Content-Type', 'application/pdf');
+    res.set(
+      'Content-Disposition',
+      contentDisposition(`Заявки — ${safeName} — ${period}.pdf`, `leads-${period}.pdf`)
+    );
+    res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/clients/:id/leads.xlsx', loadClient, async (req, res, next) => {
   try {
-    const period =
-      req.query.period === 'all' || /^\d{4}-\d{2}$/.test(req.query.period || '')
-        ? req.query.period
-        : new Date().toISOString().slice(0, 7);
-
+    const period = exportPeriod(req.query.period);
     const leads = await leadsForPeriod(req.client.id, period);
     const buffer = await buildLeadsWorkbook({
       client: req.client,

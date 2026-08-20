@@ -29,10 +29,16 @@
           Акт за период →
         </a>
         <a class="act-link" href="/promo/clients/<%= client.id %>/leads.xlsx?period=<%= period %>">
-          Excel за период ↓
+          Excel ↓
+        </a>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/leads.pdf?period=<%= period %>">
+          PDF ↓
         </a>
         <a class="act-link" href="/promo/clients/<%= client.id %>/leads.xlsx?period=all">
           Excel за всё время ↓
+        </a>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/leads.pdf?period=all">
+          PDF за всё время ↓
         </a>
       </div>
 
