@@ -873,3 +873,14 @@ body.doc-page {
   max-width: 190px;
   min-width: 0;
 }
+
+.viz-row-label {
+  fill: var(--text);
+  font-size: 11px;
+}
+
+.viz-row-value {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text);
+}
