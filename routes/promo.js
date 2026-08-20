@@ -23,6 +23,7 @@ const {
 } = require('../lib/promo');
 const { isEnabled, sendMessage, escapeHtml } = require('../lib/telegram');
 const { amountInWords, currencyLabel, CURRENCIES } = require('../lib/money');
+const { buildLeadsWorkbook, contentDisposition } = require('../lib/excel');
 
 const router = express.Router();
 
@@ -703,6 +704,55 @@ router.get('/clients/:id/leads', loadClient, async (req, res, next) => {
       leadStatuses: LEAD_STATUSES,
       rejectReasons: REJECT_REASONS,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/** Заявки за период (или за всё время) с полями группы — общий источник для выгрузок. */
+async function leadsForPeriod(clientId, period) {
+  const all = period === 'all';
+  const { rows } = await pool.query(
+    `SELECT l.*, g.name AS group_name, g.network, g.lang
+     FROM promo_leads l
+     LEFT JOIN promo_groups g ON g.id = l.group_id
+     WHERE l.client_id = $1
+       AND ($2 OR to_char(l.created_at, 'YYYY-MM') = $3)
+     ORDER BY l.created_at`,
+    [clientId, all, all ? '' : period]
+  );
+
+  return rows.map((lead) => ({
+    ...lead,
+    effective: effectiveStatus(lead),
+    auto: isAutoAccepted(lead),
+  }));
+}
+
+router.get('/clients/:id/leads.xlsx', loadClient, async (req, res, next) => {
+  try {
+    const period =
+      req.query.period === 'all' || /^\d{4}-\d{2}$/.test(req.query.period || '')
+        ? req.query.period
+        : new Date().toISOString().slice(0, 7);
+
+    const leads = await leadsForPeriod(req.client.id, period);
+    const buffer = await buildLeadsWorkbook({
+      client: req.client,
+      leads,
+      period: period === 'all' ? 'за всё время' : period,
+      moneyLabel: currencyLabel(req.client.currency),
+    });
+
+    const safeName = req.client.name.replace(/[\\/:*?"<>|]/g, '').trim() || 'client';
+    const filename = `Заявки — ${safeName} — ${period}.xlsx`;
+
+    res.set(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    );
+    res.set('Content-Disposition', contentDisposition(filename, `leads-${period}.xlsx`));
+    res.send(Buffer.from(buffer));
   } catch (err) {
     next(err);
   }
