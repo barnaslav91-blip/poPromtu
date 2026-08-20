@@ -9,6 +9,7 @@ const {
   phoneKey,
   isAutoAccepted,
   effectiveStatus,
+  localized,
 } = require('../lib/promo');
 const { notifyLead } = require('../lib/telegram');
 
@@ -86,13 +87,60 @@ async function createLead(client, { name, phone, message, source, groupId }) {
 }
 
 async function resolveGroupId(clientId, rawId) {
+  const group = await resolveGroup(clientId, rawId);
+  return group ? group.id : null;
+}
+
+async function resolveGroup(clientId, rawId) {
   const groupId = parseInt(rawId, 10);
   if (!groupId) return null;
   const { rows } = await pool.query(
-    'SELECT id FROM promo_groups WHERE id = $1 AND client_id = $2',
+    'SELECT id, lang FROM promo_groups WHERE id = $1 AND client_id = $2',
     [groupId, clientId]
   );
-  return rows[0] ? rows[0].id : null;
+  return rows[0] || null;
+}
+
+// Человек пришёл из румынской группы — форму он должен увидеть на румынском.
+const LANDING_TEXT = {
+  ru: {
+    region: 'и район',
+    callHint: 'Звоните или оставьте номер — перезвоню сам.',
+    sentTitle: 'Заявка принята',
+    sentBody: 'свяжется с вами в ближайшее время.',
+    sentThanks: 'Спасибо!',
+    formTitle: 'Оставить заявку',
+    name: 'Как к вам обращаться',
+    phone: 'Телефон',
+    message: 'Что нужно сделать',
+    messageHint: 'Двор примерно 5 соток, трава по пояс',
+    submit: 'Отправить',
+    consent:
+      'Отправляя заявку, вы соглашаетесь на обработку указанных данных ' +
+      'для связи с вами по этому обращению.',
+    phoneError: 'Укажите номер телефона',
+  },
+  ro: {
+    region: 'și împrejurimi',
+    callHint: 'Sunați sau lăsați numărul — vă sun eu.',
+    sentTitle: 'Cererea a fost primită',
+    sentBody: 'vă va contacta în cel mai scurt timp.',
+    sentThanks: 'Mulțumim!',
+    formTitle: 'Lăsați o cerere',
+    name: 'Cum vă numiți',
+    phone: 'Telefon',
+    message: 'Ce trebuie făcut',
+    messageHint: 'Curte de circa 5 ari, iarbă până la brâu',
+    submit: 'Trimite',
+    consent:
+      'Trimițând cererea, sunteți de acord cu prelucrarea datelor indicate ' +
+      'pentru a fi contactat în legătură cu această solicitare.',
+    phoneError: 'Indicați numărul de telefon',
+  },
+};
+
+function landingLang(group) {
+  return group && LANDING_TEXT[group.lang] ? group.lang : 'ru';
 }
 
 // ------------------------------------------------------------- картинки
@@ -127,10 +175,14 @@ router.get('/img/:id', async (req, res, next) => {
 
 router.get('/l/:token/:groupId?', loadByToken, async (req, res, next) => {
   try {
-    const groupId = await resolveGroupId(req.client.id, req.params.groupId);
+    const group = await resolveGroup(req.client.id, req.params.groupId);
+    const lang = landingLang(group);
     res.render('landing', {
       client: req.client,
-      groupId,
+      groupId: group ? group.id : null,
+      lang,
+      L: localized(req.client, lang),
+      t: LANDING_TEXT[lang],
       sent: req.query.sent === '1',
       error: req.query.error || null,
     });
@@ -142,11 +194,13 @@ router.get('/l/:token/:groupId?', loadByToken, async (req, res, next) => {
 router.post('/l/:token', loadByToken, async (req, res, next) => {
   try {
     const phone = (req.body.phone || '').trim();
-    const groupId = await resolveGroupId(req.client.id, req.body.group_id);
+    const group = await resolveGroup(req.client.id, req.body.group_id);
+    const groupId = group ? group.id : null;
     const back = `/l/${req.client.token}${groupId ? '/' + groupId : ''}`;
 
     if (normalizePhone(phone).length < 6) {
-      return res.redirect(back + '?error=' + encodeURIComponent('Укажите номер телефона'));
+      const message = LANDING_TEXT[landingLang(group)].phoneError;
+      return res.redirect(back + '?error=' + encodeURIComponent(message));
     }
 
     const lead = await createLead(req.client, {
