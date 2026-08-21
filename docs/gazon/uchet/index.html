@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Учёт клиентов и оплат</title>
+<meta name="theme-color" content="#2f5d34">
+<style>
+  :root{
+    --green:#2f5d34; --green-d:#224526; --green-l:#e7f0e4;
+    --sun:#e0b53f; --red:#b3261e; --red-l:#fdeceb;
+    --ink:#1b1f1c; --muted:#5d665e; --line:#d8ded6;
+    --bg:#f6f7f3; --card:#fff; --chip:#eceee9;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --green:#7cb083; --green-d:#9ecfa4; --green-l:#1e2b20;
+      --sun:#e0b53f; --red:#ff8a80; --red-l:#2e1a18;
+      --ink:#e8ece7; --muted:#9aa89c; --line:#2c332d;
+      --bg:#12150f; --card:#1a1e19; --chip:#252b26;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    padding-bottom:calc(64px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:0 14px}
+  h1,h2,h3{margin:0;line-height:1.2}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  header{
+    position:sticky;top:0;z-index:20;background:var(--green);color:#fff;
+    padding:11px 0;box-shadow:0 1px 6px rgba(0,0,0,.18)
+  }
+  @media (prefers-color-scheme:dark){ header{background:var(--green-l);color:var(--ink)} }
+  header .wrap{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  header h1{font-size:17px;font-weight:800}
+  header .sub{font-size:11.5px;opacity:.8;font-weight:500}
+
+  .view{padding:14px 0 8px}
+  .view[hidden]{display:none}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+  .card h2{font-size:15px;font-weight:800;margin-bottom:10px}
+
+  /* сводка */
+  .sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);
+       border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:10px}
+  .sum div{background:var(--card);padding:12px 10px;text-align:center}
+  .sum .n{font-size:19px;font-weight:800;letter-spacing:-.02em}
+  .sum .l{font-size:11px;color:var(--muted);margin-top:2px;font-weight:600}
+  .sum .debt .n{color:var(--red)}
+  .sum .paid .n{color:var(--green)}
+
+  .monthbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .monthbar b{font-size:15px;font-weight:800}
+  .monthbar button{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    width:38px;height:38px;font-size:19px;cursor:pointer;line-height:1
+  }
+  .monthbar .off{font-size:11.5px;color:var(--muted);font-weight:600}
+
+  /* строка клиента */
+  .row{
+    display:flex;align-items:center;gap:11px;background:var(--card);
+    border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-bottom:8px
+  }
+  .row .t{flex:1;min-width:0}
+  .row .t b{display:block;font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .t small{display:block;font-size:12px;color:var(--muted);margin-top:1px}
+  .row .r{text-align:right;flex:none}
+  .row .r .amt{font-weight:800;font-size:15px;white-space:nowrap}
+  .row.owes{border-color:var(--red);background:var(--red-l)}
+  .row.owes .amt{color:var(--red)}
+  .row.ok .amt{color:var(--green)}
+
+  .chip{
+    display:inline-block;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;
+    background:var(--chip);color:var(--muted);letter-spacing:.02em
+  }
+  .chip.red{background:var(--red);color:#fff}
+  .chip.green{background:var(--green);color:#fff}
+  @media (prefers-color-scheme:dark){ .chip.green,.chip.red{color:#10140f} }
+  .chip.sun{background:var(--sun);color:#241f00}
+
+  .btn{
+    display:inline-block;border:0;border-radius:11px;padding:11px 14px;font-weight:800;
+    font-size:14.5px;cursor:pointer;background:var(--chip);color:var(--ink);
+    white-space:nowrap;text-decoration:none;text-align:center
+  }
+  .btn.p{background:var(--green);color:#fff}
+  @media (prefers-color-scheme:dark){ .btn.p{color:#10140f} }
+  .btn.s{background:var(--sun);color:#241f00}
+  .btn.d{background:transparent;color:var(--red);border:1px solid var(--red)}
+  .btn.wide{width:100%;display:block}
+  .btn.sm{padding:8px 11px;font-size:13px;border-radius:9px}
+  .btn:active{transform:translateY(1px)}
+  .btns{display:flex;gap:8px;flex-wrap:wrap}
+
+  .empty{text-align:center;color:var(--muted);font-size:14px;padding:26px 14px;line-height:1.5}
+
+  /* нижние вкладки */
+  nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);
+    border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)
+  }
+  nav .wrap{display:flex}
+  nav button{
+    flex:1;background:none;border:0;padding:9px 2px 10px;cursor:pointer;
+    font-size:11px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;
+    align-items:center;gap:3px
+  }
+  nav button .ic{font-size:19px;line-height:1}
+  nav button[aria-selected="true"]{color:var(--green)}
+
+  /* модальное окно */
+  dialog{
+    border:0;border-radius:16px 16px 0 0;padding:0;width:100%;max-width:560px;
+    margin:auto auto 0;background:var(--card);color:var(--ink);
+  }
+  dialog::backdrop{background:rgba(0,0,0,.45)}
+  .dlg{padding:16px 14px calc(16px + env(safe-area-inset-bottom))}
+  .dlg h2{font-size:17px;font-weight:800;margin-bottom:12px}
+  .f{display:grid;gap:4px;margin-bottom:10px}
+  .f label{font-size:12px;font-weight:700;color:var(--muted)}
+  .f input,.f select,.f textarea{
+    padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;
+    background:var(--bg);width:100%
+  }
+  .f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--green);outline-offset:1px}
+  .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .ledger{max-height:44vh;overflow-y:auto;margin:0 -2px}
+  .le{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)}
+  .le:last-child{border-bottom:0}
+  .le .t{flex:1;min-width:0}
+  .le .t b{display:block;font-size:14px;font-weight:700}
+  .le .t small{font-size:11.5px;color:var(--muted)}
+  .le .a{font-weight:800;font-size:14.5px;white-space:nowrap}
+  .le .a.pay{color:var(--green)}
+  .le .x{background:none;border:0;color:var(--muted);font-size:18px;cursor:pointer;padding:2px 5px}
+
+  .warn{
+    background:var(--sun);color:#241f00;border-radius:12px;padding:11px 13px;
+    font-size:13px;font-weight:600;margin-bottom:10px;line-height:1.4
+  }
+  .note{font-size:12.5px;color:var(--muted);line-height:1.45}
+  .toast{
+    position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(10px);
+    background:var(--ink);color:var(--bg);padding:11px 17px;border-radius:999px;
+    font-size:14px;font-weight:700;opacity:0;transition:.2s;pointer-events:none;z-index:60
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1>Учёт клиентов и оплат</h1>
+      <div class="sub" id="hsub">—</div>
+    </div>
+    <button class="btn s sm" id="addTop">+ клиент</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="view" id="v-money">
+    <div class="monthbar">
+      <button type="button" id="mPrev" aria-label="предыдущий месяц">‹</button>
+      <div style="text-align:center">
+        <b id="mName">—</b>
+        <div class="off" id="mOff"></div>
+      </div>
+      <button type="button" id="mNext" aria-label="следующий месяц">›</button>
+    </div>
+
+    <div class="sum">
+      <div><div class="n tnum" id="sExp">0</div><div class="l">начислено</div></div>
+      <div class="paid"><div class="n tnum" id="sPaid">0</div><div class="l">оплачено</div></div>
+      <div class="debt"><div class="n tnum" id="sDebt">0</div><div class="l">долг всего</div></div>
+    </div>
+
+    <div id="backupWarn"></div>
+    <div id="moneyList"></div>
+  </section>
+
+  <section class="view" id="v-clients" hidden>
+    <div id="clientList"></div>
+    <button class="btn p wide" id="addBottom">+ добавить клиента</button>
+  </section>
+
+  <section class="view" id="v-visits" hidden>
+    <div class="card">
+      <h2>Когда к кому ехать</h2>
+      <p class="note">Считается от последнего покоса и периодичности клиента. В апреле–июне
+        интервал стоит ставить короче, в жару — длиннее.</p>
+    </div>
+    <div id="visitList"></div>
+  </section>
+
+  <section class="view" id="v-data" hidden>
+    <div class="card">
+      <h2>Резервная копия</h2>
+      <p class="note" style="margin-bottom:12px">Все данные хранятся только в этом браузере,
+        на сервер ничего не уходит. Если очистить историю браузера или сменить телефон —
+        данные пропадут. Поэтому раз в неделю сохраняй копию файлом.</p>
+      <div class="btns">
+        <button class="btn p" id="doExport">Сохранить копию</button>
+        <button class="btn" id="doImport">Загрузить копию</button>
+      </div>
+      <p class="note" id="lastExp" style="margin-top:10px"></p>
+      <input type="file" id="fileIn" accept="application/json,.json" hidden>
+    </div>
+
+    <div class="card">
+      <h2>Сезон</h2>
+      <div class="f2">
+        <div class="f">
+          <label for="sFrom">Начало сезона</label>
+          <select id="sFrom"></select>
+        </div>
+        <div class="f">
+          <label for="sTo">Конец сезона</label>
+          <select id="sTo"></select>
+        </div>
+      </div>
+      <p class="note">Абонплата начисляется только за месяцы сезона. За остальные месяцы
+        начислений нет — допуслуги зимой можно вносить вручную.</p>
+    </div>
+
+    <div class="card">
+      <h2>Как это считает</h2>
+      <p class="note">
+        Первого числа каждого месяца сезона клиенту начисляется его абонплата.
+        Допуслуги добавляются вручную. Долг — это всё начисленное минус всё оплаченное,
+        включая прошлые месяцы. Поэтому клиент, не заплативший в мае, останется должником
+        и в июле, пока не рассчитается.<br><br>
+        Если поднять клиенту цену, прошлые начисления не изменятся — история остаётся
+        такой, какой была. Лишнее начисление можно удалить в карточке клиента.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Очистить всё</h2>
+      <p class="note" style="margin-bottom:12px">Удалит всех клиентов и всю историю оплат
+        в этом браузере. Действие необратимо — сначала сохрани копию.</p>
+      <button class="btn d" id="doWipe">Удалить все данные</button>
+    </div>
+  </section>
+
+</main>
+
+<nav>
+  <div class="wrap">
+    <button type="button" data-v="money"   aria-selected="true"><span class="ic">💰</span>Деньги</button>
+    <button type="button" data-v="clients" aria-selected="false"><span class="ic">👤</span>Клиенты</button>
+    <button type="button" data-v="visits"  aria-selected="false"><span class="ic">🌿</span>Выезды</button>
+    <button type="button" data-v="data"    aria-selected="false"><span class="ic">⚙️</span>Данные</button>
+  </div>
+</nav>
+
+<dialog id="dlgClient"><div class="dlg">
+  <h2 id="dcTitle">Клиент</h2>
+  <div class="f"><label for="cName">Имя</label><input id="cName" autocomplete="off"></div>
+  <div class="f"><label for="cAddr">Адрес</label><input id="cAddr" autocomplete="off"></div>
+  <div class="f2">
+    <div class="f"><label for="cPhone">Телефон</label><input id="cPhone" type="tel" inputmode="tel" autocomplete="off"></div>
+    <div class="f"><label for="cArea">Соток</label><input id="cArea" type="number" inputmode="decimal" step="0.5" min="0"></div>
+  </div>
+  <div class="f2">
+    <div class="f"><label for="cMonthly">Абонплата, лей/мес</label><input id="cMonthly" type="number" inputmode="numeric" min="0"></div>
+    <div class="f"><label for="cEvery">Косить раз в ... дней</label><input id="cEvery" type="number" inputmode="numeric" min="1" value="10"></div>
+  </div>
+  <div class="f2">
+    <div class="f"><label for="cDay">День недели</label><select id="cDay"></select></div>
+    <div class="f"><label for="cSince">Клиент с</label><input id="cSince" type="month"></div>
+  </div>
+  <div class="f"><label for="cNote">Заметка</label><textarea id="cNote" rows="2" placeholder="код калитки, собака, где скрытый полив"></textarea></div>
+  <div class="f"><label><input type="checkbox" id="cActive" style="width:auto;margin-right:7px">Обслуживается сейчас</label></div>
+  <div class="btns" style="margin-top:6px">
+    <button class="btn p" id="cSave" style="flex:1">Сохранить</button>
+    <button class="btn" id="cCancel">Отмена</button>
+    <button class="btn d" id="cDelete" hidden>Удалить</button>
+  </div>
+</div></dialog>
+
+<dialog id="dlgCard"><div class="dlg">
+  <h2 id="dkTitle">—</h2>
+  <div id="dkHead"></div>
+  <div class="btns" style="margin:12px 0">
+    <button class="btn p sm" id="kPay">Внёс оплату</button>
+    <button class="btn s sm" id="kCharge">Допуслуга</button>
+    <button class="btn sm" id="kMow">Скосил сегодня</button>
+    <button class="btn sm" id="kEdit">Изменить</button>
+  </div>
+  <div class="ledger" id="dkLedger"></div>
+  <button class="btn wide" id="kClose" style="margin-top:12px">Закрыть</button>
+</div></dialog>
+
+<dialog id="dlgSum"><div class="dlg">
+  <h2 id="dsTitle">—</h2>
+  <div class="f"><label for="sSum" id="sSumL">Сумма, лей</label><input id="sSum" type="number" inputmode="numeric" min="0"></div>
+  <div class="f"><label for="sDate">Дата</label><input id="sDate" type="date"></div>
+  <div class="f" id="sNoteWrap"><label for="sNote">За что</label><input id="sNote" autocomplete="off" placeholder="например: вывоз травы"></div>
+  <div class="btns">
+    <button class="btn p" id="sOk" style="flex:1">Записать</button>
+    <button class="btn" id="sCancel">Отмена</button>
+  </div>
+</div></dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const KEY = "gazon.uchet.v1";
+const MONTHS = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
+const MONTHS_OF = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const DAYS = ["понедельник","вторник","среда","четверг","пятница","суббота","воскресенье"];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf = n => new Intl.NumberFormat("ru-MD").format(Math.round(n || 0));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+// даты — строго локальные, без сдвига часового пояса
+const p2 = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+const ym  = d => `${d.getFullYear()}-${p2(d.getMonth()+1)}`;
+const parseYmd = s => { const [y,m,d] = String(s).split("-").map(Number); return new Date(y, m-1, d); };
+const today = () => ymd(new Date());
+const daysBetween = (a, b) => Math.round((parseYmd(b) - parseYmd(a)) / 86400000);
+const addDays = (s, n) => { const d = parseYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const monthName = key => { const [y,m] = key.split("-").map(Number); return `${MONTHS[m-1]} ${y}`; };
+const humanDate = s => { const d = parseYmd(s); return `${d.getDate()} ${MONTHS_OF[d.getMonth()]}`; };
+
+// ---------- данные ----------
+let S = { v:1, clients:[], settings:{ from:4, to:10 }, lastExport:null };
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if (raw){
+      const p = JSON.parse(raw);
+      if (p && Array.isArray(p.clients)) S = Object.assign(S, p);
+      S.settings = Object.assign({ from:4, to:10 }, S.settings || {});
+    }
+  }catch(e){ toast("Не удалось прочитать сохранённые данные"); }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast("Не удалось сохранить — освободите место в браузере"); }
+}
+
+// ---------- начисления ----------
+// За каждый месяц сезона от «клиент с» до текущего создаётся начисление абонплаты.
+// Уже созданные не трогаем: если цена изменится, история останется прежней.
+function ensureCharges(c){
+  if (!c.monthly || c.monthly <= 0) return;
+  const nowKey = ym(new Date());
+  const have = new Set(c.entries.filter(e => e.type === "charge" && e.auto).map(e => e.month));
+  let [y, m] = (c.since || nowKey).split("-").map(Number);
+  const [ny, nm] = nowKey.split("-").map(Number);
+  let guard = 0;
+  while ((y < ny || (y === ny && m <= nm)) && guard++ < 600){
+    const key = `${y}-${p2(m)}`;
+    const inSeason = m >= S.settings.from && m <= S.settings.to;
+    const started = !c.until || key <= c.until;
+    if (inSeason && started && !have.has(key))
+      c.entries.push({ id:uid(), type:"charge", auto:true, month:key,
+                       date:`${key}-01`, sum:c.monthly, note:"Абонплата" });
+    m++; if (m > 12){ m = 1; y++; }
+  }
+}
+function syncAll(){ S.clients.forEach(c => { c.entries = c.entries || []; if (c.active !== false) ensureCharges(c); }); save(); }
+
+const charged = c => c.entries.filter(e => e.type === "charge").reduce((s,e) => s + e.sum, 0);
+const paidAll = c => c.entries.filter(e => e.type === "payment").reduce((s,e) => s + e.sum, 0);
+const debtOf  = c => charged(c) - paidAll(c);
+const inMonth = (c, key, type) =>
+  c.entries.filter(e => e.type === type && e.date.slice(0,7) === key).reduce((s,e) => s + e.sum, 0);
+const lastVisit = c => (c.visits && c.visits.length) ? c.visits[c.visits.length-1] : null;
+function nextVisit(c){
+  const lv = lastVisit(c);
+  return lv ? addDays(lv, c.every || 10) : null;
+}
+// месяцы, за которые начислено, но не покрыто оплатой (для подсказки «за что должен»)
+function unpaidMonths(c){
+  let pool = paidAll(c);
+  const out = [];
+  for (const e of c.entries.filter(x => x.type === "charge").sort((a,b) => a.date.localeCompare(b.date))){
+    if (pool >= e.sum){ pool -= e.sum; }
+    else { out.push({ month: e.month || e.date.slice(0,7), left: e.sum - pool, note: e.note }); pool = 0; }
+  }
+  return out;
+}
+
+// ---------- отрисовка ----------
+let curMonth = ym(new Date());
+let view = "money";
+let openId = null;
+
+function render(){
+  $("#hsub").textContent = S.clients.length
+    ? `${S.clients.filter(c => c.active !== false).length} активных · ${nf(S.clients.filter(c => c.active !== false).reduce((s,c) => s + (c.monthly||0), 0))} лей/мес`
+    : "клиентов пока нет";
+  renderMoney(); renderClients(); renderVisits(); renderData();
+}
+
+function renderMoney(){
+  $("#mName").textContent = monthName(curMonth);
+  const m = Number(curMonth.split("-")[1]);
+  const off = m < S.settings.from || m > S.settings.to;
+  $("#mOff").textContent = off ? "вне сезона — абонплата не начисляется" : "";
+
+  const exp = S.clients.reduce((s,c) => s + inMonth(c, curMonth, "charge"), 0);
+  const pay = S.clients.reduce((s,c) => s + inMonth(c, curMonth, "payment"), 0);
+  const debt = S.clients.reduce((s,c) => s + Math.max(0, debtOf(c)), 0);
+  $("#sExp").textContent = nf(exp);
+  $("#sPaid").textContent = nf(pay);
+  $("#sDebt").textContent = nf(debt);
+
+  const w = $("#backupWarn");
+  w.innerHTML = (S.clients.length && !S.lastExport)
+    ? `<div class="warn">Резервной копии ещё не было. Данные лежат только в этом браузере —
+       зайди во вкладку «Данные» и сохрани копию, чтобы не потерять всё вместе с телефоном.</div>` : "";
+
+  const list = S.clients.slice().sort((a,b) => debtOf(b) - debtOf(a) || a.name.localeCompare(b.name));
+  $("#moneyList").innerHTML = list.length ? list.map(c => {
+    const d = debtOf(c);
+    const paidThis = inMonth(c, curMonth, "payment");
+    const um = unpaidMonths(c);
+    const why = d > 0 && um.length
+      ? (um.length === 1 ? `не оплачен ${monthName(um[0].month)}` : `не оплачено месяцев: ${um.length}`)
+      : (paidThis > 0 ? `оплачено ${nf(paidThis)} в этом месяце` : "долга нет");
+    return `<div class="row ${d > 0 ? "owes" : "ok"}" data-open="${c.id}">
+      <div class="t">
+        <b>${esc(c.name)}</b>
+        <small>${esc(why)}</small>
+      </div>
+      <div class="r">
+        <div class="amt tnum">${d > 0 ? nf(d) + " лей" : "✓"}</div>
+        ${d > 0 ? `<button class="btn p sm" data-pay="${c.id}" style="margin-top:5px">Оплатил</button>` : ""}
+      </div>
+    </div>`;
+  }).join("") : `<div class="empty">Пока пусто.<br>Добавь первого клиента — кнопка вверху справа.</div>`;
+}
+
+function renderClients(){
+  const list = S.clients.slice().sort((a,b) => (a.active === false) - (b.active === false) || a.name.localeCompare(b.name));
+  $("#clientList").innerHTML = list.length ? list.map(c => `
+    <div class="row" data-open="${c.id}">
+      <div class="t">
+        <b>${esc(c.name)} ${c.active === false ? '<span class="chip">не обслуживается</span>' : ""}</b>
+        <small>${esc(c.addr || "адрес не указан")}${c.area ? " · " + esc(String(c.area)) + " сот." : ""}</small>
+      </div>
+      <div class="r">
+        <div class="amt tnum">${nf(c.monthly)} лей</div>
+        <small style="color:var(--muted);font-size:11.5px">${c.day != null ? esc(DAYS[c.day]) : "день не задан"}</small>
+      </div>
+    </div>`).join("") : `<div class="empty">Клиентов пока нет.</div>`;
+}
+
+function renderVisits(){
+  const t = today();
+  const list = S.clients.filter(c => c.active !== false).map(c => {
+    const nv = nextVisit(c);
+    return { c, nv, over: nv ? daysBetween(nv, t) : 999 };
+  }).sort((a,b) => b.over - a.over);
+
+  $("#visitList").innerHTML = list.length ? list.map(({c, nv, over}) => {
+    const lv = lastVisit(c);
+    let chip, sub;
+    if (!lv){ chip = `<span class="chip sun">ещё не косили</span>`; sub = "отметь первый покос"; }
+    else if (over > 0){ chip = `<span class="chip red">пора${over > 1 ? ", +" + over + " дн." : ""}</span>`; sub = `последний ${humanDate(lv)}`; }
+    else if (over === 0){ chip = `<span class="chip red">сегодня</span>`; sub = `последний ${humanDate(lv)}`; }
+    else { chip = `<span class="chip green">через ${-over} дн.</span>`; sub = `последний ${humanDate(lv)} · ${esc(String(c.every||10))} дн.`; }
+    return `<div class="row" data-open="${c.id}">
+      <div class="t"><b>${esc(c.name)}</b><small>${sub}</small></div>
+      <div class="r">${chip}<div style="margin-top:5px"><button class="btn sm" data-mow="${c.id}">Скосил</button></div></div>
+    </div>`;
+  }).join("") : `<div class="empty">Активных клиентов нет.</div>`;
+}
+
+function renderData(){
+  $("#lastExp").textContent = S.lastExport
+    ? `Последняя копия: ${humanDate(S.lastExport)}`
+    : "Копий ещё не было.";
+  for (const [sel, val] of [["#sFrom", S.settings.from], ["#sTo", S.settings.to]]){
+    const el = $(sel);
+    if (!el.options.length)
+      el.innerHTML = MONTHS.map((m,i) => `<option value="${i+1}">${m}</option>`).join("");
+    el.value = val;
+  }
+}
+
+function switchView(v){
+  view = v;
+  for (const s of ["money","clients","visits","data"]) $("#v-" + s).hidden = (s !== v);
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.v === v));
+  window.scrollTo(0, 0);
+}
+
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2300);
+}
+
+// ---------- карточка клиента ----------
+function openCard(id){
+  const c = S.clients.find(x => x.id === id); if (!c) return;
+  openId = id;
+  $("#dkTitle").textContent = c.name;
+  const d = debtOf(c);
+  const nv = nextVisit(c), lv = lastVisit(c);
+  $("#dkHead").innerHTML = `
+    <div class="sum" style="margin-bottom:0">
+      <div><div class="n tnum">${nf(c.monthly)}</div><div class="l">лей/мес</div></div>
+      <div class="paid"><div class="n tnum">${nf(paidAll(c))}</div><div class="l">оплачено всего</div></div>
+      <div class="debt"><div class="n tnum">${nf(Math.max(0, d))}</div><div class="l">${d < 0 ? "переплата " + nf(-d) : "долг"}</div></div>
+    </div>
+    <p class="note" style="margin-top:9px">
+      ${esc(c.addr || "адрес не указан")}${c.phone ? " · " + esc(c.phone) : ""}<br>
+      ${lv ? `последний покос ${humanDate(lv)}` : "покосов ещё не было"}${nv ? ` · следующий ${humanDate(nv)}` : ""}
+      ${c.note ? "<br>" + esc(c.note) : ""}
+    </p>
+    ${c.phone && d > 0 ? `<div class="btns" style="margin-top:9px">
+      <a class="btn sm" href="tel:${esc(c.phone.replace(/\s/g,""))}">Позвонить</a>
+      <a class="btn sm" target="_blank" rel="noopener"
+         href="https://wa.me/${esc(c.phone.replace(/\D/g,""))}?text=${encodeURIComponent(
+           `Здравствуйте! По покосу за ${monthName(curMonth)}: остаток к оплате ${nf(d)} лей. Спасибо!`)}">
+        Напомнить в WhatsApp</a></div>` : ""}`;
+
+  const ents = c.entries.slice().sort((a,b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  $("#dkLedger").innerHTML = ents.length ? ents.map(e => `
+    <div class="le">
+      <div class="t">
+        <b>${e.type === "payment" ? "Оплата" : esc(e.note || "Начисление")}</b>
+        <small>${humanDate(e.date)}${e.month ? " · за " + monthName(e.month) : ""}</small>
+      </div>
+      <div class="a ${e.type === "payment" ? "pay" : ""}">${e.type === "payment" ? "−" : "+"}${nf(e.sum)}</div>
+      <button class="x" data-del="${e.id}" title="удалить">×</button>
+    </div>`).join("") : `<p class="note">Пока ни начислений, ни оплат.</p>`;
+
+  $("#dlgCard").showModal();
+}
+
+// ---------- ввод суммы ----------
+let sumCb = null;
+function askSum(title, label, def, withNote, cb){
+  $("#dsTitle").textContent = title;
+  $("#sSumL").textContent = label;
+  $("#sSum").value = def || "";
+  $("#sDate").value = today();
+  $("#sNoteWrap").hidden = !withNote;
+  $("#sNote").value = "";
+  sumCb = cb;
+  $("#dlgSum").showModal();
+  setTimeout(() => $("#sSum").focus(), 50);
+}
+$("#sOk").onclick = () => {
+  const sum = Math.round(Number($("#sSum").value));
+  if (!sum || sum <= 0){ toast("Введи сумму больше нуля"); return; }
+  const date = $("#sDate").value || today();
+  sumCb && sumCb(sum, date, $("#sNote").value.trim());
+  $("#dlgSum").close();
+};
+$("#sCancel").onclick = () => $("#dlgSum").close();
+
+// ---------- редактор клиента ----------
+let editId = null;
+function openEditor(id){
+  editId = id;
+  const c = id ? S.clients.find(x => x.id === id) : null;
+  $("#dcTitle").textContent = c ? "Изменить клиента" : "Новый клиент";
+  $("#cDay").innerHTML = `<option value="">не задан</option>` + DAYS.map((d,i) => `<option value="${i}">${d}</option>`).join("");
+  $("#cName").value = c ? c.name : "";
+  $("#cAddr").value = c ? (c.addr || "") : "";
+  $("#cPhone").value = c ? (c.phone || "") : "";
+  $("#cArea").value = c ? (c.area ?? "") : "";
+  $("#cMonthly").value = c ? c.monthly : "";
+  $("#cEvery").value = c ? (c.every || 10) : 10;
+  $("#cDay").value = c && c.day != null ? String(c.day) : "";
+  $("#cSince").value = c ? (c.since || ym(new Date())) : ym(new Date());
+  $("#cNote").value = c ? (c.note || "") : "";
+  $("#cActive").checked = c ? c.active !== false : true;
+  $("#cDelete").hidden = !c;
+  $("#dlgClient").showModal();
+  if (!c) setTimeout(() => $("#cName").focus(), 50);
+}
+$("#cSave").onclick = () => {
+  const name = $("#cName").value.trim();
+  if (!name){ toast("Впиши имя клиента"); return; }
+  const monthly = Math.round(Number($("#cMonthly").value) || 0);
+  const data = {
+    name, addr: $("#cAddr").value.trim(), phone: $("#cPhone").value.trim(),
+    area: $("#cArea").value ? Number($("#cArea").value) : null,
+    monthly, every: Math.max(1, Number($("#cEvery").value) || 10),
+    day: $("#cDay").value === "" ? null : Number($("#cDay").value),
+    since: $("#cSince").value || ym(new Date()),
+    note: $("#cNote").value.trim(), active: $("#cActive").checked
+  };
+  if (editId){
+    Object.assign(S.clients.find(x => x.id === editId), data);
+  } else {
+    S.clients.push(Object.assign({ id:uid(), entries:[], visits:[] }, data));
+  }
+  syncAll(); render();
+  $("#dlgClient").close();
+  toast(editId ? "Сохранено" : "Клиент добавлен");
+  editId = null;
+};
+$("#cCancel").onclick = () => $("#dlgClient").close();
+$("#cDelete").onclick = () => {
+  const c = S.clients.find(x => x.id === editId); if (!c) return;
+  if (!confirm(`Удалить «${c.name}» вместе со всей историей оплат? Отменить будет нельзя.`)) return;
+  S.clients = S.clients.filter(x => x.id !== editId);
+  save(); render(); $("#dlgClient").close(); $("#dlgCard").close();
+  toast("Клиент удалён");
+};
+
+// ---------- действия ----------
+function pay(id){
+  const c = S.clients.find(x => x.id === id); if (!c) return;
+  const d = Math.max(0, debtOf(c));
+  askSum(`Оплата — ${c.name}`, "Сумма, лей", d || c.monthly, false, (sum, date) => {
+    c.entries.push({ id:uid(), type:"payment", date, sum, note:"Оплата" });
+    save(); render(); if (openId === id) openCard(id);
+    toast(`Записано: ${nf(sum)} лей`);
+  });
+}
+function charge(id){
+  const c = S.clients.find(x => x.id === id); if (!c) return;
+  askSum(`Допуслуга — ${c.name}`, "Сумма, лей", "", true, (sum, date, note) => {
+    c.entries.push({ id:uid(), type:"charge", date, sum, note: note || "Допуслуга" });
+    save(); render(); if (openId === id) openCard(id);
+    toast("Начислено");
+  });
+}
+function mow(id){
+  const c = S.clients.find(x => x.id === id); if (!c) return;
+  c.visits = c.visits || [];
+  const t = today();
+  if (c.visits.includes(t)){ toast("Сегодня уже отмечено"); return; }
+  c.visits.push(t); c.visits.sort();
+  save(); render(); if (openId === id) openCard(id);
+  toast("Покос отмечен");
+}
+
+document.body.addEventListener("click", e => {
+  const pb = e.target.closest("[data-pay]");
+  if (pb){ e.stopPropagation(); pay(pb.dataset.pay); return; }
+  const mb = e.target.closest("[data-mow]");
+  if (mb){ e.stopPropagation(); mow(mb.dataset.mow); return; }
+  const del = e.target.closest("[data-del]");
+  if (del){
+    const c = S.clients.find(x => x.id === openId); if (!c) return;
+    const en = c.entries.find(x => x.id === del.dataset.del); if (!en) return;
+    if (!confirm(`Удалить запись «${en.note || "начисление"}» на ${nf(en.sum)} лей?`)) return;
+    c.entries = c.entries.filter(x => x.id !== del.dataset.del);
+    save(); render(); openCard(openId);
+    return;
+  }
+  const row = e.target.closest("[data-open]");
+  if (row) openCard(row.dataset.open);
+});
+
+$("#kPay").onclick    = () => pay(openId);
+$("#kCharge").onclick = () => charge(openId);
+$("#kMow").onclick    = () => mow(openId);
+$("#kEdit").onclick   = () => { $("#dlgCard").close(); openEditor(openId); };
+$("#kClose").onclick  = () => $("#dlgCard").close();
+$("#addTop").onclick = $("#addBottom").onclick = () => openEditor(null);
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => switchView(b.dataset.v));
+
+$("#mPrev").onclick = () => { curMonth = shiftMonth(curMonth, -1); renderMoney(); };
+$("#mNext").onclick = () => { curMonth = shiftMonth(curMonth, +1); renderMoney(); };
+function shiftMonth(key, delta){
+  let [y, m] = key.split("-").map(Number);
+  m += delta; if (m < 1){ m = 12; y--; } if (m > 12){ m = 1; y++; }
+  return `${y}-${p2(m)}`;
+}
+
+$("#sFrom").onchange = $("#sTo").onchange = () => {
+  S.settings.from = Number($("#sFrom").value);
+  S.settings.to = Number($("#sTo").value);
+  if (S.settings.to < S.settings.from){ S.settings.to = S.settings.from; $("#sTo").value = S.settings.to; }
+  syncAll(); render();
+  toast("Сезон изменён");
+};
+
+// ---------- копии ----------
+$("#doExport").onclick = () => {
+  S.lastExport = today(); save();
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `uchet-gazon-${today()}.json`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  render(); toast("Копия сохранена в загрузки");
+};
+$("#doImport").onclick = () => $("#fileIn").click();
+$("#fileIn").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try{
+    const p = JSON.parse(await f.text());
+    if (!p || !Array.isArray(p.clients)) throw new Error("не тот файл");
+    if (!confirm(`В файле ${p.clients.length} клиентов. Заменить всё, что сейчас в браузере?`)) return;
+    S = Object.assign({ v:1, clients:[], settings:{from:4,to:10}, lastExport:null }, p);
+    syncAll(); render(); toast("Копия загружена");
+  }catch(err){ toast("Файл не читается — нужен .json из этой же программы"); }
+  finally{ e.target.value = ""; }
+};
+$("#doWipe").onclick = () => {
+  if (!confirm("Удалить всех клиентов и всю историю оплат? Это необратимо.")) return;
+  if (!confirm("Точно? Если копии нет, восстановить будет нечем.")) return;
+  S = { v:1, clients:[], settings:{from:4,to:10}, lastExport:null };
+  save(); render(); toast("Всё удалено");
+};
+
+// ---------- старт ----------
+load(); syncAll(); render(); switchView("money");
+</script>
+</body>
+</html>
