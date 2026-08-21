@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Листовки A4 с QR — покос травы</title>
+<style>
+  /* ==========================================================
+     ЛИСТОВКИ ДЛЯ ПОЧТОВЫХ ЯЩИКОВ. Лист A4 = 4 карточки A6.
+     Страница 1 — русская, страница 2 — румынская.
+     Цвета те же, что на сайте, чтобы бумага и страница
+     выглядели одним целым.
+     ========================================================== */
+  @page { size: A4; margin: 0; }
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{
+    margin:0;background:#dcdcd6;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    color:#1b1f1c;
+  }
+  .sheet{
+    width:210mm;height:297mm;margin:0 auto;background:#fff;
+    display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  }
+  .sheet + .sheet{margin-top:6mm}
+  @media print{
+    body{background:#fff}
+    .sheet{margin:0}
+    .sheet + .sheet{margin-top:0;break-before:page;page-break-before:always}
+  }
+
+  .card{
+    border:.4mm dashed #b9bdb5;
+    display:flex;flex-direction:column;overflow:hidden;background:#fff;
+  }
+
+  /* верхний блок — предложение */
+  .top{
+    background:#2f5d34;color:#fff;padding:7mm 7mm 6mm;
+    display:flex;flex-direction:column;gap:3mm;
+  }
+  .eyebrow{
+    font-size:7pt;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
+    color:#a8c9a5;margin:0;
+  }
+  .top h1{
+    font-size:16.5pt;font-weight:800;line-height:1.12;letter-spacing:-.02em;margin:0;
+    text-wrap:balance;
+  }
+  .top ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1.6mm}
+  .top li{
+    font-size:9pt;line-height:1.25;padding-left:5mm;position:relative;color:#e2eede;
+  }
+  .top li::before{
+    content:"";position:absolute;left:0;top:1.1mm;width:3mm;height:3mm;border-radius:50%;
+    background:#e0b53f;
+  }
+
+  /* середина — QR, главный элемент листовки */
+  .mid{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2.5mm;padding:4mm 6mm;background:#fff;text-align:center;
+  }
+  .mid img{width:43mm;height:43mm;display:block;flex:none}
+  .mid .say{font-size:9pt;line-height:1.3;font-weight:600;color:#2f5d34}
+  .mid .say b{
+    display:block;font-size:11.5pt;font-weight:800;color:#1b1f1c;
+    margin-bottom:1.2mm;letter-spacing:-.02em;
+  }
+  .mid .say small{display:block;font-size:7.5pt;font-weight:500;color:#5d665e;margin-top:1.5mm;line-height:1.25}
+
+  /* низ — телефон */
+  .bot{
+    background:#e0b53f;color:#241f00;padding:4.5mm 7mm;
+    display:flex;align-items:baseline;justify-content:space-between;gap:3mm;
+  }
+  .bot .tel{font-size:15pt;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+  .bot .who{font-size:7.5pt;font-weight:700;text-align:right;line-height:1.2;opacity:.8}
+  .nb{
+    background:#224526;color:#cfe0cd;font-size:7.5pt;font-weight:600;
+    padding:2.5mm 7mm;line-height:1.25;
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= НАСТРОЙКИ ================= -->
+<script>
+const F = {
+  phone: "",            // телефон крупно на листовке, например "+373 60 123 456"
+  name:  "",            // имя или название
+  area:  ""             // район/сёла, например "Дурлешты, Ставчены"
+};
+</script>
+<!-- ============================================= -->
+
+<div class="sheet" id="ru"></div>
+<div class="sheet" id="ro"></div>
+
+<script>
+const TEXT = {
+  ru:{
+    eyebrow:"Покос травы",
+    h1:"Кошу траву<br>на вашей улице",
+    li:["Фиксированная плата в месяц — не за каждый приезд",
+        "Свой день недели, приезжаю сам",
+        "Своя техника и бензин, договор"],
+    sayB:"Цена — за минуту, без звонка",
+    say:"Наведите камеру телефона",
+    saySm:"Введёте размер участка — сразу увидите стоимость.<br>Никому не нужно звонить.",
+    who:"Обслуживаю",
+    nb:"Соседям, которые закажут вместе, — скидка. Чем ближе участки, тем дешевле каждому.",
+    telPlaceholder:"+373 __ ___ ___"
+  },
+  ro:{
+    eyebrow:"Tuns iarba",
+    h1:"Tund iarba<br>pe strada dvs.",
+    li:["Plată fixă lunară — nu pentru fiecare vizită",
+        "Zi stabilită a săptămânii, vin singur",
+        "Cu tehnica și combustibilul meu, în bază de contract"],
+    sayB:"Prețul într-un minut, fără să sunați",
+    say:"Îndreptați camera telefonului",
+    saySm:"Introduceți suprafața terenului și vedeți imediat costul.<br>Nu trebuie să sunați nimănui.",
+    who:"Deservesc",
+    nb:"Vecinilor care comandă împreună — reducere. Cu cât terenurile sunt mai aproape, cu atât e mai ieftin pentru fiecare.",
+    telPlaceholder:"+373 __ ___ ___"
+  }
+};
+
+function card(t){
+  return `
+  <div class="card">
+    <div class="top">
+      <p class="eyebrow">${t.eyebrow}</p>
+      <h1>${t.h1}</h1>
+      <ul>${t.li.map(x => `<li>${x}</li>`).join("")}</ul>
+    </div>
+    <div class="mid">
+      <div class="say"><b>${t.sayB}</b>${t.say}</div>
+      <img src="qr-gazon.svg" alt="QR">
+      <div class="say"><small>${t.saySm}</small></div>
+    </div>
+    <div class="nb">${t.nb}</div>
+    <div class="bot">
+      <span class="tel">${F.phone || t.telPlaceholder}</span>
+      <span class="who">${F.name || ""}${F.name && F.area ? "<br>" : ""}${F.area ? t.who + ": " + F.area : ""}</span>
+    </div>
+  </div>`;
+}
+
+for (const [id, key] of [["ru","ru"],["ro","ro"]])
+  document.getElementById(id).innerHTML = card(TEXT[key]).repeat(4);
+</script>
+</body>
+</html>
