@@ -100,6 +100,20 @@
   .btn:active{transform:translateY(1px)}
   .btns{display:flex;gap:8px;flex-wrap:wrap}
 
+  details.card summary{
+    font-size:15px;font-weight:800;cursor:pointer;list-style:none;
+    display:flex;align-items:center;gap:8px
+  }
+  details.card summary::-webkit-details-marker{display:none}
+  details.card summary::after{content:"+";margin-left:auto;color:var(--green);font-size:20px;line-height:1}
+  details.card[open] summary::after{content:"–"}
+  details.card[open] summary{margin-bottom:11px}
+  table.src{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.src th,table.src td{padding:7px 0;border-bottom:1px solid var(--line);text-align:left}
+  table.src th{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  table.src td+td,table.src th+th{text-align:right;padding-left:10px;white-space:nowrap}
+  table.src tr:last-child td{border-bottom:0}
+  table.src .money{font-weight:800}
   .empty{text-align:center;color:var(--muted);font-size:14px;padding:26px 14px;line-height:1.5}
 
   /* нижние вкладки */
@@ -188,6 +202,11 @@
 
     <div id="backupWarn"></div>
     <div id="moneyList"></div>
+
+    <details class="card" id="srcCard">
+      <summary>Откуда клиенты</summary>
+      <div id="srcBody"></div>
+    </details>
   </section>
 
   <section class="view" id="v-clients" hidden>
@@ -281,6 +300,11 @@
     <div class="f"><label for="cDay">День недели</label><select id="cDay"></select></div>
     <div class="f"><label for="cSince">Клиент с</label><input id="cSince" type="month"></div>
   </div>
+  <div class="f">
+    <label for="cSrc">Откуда узнал</label>
+    <input id="cSrc" list="srcList" autocomplete="off" placeholder="листовка, 999.md, сосед…">
+    <datalist id="srcList"></datalist>
+  </div>
   <div class="f"><label for="cNote">Заметка</label><textarea id="cNote" rows="2" placeholder="код калитки, собака, где скрытый полив"></textarea></div>
   <div class="f"><label><input type="checkbox" id="cActive" style="width:auto;margin-right:7px">Обслуживается сейчас</label></div>
   <div class="btns" style="margin-top:6px">
@@ -321,6 +345,10 @@
 const KEY = "gazon.uchet.v1";
 const MONTHS = ["январь","февраль","март","апрель","май","июнь","июль","август","сентябрь","октябрь","ноябрь","декабрь"];
 const MONTHS_OF = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+// те же названия, что страница дописывает в заявку строкой «Источник»
+const SOURCES = ["листовка","999.md","Facebook","группа в Viber","Telegram",
+                 "статус в мессенджере","табличка на участке","Google Карты",
+                 "Instagram / TikTok","рекомендация соседа"];
 const DAYS = ["понедельник","вторник","среда","четверг","пятница","суббота","воскресенье"];
 
 const $ = s => document.querySelector(s);
@@ -409,7 +437,7 @@ function render(){
   $("#hsub").textContent = S.clients.length
     ? `${S.clients.filter(c => c.active !== false).length} активных · ${nf(S.clients.filter(c => c.active !== false).reduce((s,c) => s + (c.monthly||0), 0))} лей/мес`
     : "клиентов пока нет";
-  renderMoney(); renderClients(); renderVisits(); renderData();
+  renderMoney(); renderSources(); renderClients(); renderVisits(); renderData();
 }
 
 function renderMoney(){
@@ -451,13 +479,50 @@ function renderMoney(){
   }).join("") : `<div class="empty">Пока пусто.<br>Добавь первого клиента — кнопка вверху справа.</div>`;
 }
 
+function renderSources(){
+  const NONE = "не указан";
+  const by = new Map();
+  for (const c of S.clients){
+    const key = (c.src || "").trim() || NONE;
+    const r = by.get(key) || { key, n:0, active:0, monthly:0, paid:0 };
+    r.n++;
+    if (c.active !== false){ r.active++; r.monthly += c.monthly || 0; }
+    r.paid += paidAll(c);
+    by.set(key, r);
+  }
+  // сортируем по деньгам: канал ценен деньгами, а не числом голов
+  const rows = [...by.values()].sort((a,b) => b.paid - a.paid || b.monthly - a.monthly);
+  const known = rows.filter(r => r.key !== NONE);
+
+  $("#srcCard").hidden = !S.clients.length;
+  if (!S.clients.length) return;
+
+  const totalPaid = rows.reduce((s,r) => s + r.paid, 0);
+  $("#srcBody").innerHTML = `
+    <table class="src">
+      <tr><th>Канал</th><th>Клиентов</th><th>Лей/мес</th><th>Получено</th></tr>
+      ${rows.map(r => `<tr>
+        <td>${esc(r.key)}${r.active < r.n ? ` <span class="chip">${r.active} из ${r.n}</span>` : ""}</td>
+        <td class="tnum">${r.active || r.n}</td>
+        <td class="tnum">${nf(r.monthly)}</td>
+        <td class="tnum money">${nf(r.paid)}</td>
+      </tr>`).join("")}
+    </table>
+    <p class="note" style="margin-top:10px">${
+      known.length < 2
+        ? "Источник пишется в карточке клиента. Страница подставляет его в заявку сама, если ссылка была с меткой — остаётся перенести."
+        : `Всего получено ${nf(totalPaid)} лей. Больше всего принёс канал «${esc(rows[0].key)}». ` +
+          "Через сезон станет видно, какие два-три канала работают, а какие только едят время."
+    }</p>`;
+}
+
 function renderClients(){
   const list = S.clients.slice().sort((a,b) => (a.active === false) - (b.active === false) || a.name.localeCompare(b.name));
   $("#clientList").innerHTML = list.length ? list.map(c => `
     <div class="row" data-open="${c.id}">
       <div class="t">
         <b>${esc(c.name)} ${c.active === false ? '<span class="chip">не обслуживается</span>' : ""}</b>
-        <small>${esc(c.addr || "адрес не указан")}${c.area ? " · " + esc(String(c.area)) + " сот." : ""}</small>
+        <small>${esc(c.addr || "адрес не указан")}${c.area ? " · " + esc(String(c.area)) + " сот." : ""}${c.src ? " · " + esc(c.src) : ""}</small>
       </div>
       <div class="r">
         <div class="amt tnum">${nf(c.monthly)} лей</div>
@@ -588,6 +653,9 @@ function openEditor(id){
   $("#cEvery").value = c ? (c.every || 10) : 10;
   $("#cDay").value = c && c.day != null ? String(c.day) : "";
   $("#cSince").value = c ? (c.since || ym(new Date())) : ym(new Date());
+  $("#cSrc").value = c ? (c.src || "") : "";
+  $("#srcList").innerHTML = [...new Set([...SOURCES, ...S.clients.map(x => x.src).filter(Boolean)])]
+    .map(x => `<option value="${esc(x)}">`).join("");
   $("#cNote").value = c ? (c.note || "") : "";
   $("#cActive").checked = c ? c.active !== false : true;
   $("#cDelete").hidden = !c;
@@ -604,6 +672,7 @@ $("#cSave").onclick = () => {
     monthly, every: Math.max(1, Number($("#cEvery").value) || 10),
     day: $("#cDay").value === "" ? null : Number($("#cDay").value),
     since: $("#cSince").value || ym(new Date()),
+    src: $("#cSrc").value.trim(),
     note: $("#cNote").value.trim(), active: $("#cActive").checked
   };
   if (editId){
