@@ -90,6 +90,8 @@ select,
 textarea,
 button {
   font: inherit;
+  /* Длинные варианты в select иначе распирают строку на узком экране. */
+  max-width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -126,6 +128,8 @@ button:hover {
   display: flex;
   gap: 8px;
   align-items: center;
+  /* Ряд ссылок на выгрузки длинный — без переноса он растягивает страницу. */
+  flex-wrap: wrap;
 }
 
 .muted {
@@ -246,4 +250,637 @@ button:hover {
   color: white;
   padding: 2px 8px;
   border-radius: 999px;
+}
+
+/* ---------------------------------------------------------- poPromtu Промо */
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-nav a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.container.narrow {
+  max-width: 520px;
+}
+
+.page-title {
+  margin: 8px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.small {
+  font-size: 0.82rem;
+}
+
+.mt {
+  margin-top: 12px;
+}
+
+.secondary {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.danger-btn {
+  background: var(--danger);
+}
+
+h3.danger {
+  color: var(--danger);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.checkbox input {
+  width: auto;
+}
+
+/* вкладки */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tabs a {
+  padding: 8px 14px;
+  text-decoration: none;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+
+.tabs a.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+/* списки строк */
+.row-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row-list > li {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.row-list.compact > li {
+  padding: 8px 12px;
+}
+
+.row-list > li.inactive {
+  opacity: 0.5;
+}
+
+.row-main {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.row-actions a {
+  color: var(--accent);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.chip-accepted {
+  border-color: #16a34a;
+  color: #16a34a;
+}
+
+.chip-rejected {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.chip-new {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chip-dup {
+  border-color: #d97706;
+  color: #d97706;
+}
+
+.badge-plan {
+  background: var(--accent);
+}
+
+.badge-off {
+  background: var(--muted);
+}
+
+.badge {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* клиенты */
+.client-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.client-list > li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+
+.client-list > li.inactive {
+  opacity: 0.5;
+}
+
+.client-name {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.client-counters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* шаблоны и посты */
+.tpl-text,
+.post-text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.post-card .post-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.open-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.post-text {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.post-image {
+  margin-top: 12px;
+}
+
+.post-image img {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 10px;
+  display: block;
+}
+
+.post-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+/* картинки */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.image-grid figure {
+  margin: 0;
+}
+
+.image-grid img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.image-grid figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* статистика */
+.stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.lead-message {
+  margin-top: 4px;
+  white-space: pre-wrap;
+}
+
+.row-list > li.lead-rejected {
+  opacity: 0.6;
+}
+
+/* лендинг */
+body.landing .container {
+  padding-top: 32px;
+}
+
+.landing-title {
+  margin: 0 0 12px;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.landing-price {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.phone-link {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.notice {
+  color: #16a34a;
+}
+
+.warn {
+  background: rgba(217, 119, 6, 0.12);
+  border: 1px solid #d97706;
+  color: inherit;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+}
+
+.warn a {
+  color: var(--accent);
+}
+
+/* -------------------------------------------------- документы на печать */
+
+body.doc-page {
+  background: #f0f0f2;
+  color: #111;
+}
+
+.doc-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  max-width: 210mm;
+  margin: 16px auto 0;
+  padding: 0 12px;
+}
+
+.doc-toolbar a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.doc {
+  max-width: 210mm;
+  margin: 16px auto 48px;
+  background: #fff;
+  color: #111;
+  padding: 18mm 16mm;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  font-size: 11pt;
+  line-height: 1.45;
+}
+
+.doc h1 {
+  font-size: 15pt;
+  text-align: center;
+  margin: 0 0 4px;
+}
+
+.doc h2 {
+  font-size: 12pt;
+  margin: 22px 0 8px;
+}
+
+.doc-sub {
+  text-align: center;
+  margin: 0 0 20px;
+}
+
+.doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 10pt;
+}
+
+.doc-table th,
+.doc-table td {
+  border: 1px solid #888;
+  padding: 5px 7px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-table thead th {
+  background: #f2f2f2;
+  font-weight: 600;
+}
+
+.doc-table tfoot td {
+  font-weight: 600;
+  text-align: right;
+}
+
+.doc-table tfoot td:last-child {
+  text-align: left;
+}
+
+.doc-table tr.doc-total td {
+  background: #f2f2f2;
+}
+
+.narrow-table {
+  max-width: 120mm;
+}
+
+.doc-statement {
+  margin-top: 24px;
+}
+
+.doc-signatures {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  margin-top: 32px;
+}
+
+.doc-signatures > div {
+  flex: 1;
+}
+
+.sign-line {
+  margin: 22px 0 6px;
+}
+
+@media print {
+  body.doc-page {
+    background: #fff;
+  }
+
+  .doc-toolbar {
+    display: none;
+  }
+
+  .doc {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    max-width: none;
+  }
+
+  .doc-table {
+    page-break-inside: auto;
+  }
+
+  .doc-table tr {
+    page-break-inside: avoid;
+  }
+
+  .doc-signatures {
+    page-break-inside: avoid;
+  }
+
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+}
+
+.act-link {
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.tpl-kind {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 18px 0 8px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------- график заявок по дням */
+
+.viz-root {
+  --viz-accepted: #2a78d6;
+  --viz-other: #eb6834;
+  --viz-grid: #e2e4de;
+  --viz-ink: var(--muted);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .viz-root {
+    --viz-accepted: #3987e5;
+    --viz-other: #d95926;
+    --viz-grid: #3a3a3c;
+  }
+}
+
+:root[data-theme="dark"] .viz-root {
+  --viz-accepted: #3987e5;
+  --viz-other: #d95926;
+  --viz-grid: #3a3a3c;
+}
+
+.viz-legend {
+  list-style: none;
+  display: flex;
+  gap: 18px;
+  padding: 0;
+  margin: 0 0 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.viz-legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.viz-key {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.viz-key-accepted { background: var(--viz-accepted); }
+.viz-key-other { background: var(--viz-other); }
+
+/* Узкий экран: график уезжает в свою прокрутку, страница не разъезжается. */
+.viz-scroll {
+  overflow-x: auto;
+}
+
+.viz-svg {
+  display: block;
+  width: 100%;
+  min-width: 420px;
+  height: auto;
+}
+
+.viz-bar-accepted { fill: var(--viz-accepted); }
+.viz-bar-other { fill: var(--viz-other); }
+
+.viz-grid {
+  stroke: var(--viz-grid);
+  stroke-width: 1;
+}
+
+.viz-tick {
+  fill: var(--viz-ink);
+  font-size: 9px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Прозрачная накладка во всю высоту: подсказка ловится по всему столбцу,
+   а не только по закрашенной части. */
+.viz-hit {
+  fill: transparent;
+}
+
+.viz-root g:hover .viz-bar {
+  opacity: 0.82;
+}
+
+.viz-table {
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.viz-table summary {
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.viz-table table {
+  margin-top: 10px;
+  max-width: 320px;
+}
+
+/* На узком экране select с длинными вариантами («Телефон недоступен после
+   3 попыток») не даёт строке сжаться — ограничиваем его явно. */
+.row-actions .inline-form {
+  min-width: 0;
+}
+
+.row-actions select {
+  max-width: 190px;
+  min-width: 0;
+}
+
+.viz-row-label {
+  fill: var(--text);
+  font-size: 11px;
+}
+
+.viz-row-value {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text);
 }

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= L.service || L.name %><% if (L.city) { %> — <%= L.city %><% } %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="landing">
+  <main class="container narrow">
+    <section class="card">
+      <h1 class="landing-title">
+        <%= L.service || L.name %><% if (L.city) { %><br /><span class="muted"><%= L.city %> <%= t.region %></span><% } %>
+      </h1>
+
+      <% if (L.price) { %>
+        <p class="landing-price"><%= L.price %></p>
+      <% } %>
+
+      <% if (client.phone) { %>
+        <p><a class="phone-link" href="tel:<%= client.phone.replace(/\s/g, '') %>"><%= client.phone %></a></p>
+        <p class="muted small"><%= t.callHint %></p>
+      <% } %>
+    </section>
+
+    <section class="card">
+      <% if (sent) { %>
+        <h2><%= t.sentTitle %></h2>
+        <p><%= t.sentThanks %> <%= L.name %> <%= t.sentBody %></p>
+      <% } else { %>
+        <h2><%= t.formTitle %></h2>
+        <% if (error) { %><p class="error"><%= error %></p><% } %>
+        <form method="POST" action="/l/<%= client.token %>" class="stacked-form">
+          <% if (groupId) { %>
+            <input type="hidden" name="group_id" value="<%= groupId %>" />
+          <% } %>
+
+          <label for="name"><%= t.name %></label>
+          <input type="text" id="name" name="name" />
+
+          <label for="phone"><%= t.phone %> *</label>
+          <input type="tel" id="phone" name="phone" required />
+
+          <label for="message"><%= t.message %></label>
+          <textarea id="message" name="message" rows="3"
+                    placeholder="<%= t.messageHint %>"></textarea>
+
+          <button type="submit"><%= t.submit %></button>
+          <p class="muted small"><%= t.consent %></p>
+        </form>
+      <% } %>
+    </section>
+  </main>
+</body>
+</html>

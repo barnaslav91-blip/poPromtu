@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Заявки — <%= client.name %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><a href="/promo">poPromtu Промо</a></h1>
+    <nav class="topbar-nav">
+      <a href="/promo/clients/<%= client.id %>">Настройки</a>
+      <a href="/promo/clients/<%= client.id %>/queue">Очередь</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2 class="page-title">Заявки — <%= client.name %></h2>
+
+    <section class="card">
+      <div class="inline-form">
+        <form method="GET" class="inline-form">
+          <label for="period" class="muted">Период</label>
+          <input type="month" id="period" name="period" value="<%= period %>" />
+          <button type="submit">Показать</button>
+        </form>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/act?period=<%= period %>">
+          Акт за период →
+        </a>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/leads.xlsx?period=<%= period %>">
+          Excel ↓
+        </a>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/leads.pdf?period=<%= period %>">
+          PDF ↓
+        </a>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/leads.xlsx?period=all">
+          Excel за всё время ↓
+        </a>
+        <a class="act-link" href="/promo/clients/<%= client.id %>/leads.pdf?period=all">
+          PDF за всё время ↓
+        </a>
+      </div>
+
+      <div class="stats">
+        <div><span class="stat-value"><%= billing.accepted %></span><span class="muted small">принято</span></div>
+        <div><span class="stat-value"><%= billing.pending %></span><span class="muted small">ждут решения</span></div>
+        <div><span class="stat-value"><%= billing.rejected %></span><span class="muted small">отклонено</span></div>
+        <div><span class="stat-value"><%= billing.duplicates %></span><span class="muted small">дублей</span></div>
+        <div><span class="stat-value"><%= billing.total.toFixed(2) %></span><span class="muted small">к оплате</span></div>
+      </div>
+    </section>
+
+    <% if (chart) { %>
+      <section class="card viz-root">
+        <h3>Заявки по дням</h3>
+
+        <% if (!chart.hasData) { %>
+          <p class="muted">За этот период заявок не было.</p>
+        <% } else { %>
+          <ul class="viz-legend">
+            <li><span class="viz-key viz-key-accepted"></span>Принято</li>
+            <li><span class="viz-key viz-key-other"></span>Не принято</li>
+          </ul>
+
+          <div class="viz-scroll">
+            <svg class="viz-svg" viewBox="0 0 <%= chart.width %> <%= chart.height %>"
+                 role="img" aria-label="Столбчатый график: заявки по дням за <%= period %>">
+              <% chart.ticks.forEach(function (t) { %>
+                <line class="viz-grid" x1="<%= chart.plotLeft %>" y1="<%= t.y.toFixed(1) %>"
+                      x2="<%= chart.plotRight %>" y2="<%= t.y.toFixed(1) %>" />
+                <text class="viz-tick" x="<%= chart.plotLeft - 8 %>" y="<%= (t.y + 3.5).toFixed(1) %>"
+                      text-anchor="end"><%= t.value %></text>
+              <% }) %>
+
+              <% chart.columns.forEach(function (col) { %>
+                <g>
+                  <title><%= col.hint %></title>
+                  <% col.segments.forEach(function (seg) { %>
+                    <path class="viz-bar viz-bar-<%= seg.key %>" d="<%= seg.path %>" />
+                  <% }) %>
+                  <% if (col.total > 0) { %>
+                    <rect class="viz-hit" x="<%= col.x.toFixed(1) %>" y="<%= chart.ticks[chart.ticks.length - 1].y.toFixed(1) %>"
+                          width="<%= col.width.toFixed(1) %>"
+                          height="<%= (chart.baseline - chart.ticks[chart.ticks.length - 1].y).toFixed(1) %>" />
+                  <% } %>
+                </g>
+                <% if (col.showLabel) { %>
+                  <text class="viz-tick" x="<%= (col.x + col.width / 2).toFixed(1) %>"
+                        y="<%= chart.baseline + 15 %>" text-anchor="middle"><%= col.day %></text>
+                <% } %>
+              <% }) %>
+            </svg>
+          </div>
+
+          <details class="viz-table">
+            <summary>Показать таблицей</summary>
+            <table class="videos-table">
+              <thead><tr><th>День</th><th>Всего</th><th>Принято</th></tr></thead>
+              <tbody>
+                <% chart.columns.filter(function (c) { return c.total > 0; }).forEach(function (c) { %>
+                  <tr><td><%= c.day %></td><td><%= c.total %></td><td><%= c.accepted %></td></tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </details>
+        <% } %>
+      </section>
+    <% } %>
+
+    <% if (sourceChart) { %>
+      <section class="card viz-root">
+        <h3>Откуда пришли</h3>
+
+        <ul class="viz-legend">
+          <li><span class="viz-key viz-key-accepted"></span>Принято</li>
+          <li><span class="viz-key viz-key-other"></span>Не принято</li>
+        </ul>
+
+        <div class="viz-scroll">
+          <svg class="viz-svg" viewBox="0 0 <%= sourceChart.width %> <%= sourceChart.height %>"
+               role="img" aria-label="Полосовой график: заявки по источникам за <%= period %>">
+            <% sourceChart.bars.forEach(function (bar) { %>
+              <g>
+                <title><%= bar.hint %></title>
+                <text class="viz-tick viz-row-label" x="<%= sourceChart.labelX %>"
+                      y="<%= bar.labelY.toFixed(1) %>" text-anchor="end"><%= bar.label %></text>
+                <% bar.segments.forEach(function (seg) { %>
+                  <path class="viz-bar viz-bar-<%= seg.key %>" d="<%= seg.path %>" />
+                <% }) %>
+                <text class="viz-tick viz-row-value" x="<%= bar.valueX.toFixed(1) %>"
+                      y="<%= bar.labelY.toFixed(1) %>"><%= bar.total %></text>
+                <rect class="viz-hit" x="0" y="<%= bar.hit.y.toFixed(1) %>"
+                      width="<%= sourceChart.width %>" height="<%= bar.hit.height.toFixed(1) %>" />
+              </g>
+            <% }) %>
+          </svg>
+        </div>
+
+        <details class="viz-table">
+          <summary>Показать таблицей</summary>
+          <table class="videos-table">
+            <thead><tr><th>Источник</th><th>Всего</th><th>Принято</th></tr></thead>
+            <tbody>
+              <% sourceChart.bars.forEach(function (bar) { %>
+                <tr><td><%= bar.name %></td><td><%= bar.total %></td><td><%= bar.accepted %></td></tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </details>
+      </section>
+    <% } %>
+
+    <section class="card">
+      <h3>Список (<%= leads.length %>)</h3>
+      <% if (!leads.length) { %>
+        <p class="muted">За этот период заявок нет.</p>
+      <% } %>
+      <ul class="row-list">
+        <% leads.forEach(function (l) { %>
+          <li class="lead-<%= l.effective %>">
+            <div class="row-main">
+              <strong><%= l.phone %></strong>
+              <% if (l.name) { %> · <%= l.name %><% } %>
+              <span class="chip chip-<%= l.effective %>"><%= leadStatuses[l.effective] %></span>
+              <% if (l.auto) { %><span class="chip">по сроку, п. 4.6</span><% } %>
+              <% if (l.is_duplicate) { %><span class="chip chip-dup">дубль</span><% } %>
+              <% if (l.message) { %><div class="lead-message"><%= l.message %></div><% } %>
+              <div class="muted small">
+                <%= new Date(l.created_at).toLocaleString('ru-RU') %>
+                · <%= l.group_name || 'без источника' %>
+                · <%= Number(l.price).toFixed(2) %>
+                <% if (l.reject_reason) { %> · причина: <%= l.reject_reason %><% } %>
+              </div>
+            </div>
+            <div class="row-actions">
+              <form method="POST" action="/promo/leads/<%= l.id %>/status" class="inline-form">
+                <select name="status">
+                  <% Object.keys(leadStatuses).forEach(function (key) { %>
+                    <option value="<%= key %>" <%= l.status === key ? 'selected' : '' %>>
+                      <%= leadStatuses[key] %>
+                    </option>
+                  <% }) %>
+                </select>
+                <select name="reject_reason">
+                  <option value="">причина —</option>
+                  <% rejectReasons.forEach(function (r) { %>
+                    <option value="<%= r %>" <%= l.reject_reason === r ? 'selected' : '' %>><%= r %></option>
+                  <% }) %>
+                </select>
+                <button class="secondary" type="submit">Сохранить</button>
+              </form>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
