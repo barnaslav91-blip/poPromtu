@@ -283,7 +283,7 @@ const PHOTOS = [];
 
       <div class="actions">
         <a class="btn btn-wa hidden" id="btnWa" target="_blank" rel="noopener"><span data-t="btnWa"></span></a>
-        <button class="btn btn-tg hidden" type="button" id="btnTg"><span data-t="btnTg"></span></button>
+        <a class="btn btn-tg hidden" id="btnTg" target="_blank" rel="noopener"><span data-t="btnTg"></span></a>
         <a class="btn btn-tel hidden" id="btnTel"><span data-t="btnTel"></span></a>
         <button class="btn btn-ghost" type="button" id="btnCopy"><span data-t="btnCopy"></span></button>
       </div>
@@ -586,7 +586,9 @@ function wireLinks(){
     el.classList.toggle("hidden", !CONTACT.whatsapp);
     if (u) el.href = u;
   });
-  $("#btnTg").classList.toggle("hidden", !CONTACT.telegram);
+  const tg = $("#btnTg");
+  tg.classList.toggle("hidden", !CONTACT.telegram);
+  if (CONTACT.telegram) tg.href = "https://t.me/" + CONTACT.telegram;
   const tel = CONTACT.phone ? "tel:" + CONTACT.phone.replace(/\s/g,"") : "";
   [["#btnTel",tel],["#sTel",tel]].forEach(([sel,u]) => {
     const el = $(sel);
@@ -594,8 +596,8 @@ function wireLinks(){
     if (u) el.href = u;
   });
   $("#sCopy").classList.toggle("hidden", !!(CONTACT.whatsapp || CONTACT.phone));
-  // пока контакты не заполнены, нижняя панель просто дублировала бы кнопку из карточки
-  $("#sticky").classList.toggle("hidden", !CONTACT.whatsapp && !CONTACT.phone);
+  // пока не задан ни один контакт, нижняя панель просто дублировала бы кнопку из карточки
+  $("#sticky").classList.toggle("hidden", !CONTACT.whatsapp && !CONTACT.phone && !CONTACT.telegram);
 }
 
 function toast(msg){
@@ -603,12 +605,12 @@ function toast(msg){
   el.textContent = msg; el.classList.add("on");
   clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2200);
 }
-async function copyMsg(){
+async function copyMsg(done){
   const txt = message();
   try { await navigator.clipboard.writeText(txt); }
   catch { const ta = document.createElement("textarea"); ta.value = txt; document.body.append(ta);
           ta.select(); document.execCommand("copy"); ta.remove(); }
-  toast(T[lang].copied);
+  toast(done || T[lang].copied);
 }
 
 $$(".lang button").forEach(b => b.onclick = () => {
@@ -632,12 +634,13 @@ $("#area").oninput = () => { syncRange(); render(); };
 $("#areaRange").oninput = e => { $("#area").value = e.target.value; render(); };
 $$('input[name=plan]').forEach(r => r.onchange = render);
 ["#fName","#fAddr"].forEach(s => $(s).oninput = wireLinks);
-$("#btnCopy").onclick = copyMsg;
-$("#sCopy").onclick = copyMsg;
-$("#btnTg").onclick = async () => {
-  await copyMsg(); toast(T[lang].msgPaste);
-  setTimeout(() => window.open("https://t.me/" + CONTACT.telegram, "_blank"), 600);
-};
+// без обёртки сюда прилетит объект события и встанет вместо текста подсказки
+$("#btnCopy").onclick = () => copyMsg();
+$("#sCopy").onclick = () => copyMsg();
+// Telegram не умеет подставлять текст в чат с человеком, поэтому копируем заявку
+// в буфер, а переход делает сама ссылка. Через window.open в таймауте нельзя:
+// Safari на айфоне считает такой переход всплывающим окном и режет его.
+$("#btnTg").onclick = () => copyMsg(T[lang].msgPaste);
 $("#toCalc").onclick = () => $("#calc").scrollIntoView({behavior:"smooth", block:"start"});
 
 syncRange();
