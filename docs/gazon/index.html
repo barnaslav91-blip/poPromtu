@@ -108,6 +108,7 @@
     cursor:pointer;text-align:center
   }
   .btn-wa{background:#25d366;color:#052b13}
+  .btn-vi{background:#7360f2;color:#fff}
   .btn-tg{background:#2ba0da;color:#03212f}
   .btn-tel{background:var(--green);color:#fff}
   .btn-ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
@@ -175,6 +176,7 @@ const CONTACT = {
   name:     "",                 // как называться: имя или название («Газон Сервис»)
   area:     "",                 // где работаете: «Кишинёв и пригороды»
   whatsapp: "37360123456",      // номер без + и без пробелов
+  viber:    "37360123456",      // тот же номер, без + и без пробелов
   telegram: "VadikAI77",        // username без @
   phone:    "+373 60 123 456"   // для кнопки «позвонить»
 };
@@ -283,6 +285,7 @@ const PHOTOS = [];
 
       <div class="actions">
         <a class="btn btn-wa hidden" id="btnWa" target="_blank" rel="noopener"><span data-t="btnWa"></span></a>
+        <a class="btn btn-vi hidden" id="btnVi"><span data-t="btnVi"></span></a>
         <a class="btn btn-tg hidden" id="btnTg" target="_blank" rel="noopener"><span data-t="btnTg"></span></a>
         <a class="btn btn-tel hidden" id="btnTel"><span data-t="btnTel"></span></a>
         <button class="btn btn-ghost" type="button" id="btnCopy"><span data-t="btnCopy"></span></button>
@@ -381,7 +384,7 @@ ru:{
   badgeSave:"−10%",
   perMonth:"в месяц", perSeason:"за сезон", perVisit:"за выезд",
   phName:"Ваше имя", phAddr:"Адрес или район",
-  btnWa:"Написать в WhatsApp", btnTg:"Написать в Telegram", btnTel:"Позвонить", btnCopy:"Скопировать заявку",
+  btnWa:"Написать в WhatsApp", btnVi:"Написать в Viber", btnTg:"Написать в Telegram", btnTel:"Позвонить", btnCopy:"Скопировать заявку",
   sOrder:"Заказать",
   fine:"Расчёт предварительный. Точную цену назову после осмотра участка — это бесплатно.",
   inclH:"Что входит в абонемент",
@@ -434,7 +437,7 @@ ro:{
   badgeSave:"−10%",
   perMonth:"pe lună", perSeason:"pe sezon", perVisit:"pe vizită",
   phName:"Numele dvs.", phAddr:"Adresa sau sectorul",
-  btnWa:"Scrieți pe WhatsApp", btnTg:"Scrieți pe Telegram", btnTel:"Sunați", btnCopy:"Copiați comanda",
+  btnWa:"Scrieți pe WhatsApp", btnVi:"Scrieți pe Viber", btnTg:"Scrieți pe Telegram", btnTel:"Sunați", btnCopy:"Copiați comanda",
   sOrder:"Comandă",
   fine:"Calcul orientativ. Prețul exact îl spun după ce văd terenul — gratuit.",
   inclH:"Ce include abonamentul",
@@ -586,6 +589,11 @@ function wireLinks(){
     el.classList.toggle("hidden", !CONTACT.whatsapp);
     if (u) el.href = u;
   });
+  const vi = $("#btnVi");
+  vi.classList.toggle("hidden", !CONTACT.viber);
+  // единственная схема, которая реально открывает чат по номеру; текст она не принимает
+  if (CONTACT.viber) vi.href = "viber://chat?number=%2B" + CONTACT.viber.replace(/\D/g, "");
+
   const tg = $("#btnTg");
   tg.classList.toggle("hidden", !CONTACT.telegram);
   if (CONTACT.telegram) tg.href = "https://t.me/" + CONTACT.telegram;
@@ -597,7 +605,7 @@ function wireLinks(){
   });
   $("#sCopy").classList.toggle("hidden", !!(CONTACT.whatsapp || CONTACT.phone));
   // пока не задан ни один контакт, нижняя панель просто дублировала бы кнопку из карточки
-  $("#sticky").classList.toggle("hidden", !CONTACT.whatsapp && !CONTACT.phone && !CONTACT.telegram);
+  $("#sticky").classList.toggle("hidden", !CONTACT.whatsapp && !CONTACT.phone && !CONTACT.telegram && !CONTACT.viber);
 }
 
 function toast(msg){
@@ -640,7 +648,7 @@ $("#sCopy").onclick = () => copyMsg();
 // Telegram не умеет подставлять текст в чат с человеком, поэтому копируем заявку
 // в буфер, а переход делает сама ссылка. Через window.open в таймауте нельзя:
 // Safari на айфоне считает такой переход всплывающим окном и режет его.
-$("#btnTg").onclick = () => copyMsg(T[lang].msgPaste);
+$("#btnTg").onclick = $("#btnVi").onclick = () => copyMsg(T[lang].msgPaste);
 $("#toCalc").onclick = () => $("#calc").scrollIntoView({behavior:"smooth", block:"start"});
 
 syncRange();
