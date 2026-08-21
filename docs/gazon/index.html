@@ -212,6 +212,22 @@ const EXTRAS = [
   { ru:["Уборка снега зимой",""],                          ro:["Curățarea zăpezii iarna",""],                        price:{ru:"договорная",ro:"negociabil"} }
 ];
 
+// Откуда пришёл клиент. Метка добавляется в ссылку: .../gazon/?s=list
+// и сама подставляется в текст заявки. Коды можно придумывать свои —
+// незнакомый код просто попадёт в заявку как есть.
+const SOURCES = {
+  list: { ru:"листовка",              ro:"pliant" },
+  999:  { ru:"999.md",                ro:"999.md" },
+  fb:   { ru:"Facebook",              ro:"Facebook" },
+  vb:   { ru:"группа в Viber",        ro:"grup Viber" },
+  tg:   { ru:"Telegram",              ro:"Telegram" },
+  st:   { ru:"статус в мессенджере",  ro:"status în messenger" },
+  tab:  { ru:"табличка на участке",   ro:"panou pe teren" },
+  map:  { ru:"Google Карты",          ro:"Google Maps" },
+  ig:   { ru:"Instagram / TikTok",    ro:"Instagram / TikTok" },
+  rec:  { ru:"рекомендация соседа",   ro:"recomandarea vecinului" }
+};
+
 // Фото до/после. Положите файлы рядом с этим index.html и впишите имена.
 // Пример: { before:"1-do.jpg", after:"1-posle.jpg" }
 const PHOTOS = [];
@@ -415,7 +431,7 @@ ru:{
   footNote:"Работаю по договору. Цены на странице — ориентировочные.",
   copied:"Заявка скопирована",
   msgHead:"Здравствуйте! Заявка на покос травы.",
-  msgPlan:"Тариф", msgArea:"Площадь", msgName:"Имя", msgAddr:"Адрес",
+  msgPlan:"Тариф", msgArea:"Площадь", msgName:"Имя", msgAddr:"Адрес", msgSrc:"Источник",
   msgPaste:"Текст скопирован — вставьте его в чат",
   appNo:"Приложение не открылось. Заявка скопирована — откройте его сами и вставьте текст",
   ar:"соток", m2:"м²", lei:"лей",
@@ -469,7 +485,7 @@ ro:{
   footNote:"Lucrez în bază de contract. Prețurile de pe pagină sunt orientative.",
   copied:"Comanda a fost copiată",
   msgHead:"Bună ziua! Comandă pentru tuns iarba.",
-  msgPlan:"Tarif", msgArea:"Suprafața", msgName:"Nume", msgAddr:"Adresa",
+  msgPlan:"Tarif", msgArea:"Suprafața", msgName:"Nume", msgAddr:"Adresa", msgSrc:"Sursa",
   msgPaste:"Textul a fost copiat — inserați-l în chat",
   appNo:"Aplicația nu s-a deschis. Comanda e copiată — deschideți-o și inserați textul",
   ar:"ari", m2:"m²", lei:"lei",
@@ -482,6 +498,13 @@ ro:{
 let lang = (localStorage.getItem("gazon.lang")) ||
            (/^ro/i.test(navigator.language||"") ? "ro" : "ru");
 let unit = "ar";
+// метка канала: живёт до конца визита, чтобы не потеряться при перезагрузке
+let source = "";
+try{
+  const q = (new URLSearchParams(location.search).get("s") || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 20);
+  if (q) sessionStorage.setItem("gazon.src", q);
+  source = sessionStorage.getItem("gazon.src") || "";
+}catch(e){ source = ""; }
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 
@@ -581,6 +604,7 @@ function message(){
   const lines = [ t.msgHead, `${t.msgPlan}: ${planName}`, `${t.msgArea}: ${areaText(t)}` ];
   if ($("#fName").value.trim()) lines.push(`${t.msgName}: ${$("#fName").value.trim()}`);
   if ($("#fAddr").value.trim()) lines.push(`${t.msgAddr}: ${$("#fAddr").value.trim()}`);
+  if (source) lines.push(`${t.msgSrc}: ${(SOURCES[source] && SOURCES[source][lang]) || source}`);
   return lines.join("\n");
 }
 
