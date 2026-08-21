@@ -417,6 +417,7 @@ ru:{
   msgHead:"Здравствуйте! Заявка на покос травы.",
   msgPlan:"Тариф", msgArea:"Площадь", msgName:"Имя", msgAddr:"Адрес",
   msgPaste:"Текст скопирован — вставьте его в чат",
+  appNo:"Приложение не открылось. Заявка скопирована — откройте его сами и вставьте текст",
   ar:"соток", m2:"м²", lei:"лей",
   subLine:a=>`Абонемент на ${a} — с апреля по октябрь`,
   saveLine:s=>`Экономия против разовых выездов: ${s} лей за сезон`,
@@ -470,6 +471,7 @@ ro:{
   msgHead:"Bună ziua! Comandă pentru tuns iarba.",
   msgPlan:"Tarif", msgArea:"Suprafața", msgName:"Nume", msgAddr:"Adresa",
   msgPaste:"Textul a fost copiat — inserați-l în chat",
+  appNo:"Aplicația nu s-a deschis. Comanda e copiată — deschideți-o și inserați textul",
   ar:"ari", m2:"m²", lei:"lei",
   subLine:a=>`Abonament pentru ${a} — din aprilie până în octombrie`,
   saveLine:s=>`Economie față de vizitele separate: ${s} lei pe sezon`,
@@ -648,7 +650,16 @@ $("#sCopy").onclick = () => copyMsg();
 // Telegram не умеет подставлять текст в чат с человеком, поэтому копируем заявку
 // в буфер, а переход делает сама ссылка. Через window.open в таймауте нельзя:
 // Safari на айфоне считает такой переход всплывающим окном и режет его.
-$("#btnTg").onclick = $("#btnVi").onclick = () => copyMsg(T[lang].msgPaste);
+$("#btnTg").onclick = () => copyMsg(T[lang].msgPaste);
+// viber:// открывается только там, где приложение установлено, и молча ничего не делает,
+// если его нет. Поэтому: не ушли из вкладки за 1,8 с — значит не открылось, говорим об этом.
+$("#btnVi").onclick = () => {
+  copyMsg(T[lang].msgPaste);
+  const late = setTimeout(() => { if (!document.hidden) toast(T[lang].appNo); }, 1800);
+  const stop = () => clearTimeout(late);
+  document.addEventListener("visibilitychange", stop, { once:true });
+  window.addEventListener("pagehide", stop, { once:true });
+};
 $("#toCalc").onclick = () => $("#calc").scrollIntoView({behavior:"smooth", block:"start"});
 
 syncRange();
