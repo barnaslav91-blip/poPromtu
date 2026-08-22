@@ -142,10 +142,15 @@
   details[open] summary::after{content:"–"}
   details p{margin:8px 0 0;color:var(--muted);font-size:14.5px}
 
-  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-  .gallery figure{margin:0}
-  .gallery img{width:100%;border-radius:10px;display:block;background:#e5e9e2}
-  .gallery figcaption{font-size:12px;color:var(--muted);margin-top:4px;text-align:center}
+  .gallery{display:grid;gap:16px}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .pair figure{margin:0;position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#e5e9e2}
+  .pair img{width:100%;height:100%;object-fit:cover;display:block}
+  .pair figcaption{
+    position:absolute;top:7px;left:7px;background:rgba(0,0,0,.62);color:#fff;
+    font-size:11px;font-weight:800;letter-spacing:.06em;padding:3px 9px;border-radius:999px
+  }
+  .gallery .cap{font-size:12.5px;color:var(--muted);margin:6px 0 0;text-align:center}
 
   footer{background:var(--green-d);color:#cfe0cd;padding:26px 0 34px;text-align:center;font-size:14px}
   footer a{color:#fff;font-weight:700}
@@ -228,8 +233,16 @@ const SOURCES = {
   rec:  { ru:"рекомендация соседа",   ro:"recomandarea vecinului" }
 };
 
-// Фото до/после. Положите файлы рядом с этим index.html и впишите имена.
-// Пример: { before:"1-do.jpg", after:"1-posle.jpg" }
+// Фото до/после. Файлы положить рядом с этим index.html и вписать имена.
+// Подпись необязательна; можно дать сразу на двух языках — ru и ro.
+// Блок на странице скрыт, пока список пустой.
+//
+// const PHOTOS = [
+//   { before:"1-do.jpg", after:"1-posle.jpg",
+//     ru:"Дурлешты, 6 соток — не косили два месяца",
+//     ro:"Durlești, 6 ari — netunsă de două luni" },
+//   { after:"2-posle.jpg", ru:"Кафе на Штефан чел Маре, покос каждую неделю" }
+// ];
 const PHOTOS = [];
 </script>
 <!-- ================================================================ -->
@@ -416,7 +429,7 @@ ru:{
   st2:"Приезжаю, смотрю участок, называю точную цену. Бесплатно и ни к чему не обязывает",
   st3:"Подписываем договор, выбираем удобный день недели",
   st4:"Дальше просто плачу́ раз в месяц — приезжаю сам, вам ничего делать не надо",
-  phH:"Было — стало", phBefore:"было", phAfter:"стало",
+  phH:"Было — стало", phBefore:"ДО", phAfter:"ПОСЛЕ",
   faqH:"Частые вопросы",
   q1:"А если в августе трава почти не растёт — я плачу зря?",
   a1:"Нет. Плата усреднена по сезону: весной трава прёт и я приезжаю чаще, в жару — реже. За весь сезон по абонементу выходит заметно дешевле, чем вызывать разово каждый раз.",
@@ -470,7 +483,7 @@ ro:{
   st2:"Vin, văd terenul și spun prețul exact. Gratuit și fără obligații",
   st3:"Semnăm contractul și alegem ziua potrivită a săptămânii",
   st4:"Apoi doar plătiți o dată pe lună — vin singur, dvs. nu faceți nimic",
-  phH:"Înainte și după", phBefore:"înainte", phAfter:"după",
+  phH:"Înainte și după", phBefore:"ÎNAINTE", phAfter:"DUPĂ",
   faqH:"Întrebări frecvente",
   q1:"Dacă în august iarba aproape nu crește — plătesc degeaba?",
   a1:"Nu. Plata este mediată pe sezon: primăvara iarba crește repede și vin mai des, pe caniculă — mai rar. Pe tot sezonul, abonamentul iese vizibil mai ieftin decât vizitele separate.",
@@ -582,9 +595,18 @@ function render(){
 
   if (PHOTOS.length){
     $("#photosSec").classList.remove("hidden");
-    $("#gallery").innerHTML = PHOTOS.map(p =>
-      `<figure><img src="${p.before}" alt="" loading="lazy"><figcaption>${t.phBefore}</figcaption></figure>
-       <figure><img src="${p.after}" alt="" loading="lazy"><figcaption>${t.phAfter}</figcaption></figure>`).join("");
+    $("#gallery").innerHTML = PHOTOS.map(p => {
+      const shot = (src, label) => src
+        ? `<figure><img src="${src}" alt="${label}" loading="lazy" decoding="async">
+             <figcaption>${label}</figcaption></figure>` : "";
+      const cap = p[lang] || p.caption || "";
+      return `<div>
+        <div class="pair"${p.before && p.after ? "" : ' style="grid-template-columns:1fr"'}>
+          ${shot(p.before, t.phBefore)}${shot(p.after, t.phAfter)}
+        </div>
+        ${cap ? `<p class="cap">${cap}</p>` : ""}
+      </div>`;
+    }).join("");
   }
 
   $("#brandName").textContent = CONTACT.name || "";
