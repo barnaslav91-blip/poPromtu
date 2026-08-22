@@ -185,6 +185,8 @@
 <main class="wrap">
 
   <section class="view" id="v-money">
+    <div id="todayCard"></div>
+
     <div class="monthbar">
       <button type="button" id="mPrev" aria-label="предыдущий месяц">‹</button>
       <div style="text-align:center">
@@ -201,6 +203,7 @@
     </div>
 
     <div id="backupWarn"></div>
+    <button class="btn s wide" id="remindAll" hidden style="margin-bottom:10px"></button>
     <div id="moneyList"></div>
 
     <details class="card" id="srcCard">
@@ -211,7 +214,12 @@
 
   <section class="view" id="v-clients" hidden>
     <div id="clientList"></div>
-    <button class="btn p wide" id="addBottom">+ добавить клиента</button>
+    <div class="btns">
+      <button class="btn p" id="addBottom" style="flex:1">+ добавить клиента</button>
+      <button class="btn s" id="addPaste">Вставить заявку</button>
+    </div>
+    <p class="note" style="margin-top:9px">«Вставить заявку» — скопируй сообщение клиента
+      из WhatsApp целиком и вставь: имя, адрес, площадь, абонплата и источник подставятся сами.</p>
   </section>
 
   <section class="view" id="v-visits" hidden>
@@ -327,6 +335,28 @@
   <button class="btn wide" id="kClose" style="margin-top:12px">Закрыть</button>
 </div></dialog>
 
+<dialog id="dlgPaste"><div class="dlg">
+  <h2>Заявка из мессенджера</h2>
+  <p class="note" style="margin-bottom:10px">Вставь сообщение целиком — разберу сам.
+    Если в тексте есть телефон, подхвачу и его.</p>
+  <div class="f"><textarea id="pasteText" rows="8" placeholder="Здравствуйте! Заявка на покос травы.
+Тариф: Абонемент — 720 лей / в месяц
+Площадь: 5 соток (500 м²)
+Имя: Ион
+Адрес: ул. Флорилор 12
+Источник: листовка"></textarea></div>
+  <div class="btns">
+    <button class="btn p" id="pasteOk" style="flex:1">Разобрать</button>
+    <button class="btn" id="pasteCancel">Отмена</button>
+  </div>
+</div></dialog>
+
+<dialog id="dlgRemind"><div class="dlg">
+  <h2 id="drTitle">Должники</h2>
+  <div class="ledger" id="drBody"></div>
+  <button class="btn wide" id="drClose" style="margin-top:12px">Закрыть</button>
+</div></dialog>
+
 <dialog id="dlgSum"><div class="dlg">
   <h2 id="dsTitle">—</h2>
   <div class="f"><label for="sSum" id="sSumL">Сумма, лей</label><input id="sSum" type="number" inputmode="numeric" min="0"></div>
@@ -437,7 +467,30 @@ function render(){
   $("#hsub").textContent = S.clients.length
     ? `${S.clients.filter(c => c.active !== false).length} активных · ${nf(S.clients.filter(c => c.active !== false).reduce((s,c) => s + (c.monthly||0), 0))} лей/мес`
     : "клиентов пока нет";
-  renderMoney(); renderSources(); renderClients(); renderVisits(); renderData();
+  renderToday(); renderMoney(); renderSources(); renderClients(); renderVisits(); renderData();
+}
+
+function renderToday(){
+  const t = today();
+  const due = S.clients.filter(c => c.active !== false).map(c => {
+    const nv = nextVisit(c);
+    return { c, over: nv ? daysBetween(nv, t) : (lastVisit(c) ? -99 : 0) };
+  }).filter(x => x.over >= 0).sort((a,b) => b.over - a.over);
+
+  const debtors = S.clients.filter(c => debtOf(c) > 0);
+  const debt = debtors.reduce((s,c) => s + debtOf(c), 0);
+
+  if (!due.length && !debtors.length){ $("#todayCard").innerHTML = ""; return; }
+
+  const names = due.slice(0, 3).map(x => esc(x.c.name)).join(", ");
+  $("#todayCard").innerHTML = `
+    <div class="card" style="border-color:var(--green);background:var(--green-l)">
+      <h2 style="margin-bottom:8px">Сегодня</h2>
+      ${due.length ? `<p style="margin:0 0 6px;font-size:14.5px"><b>Ехать к ${due.length}:</b>
+         ${names}${due.length > 3 ? ` и ещё ${due.length - 3}` : ""}</p>` : ""}
+      ${debtors.length ? `<p style="margin:0;font-size:14.5px">
+         <b>Должников ${debtors.length}</b> на ${nf(debt)} лей</p>` : ""}
+    </div>`;
 }
 
 function renderMoney(){
@@ -457,6 +510,12 @@ function renderMoney(){
   w.innerHTML = (S.clients.length && !S.lastExport)
     ? `<div class="warn">Резервной копии ещё не было. Данные лежат только в этом браузере —
        зайди во вкладку «Данные» и сохрани копию, чтобы не потерять всё вместе с телефоном.</div>` : "";
+
+  const owing = S.clients.filter(c => debtOf(c) > 0);
+  const rb = $("#remindAll");
+  rb.hidden = !owing.length;
+  if (owing.length)
+    rb.textContent = `Напомнить должникам (${owing.length})`;
 
   const list = S.clients.slice().sort((a,b) => debtOf(b) - debtOf(a) || a.name.localeCompare(b.name));
   $("#moneyList").innerHTML = list.length ? list.map(c => {
@@ -577,6 +636,43 @@ function toast(msg){
   clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2300);
 }
 
+// ---------- разбор заявки из мессенджера ----------
+// Страница присылает заявку строками «Имя: …», «Площадь: …». Читаем и русский,
+// и румынский вариант, а телефон ищем в любом месте текста.
+const FIELDS = {
+  name: /^\s*(?:имя|nume)\s*[:—-]\s*(.+)$/im,
+  addr: /^\s*(?:адрес|adresa)\s*[:—-]\s*(.+)$/im,
+  area: /^\s*(?:площадь|suprafa[țt]a)\s*[:—-]\s*(.+)$/im,
+  plan: /^\s*(?:тариф|tarif)\s*[:—-]\s*(.+)$/im,
+  src:  /^\s*(?:источник|sursa)\s*[:—-]\s*(.+)$/im
+};
+function parseOrder(raw){
+  const text = String(raw || "");
+  const get = re => (text.match(re) || [])[1]?.trim() || "";
+  const out = { name:get(FIELDS.name), addr:get(FIELDS.addr), src:get(FIELDS.src) };
+
+  // площадь: «5 соток (500 м²)» или «500 m² (5 ari)» — сотки надёжнее
+  const a = get(FIELDS.area);
+  const ar = a.match(/([\d.,]+)\s*(?:сот|ari|ar\b)/i);
+  const m2 = a.match(/([\d\s.,]+)\s*(?:м²|m²|m2)/i);
+  if (ar) out.area = parseFloat(ar[1].replace(",", "."));
+  else if (m2) out.area = Math.round(parseFloat(m2[1].replace(/[\s.]/g, "").replace(",", ".")) / 100 * 10) / 10;
+
+  // тариф: берём число и смотрим, за что оно — за месяц, за сезон или за выезд
+  const plan = get(FIELDS.plan);
+  const num = (plan.match(/([\d][\d\s]*)\s*лей|([\d][\d\s]*)\s*lei/i) || []).slice(1).find(Boolean);
+  const sum = num ? Number(num.replace(/\s/g, "")) : 0;
+  if (sum){
+    if (/сезон|sezon/i.test(plan)) out.monthly = Math.round(sum / 0.9 / 7 / 10) * 10;  // цена за сезон шла со скидкой
+    else if (/выезд|vizit/i.test(plan)) out.monthly = 0;
+    else out.monthly = sum;
+  }
+
+  const tel = text.match(/\+?\d[\d\s()-]{7,}\d/);
+  if (tel) out.phone = tel[0].trim();
+  return out;
+}
+
 // ---------- карточка клиента ----------
 function openCard(id){
   const c = S.clients.find(x => x.id === id); if (!c) return;
@@ -615,6 +711,33 @@ function openCard(id){
 
   $("#dlgCard").showModal();
 }
+
+// ---------- напоминания должникам ----------
+function remindText(c){
+  return `Здравствуйте${c.name ? ", " + c.name : ""}! По покосу за ${monthName(curMonth)}: ` +
+         `остаток к оплате ${nf(debtOf(c))} лей. Спасибо!`;
+}
+function openRemind(){
+  const list = S.clients.filter(c => debtOf(c) > 0).sort((a,b) => debtOf(b) - debtOf(a));
+  const t = today();
+  $("#drTitle").textContent = `Должники: ${list.length}`;
+  $("#drBody").innerHTML = list.map(c => {
+    const d = debtOf(c);
+    const tel = (c.phone || "").replace(/\D/g, "");
+    const done = c.remindedAt === t;
+    return `<div class="le">
+      <div class="t">
+        <b>${esc(c.name)} ${done ? '<span class="chip green">напомнил</span>' : ""}</b>
+        <small>${nf(d)} лей${c.phone ? "" : " · телефон не указан"}</small>
+      </div>
+      ${tel ? `<a class="btn p sm" target="_blank" rel="noopener" data-remind="${c.id}"
+                 href="https://wa.me/${tel}?text=${encodeURIComponent(remindText(c))}">Написать</a>` : ""}
+    </div>`;
+  }).join("") || `<p class="note">Должников нет.</p>`;
+  $("#dlgRemind").showModal();
+}
+$("#drClose").onclick = () => $("#dlgRemind").close();
+$("#remindAll").onclick = openRemind;
 
 // ---------- ввод суммы ----------
 let sumCb = null;
@@ -727,6 +850,12 @@ document.body.addEventListener("click", e => {
   if (pb){ e.stopPropagation(); pay(pb.dataset.pay); return; }
   const mb = e.target.closest("[data-mow]");
   if (mb){ e.stopPropagation(); mow(mb.dataset.mow); return; }
+  const rb = e.target.closest("[data-remind]");
+  if (rb){
+    const c = S.clients.find(x => x.id === rb.dataset.remind);
+    if (c){ c.remindedAt = today(); save(); setTimeout(() => { render(); openRemind(); }, 100); }
+    return;
+  }
   const del = e.target.closest("[data-del]");
   if (del){
     const c = S.clients.find(x => x.id === openId); if (!c) return;
@@ -746,6 +875,23 @@ $("#kMow").onclick    = () => mow(openId);
 $("#kEdit").onclick   = () => { $("#dlgCard").close(); openEditor(openId); };
 $("#kClose").onclick  = () => $("#dlgCard").close();
 $("#addTop").onclick = $("#addBottom").onclick = () => openEditor(null);
+$("#addPaste").onclick = () => { $("#pasteText").value = ""; $("#dlgPaste").showModal(); };
+$("#pasteCancel").onclick = () => $("#dlgPaste").close();
+$("#pasteOk").onclick = () => {
+  const d = parseOrder($("#pasteText").value);
+  if (!d.name && !d.addr && !d.monthly){ toast("Не нашёл в тексте ни имени, ни адреса, ни тарифа"); return; }
+  $("#dlgPaste").close();
+  openEditor(null);
+  $("#cName").value = d.name || "";
+  $("#cAddr").value = d.addr || "";
+  $("#cPhone").value = d.phone || "";
+  $("#cArea").value = d.area ?? "";
+  $("#cMonthly").value = d.monthly || "";
+  $("#cSrc").value = d.src || "";
+  const got = ["имя","адрес","площадь","тариф","источник"]
+    .filter((_,i) => [d.name,d.addr,d.area,d.monthly,d.src][i]);
+  toast("Подставил: " + got.join(", "));
+};
 document.querySelectorAll("nav button").forEach(b => b.onclick = () => switchView(b.dataset.v));
 
 $("#mPrev").onclick = () => { curMonth = shiftMonth(curMonth, -1); renderMoney(); };
