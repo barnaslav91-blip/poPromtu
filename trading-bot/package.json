@@ -1,0 +1,15 @@
+{
+  "name": "popromtu-trading-bot",
+  "version": "1.0.0",
+  "description": "Торговый бот для Deriv Crash 900 Index: тренд-фильтр + адаптивный стоп по волатильности",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "backtest": "node src/backtest.js",
+    "calibrate": "node src/calibrate.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ws": "^8.18.0"
+  }
+}
