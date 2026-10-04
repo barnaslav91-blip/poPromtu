@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Каталог книг</title>
+<meta name="description" content="Домашняя библиотека: книги об отношениях, семье и близости. Поиск, категории, отметка «прочитано».">
+<meta name="theme-color" content="#D7C9AD" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14100D" media="(prefers-color-scheme: dark)">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --paper:      #D7C9AD;
+    --paper-2:    #E3D8C1;
+    --paper-3:    #EDE4D2;
+    --ink:        #241E18;
+    --ink-soft:   #5F5546;
+    --pill-bg:    #2B241E;
+    --pill-ink:   #F1E8D7;
+    --accent:     #97281F;
+    --accent-ink: #FFF3E6;
+    --rule:       rgba(36, 30, 24, .18);
+    --shadow:     0 1px 2px rgba(36, 30, 24, .10), 0 8px 24px -16px rgba(36, 30, 24, .5);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --measure: 36rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:      #14100D;
+      --paper-2:    #1F1913;
+      --paper-3:    #2A231B;
+      --ink:        #EFE5D2;
+      --ink-soft:   #A2947C;
+      --pill-bg:    #EADCC0;
+      --pill-ink:   #191410;
+      --accent:     #E0715F;
+      --accent-ink: #1A0F0C;
+      --rule:       rgba(234, 220, 192, .18);
+      --shadow:     0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .9);
+    }
+  }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0; padding: 0 0 3rem;
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E");
+    color: var(--ink); font: 16px/1.45 var(--sans);
+  }
+  body.locked { overflow: hidden; }
+  button { font: inherit; color: inherit; }
+
+  .wrap { max-width: var(--measure); margin: 0 auto; padding: 0 1.1rem; }
+
+  /* ---------- Шапка ---------- */
+
+  header.top { padding: 2.4rem 0 1.1rem; display: flex; flex-direction: column; gap: .5rem; }
+  .eyebrow {
+    font-size: .69rem; font-weight: 700; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0;
+  }
+  h1 {
+    font-size: clamp(2.1rem, 11vw, 3rem); line-height: .95; letter-spacing: -.025em;
+    font-weight: 800; margin: 0; text-wrap: balance;
+  }
+  .lede { font-size: .92rem; color: var(--ink-soft); margin: 0; max-width: 28rem; }
+  .stats {
+    display: flex; align-items: baseline; gap: .7rem; margin-top: .6rem;
+    background: var(--accent); color: var(--accent-ink);
+    border-radius: 2px; padding: .7rem .9rem; box-shadow: var(--shadow);
+  }
+  .stats b { font-size: .68rem; letter-spacing: .17em; text-transform: uppercase; opacity: .85; white-space: nowrap; }
+  .stats span { font-size: .92rem; font-weight: 600; }
+
+  /* ---------- Поиск и категории ---------- */
+
+  .sticky {
+    position: sticky; top: 0; z-index: 20; background-color: var(--paper);
+    box-shadow: 0 8px 12px -10px rgba(0, 0, 0, .45);
+  }
+  .searchbar { padding: .7rem 0 .55rem; }
+  .searchbar input {
+    width: 100%; font: inherit; font-size: 1rem; color: var(--ink);
+    background: var(--paper-2); border: 1px solid var(--rule); border-radius: 2px; padding: .6rem .75rem;
+  }
+  .searchbar input::placeholder { color: var(--ink-soft); }
+  .searchbar input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  nav.chips {
+    display: flex; gap: .4rem; overflow-x: auto; padding: 0 1.1rem .7rem;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  nav.chips::-webkit-scrollbar { display: none; }
+  nav.chips button {
+    flex: 0 0 auto; cursor: pointer; font-size: .78rem; font-weight: 600; white-space: nowrap;
+    color: var(--ink); background: var(--paper-2);
+    border: 1px solid var(--rule); border-radius: 999px; padding: .34rem .7rem;
+  }
+  nav.chips button[aria-pressed="true"] { background: var(--pill-bg); color: var(--pill-ink); border-color: transparent; }
+  nav.chips button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Список ---------- */
+
+  ol.books { list-style: none; margin: 1.2rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .8rem; }
+
+  .card {
+    width: 100%; text-align: left; cursor: pointer;
+    display: grid; grid-template-columns: 5.2rem 1fr; gap: .9rem; align-items: start;
+    background: var(--paper-3); border: 1px solid var(--rule); border-radius: 3px;
+    padding: .8rem; box-shadow: var(--shadow);
+  }
+  .card:hover { border-color: var(--accent); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Обложка рисуется CSS: цвета подобраны под реальные обложки */
+  .cover {
+    aspect-ratio: 2 / 3; border-radius: 2px 5px 5px 2px; padding: .45rem .4rem;
+    display: flex; flex-direction: column; justify-content: space-between;
+    background: var(--c1); color: var(--c2);
+    box-shadow: inset 3px 0 0 rgba(0, 0, 0, .18), 0 3px 8px -3px rgba(0, 0, 0, .55);
+    overflow: hidden; line-height: 1.05; font-size: 1rem;
+  }
+  .cover .t { font-size: .56em; font-weight: 800; letter-spacing: -.01em; text-transform: uppercase; overflow-wrap: break-word; }
+  .cover .a { font-size: .5em; font-weight: 600; opacity: .85; }
+  .cover.big { width: 9rem; font-size: 1.5rem; flex: none; }
+
+  .meta h2 { font-size: 1.08rem; line-height: 1.15; margin: 0 0 .15rem; letter-spacing: -.01em; text-wrap: balance; }
+  .meta .author { font-size: .84rem; color: var(--ink-soft); margin: 0 0 .45rem; }
+  .meta .blurb {
+    font-size: .86rem; margin: 0 0 .5rem;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .tag {
+    font-size: .64rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    border: 1px solid var(--rule); border-radius: 999px; padding: .12rem .5rem; color: var(--ink-soft);
+  }
+  .tag.adult { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .tag.read  { background: var(--pill-bg); color: var(--pill-ink); border-color: transparent; }
+
+  .empty { text-align: center; color: var(--ink-soft); padding: 2.5rem 0; }
+
+  /* ---------- Карточка книги ---------- */
+
+  dialog {
+    width: min(var(--measure), calc(100vw - 1.4rem)); max-height: calc(100dvh - 2rem);
+    padding: 0; border: 1px solid var(--rule); border-radius: 4px;
+    background: var(--paper-3); color: var(--ink); box-shadow: 0 20px 60px -10px rgba(0, 0, 0, .6);
+  }
+  dialog::backdrop { background: rgba(10, 7, 4, .6); }
+  .sheet { padding: 1.2rem 1.1rem 1.1rem; display: flex; flex-direction: column; gap: .9rem; }
+  .sheet .top { display: flex; gap: 1rem; align-items: flex-start; }
+  .sheet h2 { font-size: 1.35rem; line-height: 1.1; margin: 0 0 .25rem; letter-spacing: -.015em; }
+  .sheet .author { color: var(--ink-soft); margin: 0 0 .5rem; font-size: .92rem; }
+  .sheet p.desc { margin: 0; font-size: .95rem; }
+  dl.facts { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: .25rem .9rem; font-size: .88rem; }
+  dl.facts dt { color: var(--ink-soft); }
+  dl.facts dd { margin: 0; font-weight: 600; }
+  .actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .btn {
+    cursor: pointer; font-weight: 700; font-size: .9rem; border-radius: 2px; padding: .6rem 1rem;
+    border: 1px solid var(--rule); background: var(--paper-2);
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  footer.note { margin-top: 2rem; font-size: .8rem; color: var(--ink-soft); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .card { transition: border-color .15s, transform .15s; }
+    .card:hover { transform: translateY(-1px); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Домашняя библиотека</p>
+    <h1>Каталог книг</h1>
+    <p class="lede">Книги об отношениях, семье и близости. Нажмите на книгу — откроется карточка, там же можно отметить её прочитанной.</p>
+    <div class="stats" aria-live="polite"><b>Прочитано</b><span id="stat"></span></div>
+  </header>
+</div>
+
+<div class="sticky">
+  <div class="wrap">
+    <div class="searchbar">
+      <input id="q" type="search" placeholder="Поиск по названию, автору, теме…" aria-label="Поиск по каталогу" autocomplete="off">
+    </div>
+  </div>
+  <nav class="chips" id="chips" aria-label="Категории"></nav>
+</div>
+
+<main class="wrap">
+  <ol class="books" id="list"></ol>
+  <p class="empty" id="empty" hidden>Ничего не найдено. Попробуйте другой запрос.</p>
+  <footer class="note">Чтобы добавить книгу, допишите строку в массив <code>BOOKS</code> в начале скрипта этого файла.</footer>
+</main>
+
+<dialog id="dlg" aria-labelledby="d-title">
+  <div class="sheet" id="sheet"></div>
+</dialog>
+
+<script>
+/* ---------------------------------------------------------------
+   КАТАЛОГ. Одна запись — одна книга.
+   id      — короткий латинский ключ (нужен для отметки «прочитано»)
+   title   — название, short — короткое название для обложки (необязательно)
+   author  — автор, cat — категория (см. CATS)
+   tags    — доп. ярлыки, adult — книга 18+, publisher — издательство
+   c1/c2   — цвет фона и текста нарисованной обложки
+   --------------------------------------------------------------- */
+const CATS = ["Отношения", "Близость"];
+
+const BOOKS = [
+  {
+    id: "couples-workbook",
+    title: "Терапия пар",
+    subtitle: "30 терапевтических бесед для восстановления семейных отношений",
+    author: "Кэтлин Мейтс-Янгмен",
+    cat: "Отношения",
+    tags: ["рабочая тетрадь", "для пары"],
+    desc: "Рабочая тетрадь для двоих: 30 бесед, которые помогают партнёрам разобраться в конфликтах и восстановить близость в семье. Выполняется письменно, по одной беседе за раз.",
+    c1: "#C9D3DC", c2: "#2A2F36"
+  },
+  {
+    id: "mars-venus",
+    title: "Мужчины с Марса, женщины с Венеры",
+    short: "Мужчины с Марса, женщины с Венеры",
+    author: "Джон Грэй",
+    cat: "Отношения",
+    publisher: "София",
+    tags: ["психология", "общение"],
+    desc: "Классика популярной психологии о том, почему мужчины и женщины по-разному думают, чувствуют и общаются, и как научиться понимать друг друга.",
+    c1: "#F1F1EE", c2: "#9B2B2B"
+  },
+  {
+    id: "tantra-bliss",
+    title: "Тантра — путь к блаженству",
+    subtitle: "Как раскрыть природную сексуальность и обрести внутреннюю гармонию",
+    author: "Аниша Л. Диллон",
+    cat: "Близость",
+    adult: true,
+    tags: ["тантра", "сексуальность"],
+    desc: "Книга о том, как через осознанность и практики тантры раскрыть природную сексуальность и прийти к внутренней гармонии.",
+    c1: "#C2185B", c2: "#FFFFFF"
+  },
+  {
+    id: "erotic-kitchen",
+    title: "Сексуальные искушения, или Кое-что об эротической кухне",
+    short: "Сексуальные искушения",
+    subtitle: "Советы сексолога",
+    author: "Феликс Вуль",
+    cat: "Близость",
+    adult: true,
+    tags: ["советы сексолога", "кулинария"],
+    desc: "Советы сексолога о том, как еда и совместная кухня могут добавить в отношения игры, близости и новых впечатлений.",
+    c1: "#F3E9C6", c2: "#2E6B3A"
+  }
+];
+
+/* ---------------- состояние ---------------- */
+
+const KEY = "knigi:read";
+let readSet = new Set();
+try { readSet = new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch (e) {}
+function saveRead() { try { localStorage.setItem(KEY, JSON.stringify([...readSet])); } catch (e) {} }
+
+let query = "", cat = "";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const coverHTML = (b, big) =>
+  '<div class="cover' + (big ? " big" : "") + '" style="--c1:' + b.c1 + ";--c2:" + b.c2 + '" aria-hidden="true">' +
+  '<span class="t">' + esc(b.short || b.title) + '</span><span class="a">' + esc(b.author) + "</span></div>";
+
+/* ---------------- рендер ---------------- */
+
+function matches(b) {
+  if (cat && b.cat !== cat) return false;
+  if (!query) return true;
+  const hay = [b.title, b.subtitle, b.author, b.cat, b.publisher, b.desc, (b.tags || []).join(" ")]
+    .filter(Boolean).join(" ").toLowerCase();
+  return query.split(/\s+/).every((w) => hay.includes(w));
+}
+
+function renderChips() {
+  const items = [["", "Все"]].concat(CATS.map((c) => [c, c]));
+  $("chips").innerHTML = items.map(([v, label]) =>
+    '<button type="button" data-cat="' + esc(v) + '" aria-pressed="' + (v === cat) + '">' + esc(label) + "</button>"
+  ).join("");
+}
+
+function renderList() {
+  const found = BOOKS.filter(matches);
+  $("list").innerHTML = found.map((b) =>
+    '<li><button type="button" class="card" data-id="' + esc(b.id) + '">' + coverHTML(b) +
+    '<div class="meta"><h2>' + esc(b.title) + '</h2><p class="author">' + esc(b.author) + "</p>" +
+    '<p class="blurb">' + esc(b.desc) + "</p>" +
+    '<div class="tags">' +
+      (b.adult ? '<span class="tag adult">18+</span>' : "") +
+      (readSet.has(b.id) ? '<span class="tag read">прочитано</span>' : "") +
+      '<span class="tag">' + esc(b.cat) + "</span>" +
+    "</div></div></button></li>"
+  ).join("");
+  $("empty").hidden = found.length > 0;
+  $("stat").textContent = [...readSet].filter((id) => BOOKS.some((b) => b.id === id)).length + " из " + BOOKS.length;
+}
+
+function openBook(id) {
+  const b = BOOKS.find((x) => x.id === id);
+  if (!b) return;
+  const isRead = readSet.has(id);
+  const facts = [["Категория", b.cat]];
+  if (b.publisher) facts.push(["Издательство", b.publisher]);
+  if (b.adult) facts.push(["Возраст", "18+"]);
+  if (b.tags && b.tags.length) facts.push(["Темы", b.tags.join(", ")]);
+  $("sheet").innerHTML =
+    '<div class="top">' + coverHTML(b, true) + "<div>" +
+      '<h2 id="d-title">' + esc(b.title) + "</h2>" +
+      (b.subtitle ? '<p class="author">' + esc(b.subtitle) + "</p>" : "") +
+      '<p class="author"><b>' + esc(b.author) + "</b></p></div></div>" +
+    '<p class="desc">' + esc(b.desc) + "</p>" +
+    '<dl class="facts">' + facts.map(([k, v]) => "<dt>" + esc(k) + "</dt><dd>" + esc(v) + "</dd>").join("") + "</dl>" +
+    '<div class="actions">' +
+      '<button type="button" class="btn primary" data-toggle="' + esc(id) + '">' + (isRead ? "Вернуть в «не прочитано»" : "Отметить прочитанной") + "</button>" +
+      '<button type="button" class="btn" data-close>Закрыть</button></div>';
+  if (!$("dlg").open) $("dlg").showModal();
+  document.body.classList.add("locked");
+}
+
+/* ---------------- события ---------------- */
+
+$("q").addEventListener("input", (e) => { query = e.target.value.trim().toLowerCase(); renderList(); });
+
+$("chips").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-cat]");
+  if (!btn) return;
+  cat = btn.dataset.cat;
+  renderChips(); renderList();
+});
+
+$("list").addEventListener("click", (e) => {
+  const card = e.target.closest(".card");
+  if (card) openBook(card.dataset.id);
+});
+
+$("sheet").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-toggle]");
+  if (t) {
+    const id = t.dataset.toggle;
+    readSet.has(id) ? readSet.delete(id) : readSet.add(id);
+    saveRead(); renderList(); openBook(id);
+    return;
+  }
+  if (e.target.closest("[data-close]")) $("dlg").close();
+});
+
+// клик по затемнению закрывает карточку
+$("dlg").addEventListener("click", (e) => { if (e.target === $("dlg")) $("dlg").close(); });
+$("dlg").addEventListener("close", () => document.body.classList.remove("locked"));
+
+renderChips();
+renderList();
+</script>
+</body>
+</html>
