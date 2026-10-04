@@ -3,13 +3,9 @@ const { nanoid } = require('nanoid');
 
 const { pool } = require('../db');
 const { extractYoutubeId } = require('../lib/youtube');
+const { requireAuth } = require('../lib/auth');
 
 const router = express.Router();
-
-function requireAuth(req, res, next) {
-  if (req.session.isAdmin) return next();
-  res.redirect('/admin/login');
-}
 
 router.get('/login', (req, res) => {
   res.render('admin/login', { error: null });

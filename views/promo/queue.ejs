@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Очередь — <%= client.name %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><a href="/promo">poPromtu Промо</a></h1>
+    <nav class="topbar-nav">
+      <a href="/promo/clients/<%= client.id %>">Настройки</a>
+      <a href="/promo/clients/<%= client.id %>/leads">Заявки</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h2 class="page-title">Очередь публикаций — <%= client.name %></h2>
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+    <section class="card">
+      <p class="muted">
+        Готовых к публикации групп сейчас: <strong><%= availableCount %></strong>.
+        За раз планируется до <%= client.posts_per_day %>.
+      </p>
+      <form method="POST" action="/promo/clients/<%= client.id %>/plan">
+        <button type="submit">Собрать очередь</button>
+      </form>
+    </section>
+
+    <% if (!posts.length) { %>
+      <section class="card">
+        <p class="muted">Очередь пуста. Нажмите «Собрать очередь» выше.</p>
+      </section>
+    <% } %>
+
+    <% posts.forEach(function (p) { %>
+      <section class="card post-card">
+        <div class="post-head">
+          <div>
+            <strong><%= p.group_name %></strong>
+            <span class="chip"><%= networks[p.network] || p.network %></span>
+          </div>
+          <% if (p.group_url) { %>
+            <a class="open-link" href="<%= p.group_url %>" target="_blank" rel="noopener">Открыть группу ↗</a>
+          <% } %>
+        </div>
+
+        <pre class="post-text" id="post-text-<%= p.id %>"><%= p.text %></pre>
+
+        <% if (p.image_url) { %>
+          <div class="post-image">
+            <img src="<%= p.image_url %>" alt="<%= p.image_caption %>" loading="lazy" />
+            <a class="muted small" href="<%= p.image_download %>" download target="_blank" rel="noopener">
+              Скачать картинку ↗
+            </a>
+          </div>
+        <% } %>
+
+        <div class="post-actions">
+          <button type="button" class="copy-btn" data-target="post-text-<%= p.id %>">
+            Скопировать текст
+          </button>
+          <form method="POST" action="/promo/posts/<%= p.id %>/regenerate">
+            <button class="secondary" type="submit">Другой вариант</button>
+          </form>
+          <form method="POST" action="/promo/posts/<%= p.id %>/posted">
+            <button type="submit">Опубликовано</button>
+          </form>
+          <form method="POST" action="/promo/posts/<%= p.id %>/skip">
+            <button class="link-btn" type="submit">Пропустить</button>
+          </form>
+        </div>
+      </section>
+    <% }) %>
+
+    <% if (history.length) { %>
+      <section class="card">
+        <h3>Последние публикации</h3>
+        <ul class="row-list compact">
+          <% history.forEach(function (h) { %>
+            <li>
+              <div class="row-main">
+                <%= h.group_name %>
+                <span class="chip"><%= networks[h.network] || h.network %></span>
+              </div>
+              <div class="muted small">
+                <% if (h.status === 'skipped') { %>
+                  пропущено
+                <% } else { %>
+                  <%= h.posted_at ? new Date(h.posted_at).toLocaleString('ru-RU') : '' %>
+                <% } %>
+              </div>
+            </li>
+          <% }) %>
+        </ul>
+      </section>
+    <% } %>
+  </main>
+
+  <script src="/js/promo.js"></script>
+</body>
+</html>

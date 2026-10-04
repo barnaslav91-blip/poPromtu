@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Акт № <%= actNumber %> — <%= client.name %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="doc-page">
+  <%
+    function d(date) { return date.toLocaleDateString('ru-RU'); }
+    function m(value) { return Number(value).toFixed(2); }
+  %>
+
+  <div class="doc-toolbar">
+    <a href="/promo/clients/<%= client.id %>/leads?period=<%= period %>">← К заявкам</a>
+    <button type="button" onclick="window.print()">Печать / Сохранить в PDF</button>
+  </div>
+
+  <main class="doc">
+    <h1>АКТ № <%= actNumber %> оказанных услуг</h1>
+    <p class="doc-sub">от <%= d(actDate) %></p>
+
+    <p>
+      к Договору
+      <% if (client.contract_number) { %>№ <%= client.contract_number %><% } else { %>№ __________<% } %>
+      от <% if (client.contract_date) { %><%= client.contract_date %><% } else { %>«___» __________ 20___ г.<% } %>
+    </p>
+
+    <p>
+      <strong>Исполнитель:</strong>
+      <% if (agencyName) { %><%= agencyName %><% } else { %>_______________________________________<% } %>
+    </p>
+    <p><strong>Заказчик:</strong> <%= client.name %></p>
+    <p><strong>Отчётный период:</strong> с <%= d(periodStart) %> по <%= d(periodEnd) %></p>
+
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th style="width:6%">№</th>
+          <th>Наименование услуги</th>
+          <th style="width:12%">Кол-во</th>
+          <th style="width:16%">Цена за ед.</th>
+          <th style="width:18%">Сумма</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>
+            Услуги по привлечению клиентов (лидогенерация),
+            принятых Валидных лидов
+          </td>
+          <td><%= accepted.length %></td>
+          <td><%= m(money.pricePerLead) %></td>
+          <td><%= m(money.subtotal) %></td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4">ИТОГО</td>
+          <td><%= m(money.subtotal) %></td>
+        </tr>
+        <tr>
+          <td colspan="4">НДС <%= money.vatPercent %> %</td>
+          <td><%= m(money.vat) %></td>
+        </tr>
+        <tr class="doc-total">
+          <td colspan="4">ВСЕГО К ОПЛАТЕ</td>
+          <td><%= m(money.total) %></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <p><strong>Сумма прописью:</strong> <%= money.inWords %></p>
+
+    <h2>Справочно</h2>
+    <table class="doc-table narrow-table">
+      <tbody>
+        <tr><td>Всего передано заявок</td><td><%= stats.total %></td></tr>
+        <tr>
+          <td>Принято Заказчиком явно</td>
+          <td><%= stats.accepted - stats.autoAccepted %></td>
+        </tr>
+        <tr>
+          <td>Принято по истечении срока возражения (п. 4.6 Договора)</td>
+          <td><%= stats.autoAccepted %></td>
+        </tr>
+        <tr><td><strong>Принято всего</strong></td><td><strong><%= stats.accepted %></strong></td></tr>
+        <tr><td>Отклонено Заказчиком</td><td><%= stats.rejected %></td></tr>
+        <tr><td>Ожидают решения на момент составления акта</td><td><%= stats.pending %></td></tr>
+        <tr><td>Исключено как дубли (не тарифицируются)</td><td><%= stats.duplicates %></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Реестр заявок за отчётный период</h2>
+    <% if (!leads.length) { %>
+      <p>За отчётный период заявок не передавалось.</p>
+    <% } else { %>
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th style="width:6%">№</th>
+            <th style="width:20%">Дата и время</th>
+            <th style="width:20%">Телефон</th>
+            <th>Источник</th>
+            <th style="width:16%">Статус</th>
+            <th style="width:12%">Сумма</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% leads.forEach(function (l, i) { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td><%= new Date(l.created_at).toLocaleString('ru-RU') %></td>
+              <td><%= l.phone %></td>
+              <td>
+                <%= l.group_name || '—' %><% if (l.is_duplicate) { %> (дубль)<% } %>
+              </td>
+              <td>
+                <% if (l.effective === 'accepted') { %>принята<% if (l.auto) { %> (п. 4.6)<% } %>
+                <% } else if (l.effective === 'rejected') { %>отклонена<% if (l.reject_reason) { %>: <%= l.reject_reason %><% } %>
+                <% } else { %>ожидает<% } %>
+              </td>
+              <td><%= l.effective === 'accepted' ? m(l.price) : '—' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+
+    <p class="doc-statement">
+      Услуги оказаны в полном объёме, в согласованные сроки и с надлежащим
+      качеством. Стороны претензий друг к другу не имеют.
+    </p>
+
+    <div class="doc-signatures">
+      <div>
+        <p><strong>Исполнитель</strong></p>
+        <p class="sign-line">______________ / ______________ /</p>
+        <p>М.П.</p>
+      </div>
+      <div>
+        <p><strong>Заказчик</strong></p>
+        <p class="sign-line">______________ / ______________ /</p>
+        <p>М.П.</p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

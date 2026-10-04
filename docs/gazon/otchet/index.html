@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Фотоотчёт клиенту</title>
+<meta name="theme-color" content="#2f5d34">
+<style>
+  :root{
+    --green:#2f5d34; --green-d:#224526; --green-l:#e7f0e4; --sun:#e0b53f;
+    --ink:#1b1f1c; --muted:#5d665e; --line:#d8ded6; --bg:#f6f7f3; --card:#fff; --chip:#eceee9;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --green:#7cb083; --green-d:#9ecfa4; --green-l:#1e2b20; --sun:#e0b53f;
+      --ink:#e8ece7; --muted:#9aa89c; --line:#2c332d; --bg:#12150f; --card:#1a1e19; --chip:#252b26;
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    padding-bottom:40px;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:0 14px}
+  h1,h2{margin:0;line-height:1.2}
+  button,input,select,textarea{font:inherit;color:inherit}
+
+  header{background:var(--green);color:#fff;padding:13px 0}
+  @media (prefers-color-scheme:dark){ header{background:var(--green-l);color:var(--ink)} }
+  header h1{font-size:18px;font-weight:800}
+  header .sub{font-size:12px;opacity:.85;margin-top:2px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+  .card h2{font-size:15px;font-weight:800;margin-bottom:11px}
+  .f{display:grid;gap:4px;margin-bottom:10px}
+  .f:last-child{margin-bottom:0}
+  .f label{font-size:12px;font-weight:700;color:var(--muted)}
+  .f input,.f select,.f textarea{
+    padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);width:100%
+  }
+  .f input:focus,.f select:focus,.f textarea:focus{outline:2px solid var(--green);outline-offset:1px}
+  .f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  .btn{
+    display:inline-block;border:0;border-radius:11px;padding:12px 15px;font-weight:800;font-size:15px;
+    cursor:pointer;background:var(--chip);color:var(--ink);text-align:center;text-decoration:none
+  }
+  .btn.p{background:var(--green);color:#fff}
+  @media (prefers-color-scheme:dark){ .btn.p{color:#10140f} }
+  .btn.s{background:var(--sun);color:#241f00}
+  .btn.wide{display:block;width:100%}
+  .btn.sm{padding:9px 12px;font-size:13.5px;border-radius:9px}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.5;pointer-events:none}
+  .btns{display:flex;gap:8px;flex-wrap:wrap}
+
+  .shots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .shots figure{margin:0;position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--chip)}
+  .shots img{width:100%;height:100%;object-fit:cover;display:block}
+  .shots .x{
+    position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;border:0;
+    background:rgba(0,0,0,.6);color:#fff;font-size:16px;line-height:1;cursor:pointer
+  }
+  .shots .add{
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;
+    border:1.5px dashed var(--line);border-radius:10px;background:none;cursor:pointer;
+    color:var(--muted);font-size:11.5px;font-weight:700;aspect-ratio:4/3
+  }
+  .shots .add span{font-size:21px;line-height:1}
+
+  .works{display:grid;gap:7px}
+  .works label{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;line-height:1.3}
+  .works input{width:19px;height:19px;flex:none;margin:1px 0 0;accent-color:var(--green)}
+
+  .note{font-size:12.5px;color:var(--muted);line-height:1.45}
+  #preview{margin-top:12px}
+  #preview img{width:100%;border-radius:12px;border:1px solid var(--line);display:block}
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(10px);
+    background:var(--ink);color:var(--bg);padding:11px 17px;border-radius:999px;
+    font-size:14px;font-weight:700;opacity:0;transition:.2s;pointer-events:none;z-index:60
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <h1>Фотоотчёт клиенту</h1>
+  <div class="sub">одна картинка — отправляется прямо в WhatsApp</div>
+</div></header>
+
+<main class="wrap">
+
+  <div class="card">
+    <h2>Объект и дата</h2>
+    <div class="f">
+      <label for="preset">Вид работ</label>
+      <select id="preset">
+        <option value="grave">Уход за могилой</option>
+        <option value="lawn">Участок, газон</option>
+      </select>
+    </div>
+    <div class="f">
+      <label for="obj">Что за объект</label>
+      <input id="obj" autocomplete="off" placeholder="Могила Иона Русу, кладбище Дурлешты">
+    </div>
+    <div class="f2">
+      <div class="f"><label for="date">Дата работ</label><input id="date" type="date"></div>
+      <div class="f">
+        <label for="lang">Язык отчёта</label>
+        <select id="lang"><option value="ru">Русский</option><option value="ro">Română</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Фото «до»</h2>
+    <div class="shots" id="beforeList"></div>
+    <p class="note">Снимай с одной точки до и после — разница видна сразу, и именно она
+      объясняет, за что человек платит.</p>
+  </div>
+
+  <div class="card">
+    <h2>Фото «после»</h2>
+    <div class="shots" id="afterList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Что сделано</h2>
+    <div class="works" id="works"></div>
+    <div class="f" style="margin-top:11px">
+      <label for="extra">Добавить своё (каждое с новой строки)</label>
+      <textarea id="extra" rows="2" placeholder="подправлен бордюр"></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Комментарий</h2>
+    <div class="f">
+      <textarea id="comment" rows="3" placeholder="Всё в порядке. Ограда держится, красить пока не нужно. Следующий приезд — через месяц."></textarea>
+    </div>
+    <p class="note">Здесь и продаётся следующий заказ: пиши, что заметил и что понадобится дальше.</p>
+  </div>
+
+  <div class="card">
+    <h2>Подпись</h2>
+    <div class="f2">
+      <div class="f"><label for="me">Кто выполнил</label><input id="me" autocomplete="off" placeholder="Андрей"></div>
+      <div class="f"><label for="tel">Телефон</label><input id="tel" type="tel" autocomplete="off" placeholder="+373 60 123 456"></div>
+    </div>
+    <p class="note">Запоминается — вводить каждый раз не нужно.</p>
+  </div>
+
+  <button class="btn p wide" id="build">Собрать отчёт</button>
+
+  <div id="preview"></div>
+
+  <div class="btns" id="outBtns" style="margin-top:10px" hidden>
+    <button class="btn s" id="share" style="flex:1">Отправить</button>
+    <button class="btn" id="download">Скачать</button>
+    <button class="btn" id="print">Печать</button>
+  </div>
+
+  <div class="card" id="help" hidden>
+    <p class="note" id="helpText"></p>
+  </div>
+
+  <div class="card">
+    <h2>Зачем это</h2>
+    <p class="note">
+      Человек за границей не может приехать и проверить. Он платит не за покос —
+      он платит за спокойствие и за доказательство, что дело сделано. Поэтому отчёт
+      здесь и есть товар: без него берут разово и торгуются, с ним заказывают на год
+      вперёд и не спорят о цене.<br><br>
+      Отправляй в тот же день, когда съездил, даже если работы было на полчаса.
+      И не только по могилам — юрлицам после каждого выезда заходит так же.
+    </p>
+  </div>
+
+</main>
+
+<input type="file" id="fileIn" accept="image/*" multiple hidden>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+const KEY = "gazon.otchet.v1";
+const $ = s => document.querySelector(s);
+const p2 = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+
+const MON = {
+  ru:["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"],
+  ro:["ianuarie","februarie","martie","aprilie","mai","iunie","iulie","august","septembrie","octombrie","noiembrie","decembrie"]
+};
+const T = {
+  ru:{ eyebrow:"ФОТООТЧЁТ", before:"ДО", after:"ПОСЛЕ", did:"Что сделано", note:"Комментарий",
+       done:"Работы выполнены", thanks:"Спасибо за доверие" },
+  ro:{ eyebrow:"RAPORT FOTO", before:"ÎNAINTE", after:"DUPĂ", did:"Ce s-a făcut", note:"Comentariu",
+       done:"Lucrările au fost executate", thanks:"Vă mulțumesc pentru încredere" }
+};
+const PRESETS = {
+  grave:{
+    ru:["Покошена трава","Убраны сорняки","Вымыт памятник и плита","Убран мусор и увядшие цветы",
+        "Подметена площадка","Поставлены свежие цветы","Зажжена свеча","Подкрашена ограда"],
+    ro:["Iarba tunsă","Buruienile îndepărtate","Monumentul și placa spălate","Gunoiul și florile ofilite înlăturate",
+        "Platforma măturată","Flori proaspete puse","Lumânare aprinsă","Gardul revopsit"]
+  },
+  lawn:{
+    ru:["Покошен газон","Обкошены края триммером","Убрана трава с дорожек","Вывезена скошенная трава",
+        "Подстрижены кусты","Убраны листья"],
+    ro:["Gazonul tuns","Marginile tunse cu trimmerul","Aleile curățate de iarbă","Iarba tăiată evacuată",
+        "Arbuștii tunși","Frunzele strânse"]
+  }
+};
+
+let shots = { before:[], after:[] };   // {url, bmp, w, h}
+let target = "before";
+let outBlob = null;
+
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("on"), 2400);
+}
+function humanDate(s, lang){
+  const [y,m,d] = s.split("-").map(Number);
+  return `${d} ${MON[lang][m-1]} ${y}`;
+}
+
+// ---------- сохранение подписи ----------
+function loadPrefs(){
+  try{
+    const p = JSON.parse(localStorage.getItem(KEY) || "{}");
+    $("#me").value = p.me || ""; $("#tel").value = p.tel || "";
+    $("#lang").value = p.lang || "ru"; $("#preset").value = p.preset || "grave";
+  }catch(e){}
+}
+function savePrefs(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify({
+      me:$("#me").value.trim(), tel:$("#tel").value.trim(),
+      lang:$("#lang").value, preset:$("#preset").value }));
+  }catch(e){}
+}
+
+// ---------- фото ----------
+async function decode(file){
+  // createImageBitmap с разворотом по EXIF, иначе фото с телефона лягут боком
+  try{
+    const bmp = await createImageBitmap(file, { imageOrientation:"from-image" });
+    return { bmp, w:bmp.width, h:bmp.height };
+  }catch(e){
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    await img.decode();
+    return { bmp:img, w:img.naturalWidth, h:img.naturalHeight };
+  }
+}
+$("#fileIn").onchange = async e => {
+  const files = [...e.target.files];
+  e.target.value = "";
+  for (const f of files){
+    if (!f.type.startsWith("image/")) continue;
+    try{
+      const d = await decode(f);
+      shots[target].push(Object.assign({ url:URL.createObjectURL(f) }, d));
+    }catch(err){ toast("Одно фото не открылось"); }
+  }
+  renderShots();
+};
+function renderShots(){
+  for (const key of ["before","after"]){
+    $(`#${key}List`).innerHTML =
+      shots[key].map((s,i) => `<figure><img src="${s.url}" alt="">
+        <button class="x" data-rm="${key}:${i}" aria-label="убрать">×</button></figure>`).join("") +
+      `<button class="add" data-add="${key}"><span>+</span>фото</button>`;
+  }
+}
+document.body.addEventListener("click", e => {
+  const add = e.target.closest("[data-add]");
+  if (add){ target = add.dataset.add; $("#fileIn").click(); return; }
+  const rm = e.target.closest("[data-rm]");
+  if (rm){
+    const [k, i] = rm.dataset.rm.split(":");
+    URL.revokeObjectURL(shots[k][i].url);
+    shots[k].splice(Number(i), 1); renderShots();
+  }
+});
+
+// ---------- список работ ----------
+function renderWorks(){
+  const list = PRESETS[$("#preset").value][$("#lang").value];
+  $("#works").innerHTML = list.map((w,i) =>
+    `<label><input type="checkbox" value="${i}"><span>${w}</span></label>`).join("");
+}
+$("#preset").onchange = () => { renderWorks(); savePrefs(); };
+$("#lang").onchange = () => { renderWorks(); savePrefs(); };
+$("#me").oninput = $("#tel").oninput = savePrefs;
+
+function chosenWorks(){
+  const list = PRESETS[$("#preset").value][$("#lang").value];
+  const out = [...document.querySelectorAll("#works input:checked")].map(i => list[i.value]);
+  $("#extra").value.split("\n").map(s => s.trim()).filter(Boolean).forEach(s => out.push(s));
+  return out;
+}
+
+// ---------- рисование отчёта ----------
+const W = 1080, PAD = 56;
+function roundRect(c, x, y, w, h, r){
+  c.beginPath(); c.moveTo(x+r, y);
+  c.arcTo(x+w, y, x+w, y+h, r); c.arcTo(x+w, y+h, x, y+h, r);
+  c.arcTo(x, y+h, x, y, r); c.arcTo(x, y, x+w, y, r); c.closePath();
+}
+function wrap(c, text, maxW){
+  const out = [];
+  for (const para of String(text).split("\n")){
+    let line = "";
+    for (const word of para.split(/\s+/).filter(Boolean)){
+      const t = line ? line + " " + word : word;
+      if (c.measureText(t).width > maxW && line){ out.push(line); line = word; }
+      else line = t;
+    }
+    out.push(line);
+  }
+  return out;
+}
+function cover(c, im, x, y, w, h){
+  const s = Math.max(w / im.w, h / im.h);
+  const dw = im.w * s, dh = im.h * s;
+  c.save(); roundRect(c, x, y, w, h, 14); c.clip();
+  c.drawImage(im.bmp, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  c.restore();
+}
+function chip(c, text, x, y){
+  c.font = "700 24px -apple-system,'Segoe UI',Roboto,Arial,sans-serif";
+  const w = c.measureText(text).width + 30;
+  c.fillStyle = "rgba(0,0,0,.62)"; roundRect(c, x, y, w, 42, 21); c.fill();
+  c.fillStyle = "#fff"; c.textBaseline = "middle";
+  c.fillText(text, x + 15, y + 22); c.textBaseline = "alphabetic";
+  return w;
+}
+
+function buildCanvas(){
+  const lang = $("#lang").value, t = T[lang];
+  const big = document.createElement("canvas");
+  big.width = W; big.height = 8000;
+  const c = big.getContext("2d");
+  c.fillStyle = "#f4f5f1"; c.fillRect(0, 0, W, big.height);
+  const F = n => `${n}px -apple-system,'Segoe UI',Roboto,Arial,sans-serif`;
+  let y = 0;
+
+  // шапка
+  const obj = $("#obj").value.trim();
+  c.font = "800 " + F(40);
+  const objLines = wrap(c, obj || "—", W - PAD * 2);
+  const headH = 150 + objLines.length * 50;
+  c.fillStyle = "#2f5d34"; c.fillRect(0, 0, W, headH);
+  c.fillStyle = "#a8c9a5"; c.font = "800 " + F(24);
+  c.fillText(t.eyebrow.split("").join(" "), PAD, 66);
+  c.fillStyle = "#fff"; c.font = "800 " + F(40);
+  objLines.forEach((l, i) => c.fillText(l, PAD, 122 + i * 50));
+  c.fillStyle = "#cfe0cd"; c.font = "600 " + F(28);
+  c.fillText(humanDate($("#date").value || ymd(new Date()), lang), PAD, headH - 34);
+  y = headH + 34;
+
+  // фото парами
+  const gap = 18, colW = (W - PAD * 2 - gap) / 2, rowH = Math.round(colW * 0.75);
+  const pairs = Math.max(shots.before.length, shots.after.length);
+  for (let i = 0; i < pairs; i++){
+    const b = shots.before[i], a = shots.after[i];
+    if (b && a){
+      cover(c, b, PAD, y, colW, rowH);
+      cover(c, a, PAD + colW + gap, y, colW, rowH);
+      chip(c, t.before, PAD + 12, y + 12);
+      chip(c, t.after, PAD + colW + gap + 12, y + 12);
+      y += rowH + gap;
+    } else {
+      const one = b || a, w = W - PAD * 2, h = Math.round(w * 0.7);
+      cover(c, one, PAD, y, w, h);
+      chip(c, b ? t.before : t.after, PAD + 12, y + 12);
+      y += h + gap;
+    }
+  }
+  y += 20;
+
+  // что сделано
+  const works = chosenWorks();
+  if (works.length){
+    c.fillStyle = "#1b1f1c"; c.font = "800 " + F(32);
+    c.fillText(t.did, PAD, y); y += 44;
+    c.font = "500 " + F(29);
+    for (const w of works){
+      const lines = wrap(c, w, W - PAD * 2 - 46);
+      c.fillStyle = "#2f5d34";
+      c.beginPath(); c.arc(PAD + 11, y - 9, 9, 0, 7); c.fill();
+      c.fillStyle = "#1b1f1c";
+      lines.forEach((l, i) => c.fillText(l, PAD + 40, y + i * 40));
+      y += lines.length * 40 + 6;
+    }
+    y += 20;
+  }
+
+  // комментарий
+  const com = $("#comment").value.trim();
+  if (com){
+    c.font = "500 " + F(29);
+    const lines = wrap(c, com, W - PAD * 2 - 56);
+    const boxH = 34 + 44 + lines.length * 40 + 12;
+    c.fillStyle = "#e7f0e4"; roundRect(c, PAD, y, W - PAD * 2, boxH, 18); c.fill();
+    c.fillStyle = "#224526"; c.font = "800 " + F(26);
+    c.fillText(t.note, PAD + 28, y + 46);
+    c.fillStyle = "#1b1f1c"; c.font = "500 " + F(29);
+    lines.forEach((l, i) => c.fillText(l, PAD + 28, y + 94 + i * 40));
+    y += boxH + 24;
+  }
+
+  // подпись
+  const me = $("#me").value.trim(), tel = $("#tel").value.trim();
+  const footH = 132;
+  c.fillStyle = "#224526"; c.fillRect(0, y, W, footH);
+  c.fillStyle = "#fff"; c.font = "800 " + F(30);
+  c.fillText(t.done + (me ? ": " + me : ""), PAD, y + 56);
+  c.fillStyle = "#a8c9a5"; c.font = "600 " + F(26);
+  c.fillText(tel ? tel + "  ·  " + t.thanks : t.thanks, PAD, y + 98);
+  y += footH;
+
+  // обрезаем до фактической высоты
+  const out = document.createElement("canvas");
+  out.width = W; out.height = y;
+  out.getContext("2d").drawImage(big, 0, 0);
+  return out;
+}
+
+$("#build").onclick = async () => {
+  if (!shots.before.length && !shots.after.length){ toast("Добавь хотя бы одно фото"); return; }
+  if (!$("#obj").value.trim()){ toast("Впиши, что за объект"); return; }
+  $("#build").disabled = true;
+  try{
+    const cv = buildCanvas();
+    outBlob = await new Promise(r => cv.toBlob(r, "image/jpeg", 0.9));
+    $("#preview").innerHTML = `<img src="${URL.createObjectURL(outBlob)}" alt="отчёт">`;
+    $("#outBtns").hidden = false;
+    const kb = Math.round(outBlob.size / 1024);
+    $("#help").hidden = false;
+    $("#helpText").textContent =
+      `Готово, ${kb} КБ. «Отправить» откроет выбор мессенджера прямо с картинкой. ` +
+      `Если телефон так не умеет — жми «Скачать», картинка ляжет в галерею, и отправишь её как обычное фото.`;
+    $("#preview").scrollIntoView({ behavior:"smooth", block:"start" });
+  }catch(err){
+    toast("Не получилось собрать: " + err.message);
+  }finally{ $("#build").disabled = false; }
+};
+
+function fileName(){
+  // \p{L} — любые буквы, иначе из имени выпадают румынские ă, î, ș, ț
+  const obj = $("#obj").value.trim().replace(/[^\p{L}\p{N} -]/gu, "").slice(0, 40) || "otchet";
+  return `otchet-${obj}-${$("#date").value || ymd(new Date())}.jpg`.replace(/\s+/g, "-");
+}
+$("#share").onclick = async () => {
+  if (!outBlob) return;
+  const file = new File([outBlob], fileName(), { type:"image/jpeg" });
+  if (navigator.canShare && navigator.canShare({ files:[file] })){
+    try{ await navigator.share({ files:[file], title:$("#obj").value.trim() }); }
+    catch(e){ if (e.name !== "AbortError") toast("Не удалось открыть отправку"); }
+  } else {
+    toast("Телефон не умеет так — сохраняю в галерею");
+    $("#download").click();
+  }
+};
+$("#download").onclick = () => {
+  if (!outBlob) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(outBlob); a.download = fileName();
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast("Сохранено");
+};
+$("#print").onclick = () => {
+  if (!outBlob) return;
+  const w = window.open("", "_blank");
+  if (!w){ toast("Браузер заблокировал окно печати"); return; }
+  const url = URL.createObjectURL(outBlob);
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>${fileName()}</title>
+    <style>@page{size:A4;margin:12mm}body{margin:0}img{width:100%;display:block}</style>
+    <img src="${url}" onload="window.print()">`);
+  w.document.close();
+};
+
+// ---------- старт ----------
+$("#date").value = ymd(new Date());
+loadPrefs(); renderWorks(); renderShots();
+</script>
+</body>
+</html>

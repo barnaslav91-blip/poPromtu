@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Мои заявки — <%= client.name %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Мои заявки</h1>
+    <span class="muted"><%= client.name %></span>
+  </header>
+
+  <main class="container">
+    <% if (error) { %><p class="error"><%= error %></p><% } %>
+
+    <section class="card">
+      <form method="GET" class="inline-form">
+        <label for="period" class="muted">Период</label>
+        <input type="month" id="period" name="period" value="<%= period %>" />
+        <button type="submit">Показать</button>
+      </form>
+
+      <div class="stats">
+        <div><span class="stat-value"><%= summary.total %></span><span class="muted small">всего</span></div>
+        <div><span class="stat-value"><%= summary.pending %></span><span class="muted small">ждут вашего решения</span></div>
+        <div><span class="stat-value"><%= summary.accepted %></span><span class="muted small">принято</span></div>
+        <div><span class="stat-value"><%= summary.rejected %></span><span class="muted small">отклонено</span></div>
+        <div><span class="stat-value"><%= summary.amount.toFixed(2) %></span><span class="muted small">к оплате</span></div>
+      </div>
+
+      <p class="muted small">
+        На возражение есть <%= disputeHours %> часов с момента передачи заявки.
+        После этого срока заявка считается принятой.
+      </p>
+    </section>
+
+    <section class="card">
+      <h3>Заявки</h3>
+      <% if (!leads.length) { %>
+        <p class="muted">За этот период заявок нет.</p>
+      <% } %>
+      <ul class="row-list">
+        <% leads.forEach(function (l) { %>
+          <li class="lead-<%= l.effective %>">
+            <div class="row-main">
+              <strong><a href="tel:<%= l.phone %>"><%= l.phone %></a></strong>
+              <% if (l.name) { %> · <%= l.name %><% } %>
+              <span class="chip chip-<%= l.effective %>"><%= leadStatuses[l.effective] %></span>
+              <% if (l.auto) { %><span class="chip">срок возражения истёк</span><% } %>
+              <% if (l.is_duplicate) { %><span class="chip chip-dup">дубль — не тарифицируется</span><% } %>
+              <% if (l.message) { %><div class="lead-message"><%= l.message %></div><% } %>
+              <div class="muted small">
+                <%= new Date(l.created_at).toLocaleString('ru-RU') %>
+                <% if (l.canDispute) { %>
+                  · на возражение осталось <%= Math.floor(l.hoursLeft) %> ч
+                <% } %>
+                <% if (l.reject_reason) { %> · причина: <%= l.reject_reason %><% } %>
+              </div>
+            </div>
+            <div class="row-actions">
+              <% if (l.canDispute) { %>
+                <form method="POST" action="/c/<%= client.token %>/leads/<%= l.id %>" class="inline-form">
+                  <input type="hidden" name="action" value="accept" />
+                  <button type="submit">Принять</button>
+                </form>
+                <form method="POST" action="/c/<%= client.token %>/leads/<%= l.id %>" class="inline-form">
+                  <input type="hidden" name="action" value="reject" />
+                  <select name="reject_reason" required>
+                    <option value="">причина отказа —</option>
+                    <% rejectReasons.forEach(function (r) { %>
+                      <option value="<%= r %>"><%= r %></option>
+                    <% }) %>
+                  </select>
+                  <button class="secondary" type="submit">Отклонить</button>
+                </form>
+              <% } %>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

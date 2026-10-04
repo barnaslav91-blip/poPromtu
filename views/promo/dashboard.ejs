@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Клиенты — poPromtu Промо</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1><a href="/promo">poPromtu Промо</a></h1>
+    <nav class="topbar-nav">
+      <a href="/admin">Модерация видео</a>
+      <form method="POST" action="/admin/logout"><button class="link-btn" type="submit">Выйти</button></form>
+    </nav>
+  </header>
+
+  <main class="container">
+    <% if (error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+
+    <section class="card">
+      <h2>Новый клиент</h2>
+      <form method="POST" action="/promo/clients" class="stacked-form">
+        <label for="name">Кто (имя или название)</label>
+        <input type="text" id="name" name="name" placeholder="Юра" required />
+
+        <label for="service">Услуга</label>
+        <input type="text" id="service" name="service" placeholder="Покос травы триммером" />
+
+        <label for="city">Город или район</label>
+        <input type="text" id="city" name="city" placeholder="Тараклия" />
+
+        <label for="phone">Телефон для объявлений</label>
+        <input type="text" id="phone" name="phone" placeholder="079 14 09 35" />
+
+        <button type="submit">Добавить клиента</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Клиенты</h2>
+      <% if (!clients.length) { %>
+        <p class="muted">Пока никого нет. Добавьте первого — форма выше.</p>
+      <% } %>
+      <ul class="client-list">
+        <% clients.forEach(function (c) { %>
+          <li class="<%= c.active ? '' : 'inactive' %>">
+            <div>
+              <a class="client-name" href="/promo/clients/<%= c.id %>"><%= c.name %></a>
+              <div class="muted small">
+                <%= c.service || 'услуга не указана' %><% if (c.city) { %> · <%= c.city %><% } %>
+                · групп: <%= c.groups_count %>
+              </div>
+            </div>
+            <div class="client-counters">
+              <% if (c.planned_count) { %>
+                <a class="badge badge-plan" href="/promo/clients/<%= c.id %>/queue">
+                  в очереди: <%= c.planned_count %>
+                </a>
+              <% } %>
+              <% if (c.new_leads) { %>
+                <a class="badge" href="/promo/clients/<%= c.id %>/leads">
+                  новых заявок: <%= c.new_leads %>
+                </a>
+              <% } %>
+            </div>
+          </li>
+        <% }) %>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
