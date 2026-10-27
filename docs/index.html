@@ -29,7 +29,7 @@
     --paper-2:    #E3D8C1;
     --paper-3:    #EDE4D2;
     --ink:        #241E18;
-    --ink-soft:   #5F5546;
+    --ink-soft:   #554B3E;
     --pill-bg:    #2B241E;
     --pill-ink:   #F1E8D7;
     --accent:     #97281F;
@@ -62,7 +62,7 @@
   }
 
   :root[data-theme="light"] {
-    --paper: #D7C9AD; --paper-2: #E3D8C1; --paper-3: #EDE4D2; --ink: #241E18; --ink-soft: #5F5546;
+    --paper: #D7C9AD; --paper-2: #E3D8C1; --paper-3: #EDE4D2; --ink: #241E18; --ink-soft: #554B3E;
     --pill-bg: #2B241E; --pill-ink: #F1E8D7; --accent: #97281F; --accent-ink: #FFF3E6;
     --rule: rgba(36, 30, 24, .18); --rule-firm: rgba(36, 30, 24, .34);
     --shadow: 0 1px 2px rgba(36, 30, 24, .10), 0 8px 24px -16px rgba(36, 30, 24, .5);
@@ -188,7 +188,7 @@
   }
   .colhead .labels span small {
     display: block; color: var(--ink-soft); font-size: .88em;
-    font-weight: 500; letter-spacing: .02em; opacity: .8;
+    font-weight: 500; letter-spacing: .02em;
   }
 
   ol.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
@@ -430,16 +430,16 @@
 </div>
 
 <div class="sticky">
-  <div class="wrap searchbar">
+  <div class="wrap searchbar" role="search">
     <input id="q" type="search" placeholder="Gericht suchen &ndash; z.&nbsp;B. Gyros, Salat, Pommes" aria-label="Gericht suchen" autocomplete="off">
   </div>
   <nav class="chips" id="chips" aria-label="Kategorien"></nav>
 </div>
 
-<div class="wrap">
+<main class="wrap">
   <p class="hint">Gericht antippen, Beilagen und Getr&auml;nk dazuw&auml;hlen &ndash; die fertige Bestellung geht per Nachricht an uns.</p>
 
-  <main id="menu"></main>
+  <div id="menu"></div>
   <p class="noresult">Nichts gefunden. Versuchen Sie es mit einem anderen Suchbegriff.</p>
 
   <div class="order">
@@ -467,9 +467,9 @@
     Alle Preise in Euro inkl.&nbsp;MwSt. &Auml;nderungen und Irrt&uuml;mer vorbehalten.<br>
     &Ouml;ffnungszeiten, Anfahrt und Impressum: <a href="schlemmerstube/">Anr&ouml;chter Schlemmerstube</a>
   </p>
-</div>
+</main>
 
-<div class="cartbar" id="cartbar">
+<div class="cartbar" id="cartbar" role="region" aria-label="Ihre Bestellung">
   <div class="inner">
     <span class="sum">
       <small id="cart-count">0 Artikel</small>
@@ -481,7 +481,7 @@
 
 <div class="backdrop" id="item-backdrop" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="item-title">
-    <header>
+    <header role="none">
       <div>
         <h2 id="item-title"></h2>
         <p id="item-desc"></p>
@@ -499,7 +499,7 @@
 
 <div class="backdrop" id="cart-backdrop" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cart-title">
-    <header>
+    <header role="none">
       <div>
         <h2 id="cart-title">Ihre Bestellung</h2>
         <p>Preise inkl. MwSt. &middot; Zahlung bei Abholung</p>
@@ -850,6 +850,7 @@ q.addEventListener("input", () => {
 
 let cart = [];
 
+const cartbar = document.getElementById("cartbar");
 const cartCount = document.getElementById("cart-count");
 const cartTotal = document.getElementById("cart-total");
 const toastEl = document.getElementById("toast");
@@ -864,6 +865,14 @@ function refreshCart() {
   document.body.classList.toggle("has-cart", pieces > 0);
   cartCount.textContent = pieces === 1 ? "1 Artikel" : pieces + " Artikel";
   cartTotal.textContent = fmt(cartSum());
+  syncCartbar();
+}
+
+/* Die Leiste ist bei leerer Bestellung aus dem Bild geschoben und während eines Dialogs verdeckt –
+   dann soll sie auch per Tastatur nicht erreichbar sein. */
+function syncCartbar() {
+  const body = document.body.classList;
+  cartbar.inert = !body.contains("has-cart") || body.contains("locked");
 }
 
 function addLine(line) {
@@ -892,10 +901,15 @@ const itemBackdrop = document.getElementById("item-backdrop");
 const cartBackdrop = document.getElementById("cart-backdrop");
 let lastFocus = null;
 
+/* Solange ein Dialog offen ist, bleibt die Seite dahinter für Tastatur und Screenreader gesperrt. */
+const pageBehind = Array.from(document.querySelectorAll("body > .wrap, body > .sticky"));
+
 function openSheet(el) {
   lastFocus = document.activeElement;
   el.hidden = false;
   document.body.classList.add("locked");
+  pageBehind.forEach((p) => { p.inert = true; });
+  syncCartbar();
   const first = el.querySelector("button:not([data-close]), input");
   (first || el.querySelector("[data-close]")).focus({ preventScroll: true });
 }
@@ -904,6 +918,8 @@ function closeSheets() {
   itemBackdrop.hidden = true;
   cartBackdrop.hidden = true;
   document.body.classList.remove("locked");
+  pageBehind.forEach((p) => { p.inert = false; });
+  syncCartbar();
   if (lastFocus) lastFocus.focus({ preventScroll: true });
 }
 
