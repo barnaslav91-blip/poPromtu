@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anröchter Schlemmerstube</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Imbiss und Schnitzelhaus in Anröchte, Hauptstraße 22: über 20 Schnitzelsorten, Pfannengyros, Burger, hausgemachte Salate und Tagesangebote. Bestellen und abholen.">
+<meta name="theme-color" content="#D7C9AD" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14100D" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta property="og:title" content="Anröchter Schlemmerstube">
+<meta property="og:description" content="Schnitzel, Pfannengyros, Burger und Salate in Anröchte. Speisekarte ansehen und bestellen.">
+<meta property="og:type" content="website">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+</style>
+</head>
+<body>
+<style>
+  /* Layout: eine Spalte wie die Speisekarte, gleiche Farben und Schrift;
+     ab 46rem stehen Öffnungszeiten und Anfahrt nebeneinander. */
+  :root {
+    --paper:      #D7C9AD;
+    --paper-2:    #E3D8C1;
+    --paper-3:    #EDE4D2;
+    --ink:        #241E18;
+    --ink-soft:   #5F5546;
+    --pill-bg:    #2B241E;
+    --pill-ink:   #F1E8D7;
+    --accent:     #97281F;
+    --accent-ink: #FFF3E6;
+    --ok:         #3D6B35;
+    --qr-bg:      #FFFFFF;
+    --rule:       rgba(36, 30, 24, .18);
+    --rule-firm:  rgba(36, 30, 24, .34);
+    --hover:      rgba(151, 40, 31, .06);
+    --shadow:     0 1px 2px rgba(36, 30, 24, .10), 0 8px 24px -16px rgba(36, 30, 24, .5);
+    --shadow-up:  0 -6px 24px -12px rgba(36, 30, 24, .55);
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --measure: 46rem;
+    --gutter-l: max(1.1rem, env(safe-area-inset-left, 0px));
+    --gutter-r: max(1.1rem, env(safe-area-inset-right, 0px));
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #14100D;
+      --paper-2:    #1F1913;
+      --paper-3:    #2A231B;
+      --ink:        #EFE5D2;
+      --ink-soft:   #A2947C;
+      --pill-bg:    #EADCC0;
+      --pill-ink:   #191410;
+      --accent:     #E0715F;
+      --accent-ink: #1A0F0C;
+      --ok:         #8CC27E;
+      --rule:       rgba(234, 220, 192, .18);
+      --rule-firm:  rgba(234, 220, 192, .34);
+      --hover:      rgba(224, 113, 95, .08);
+      --shadow:     0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .9);
+      --shadow-up:  0 -6px 24px -10px rgba(0, 0, 0, .85);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14100D; --paper-2: #1F1913; --paper-3: #2A231B; --ink: #EFE5D2; --ink-soft: #A2947C;
+    --pill-bg: #EADCC0; --pill-ink: #191410; --accent: #E0715F; --accent-ink: #1A0F0C; --ok: #8CC27E;
+    --rule: rgba(234, 220, 192, .18); --rule-firm: rgba(234, 220, 192, .34); --hover: rgba(224, 113, 95, .08);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .9);
+    --shadow-up: 0 -6px 24px -10px rgba(0, 0, 0, .85);
+    color-scheme: dark;
+  }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E");
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.45;
+    margin: 0;
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0 0 auto; z-index: 21;
+    height: env(safe-area-inset-top, 0px); background: var(--paper);
+  }
+
+  .wrap {
+    max-width: calc(var(--measure) + 2.2rem); margin: 0 auto;
+    padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  }
+
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Kopf ---------- */
+
+  header.top { padding-block: 2.6rem 1.4rem; display: flex; flex-direction: column; gap: .75rem; }
+  .eyebrow {
+    font-size: .69rem; font-weight: 700; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0;
+  }
+  h1 {
+    font-size: clamp(2.2rem, 9.6vw, 4.1rem); line-height: .95; letter-spacing: -.03em;
+    font-weight: 800; margin: 0; text-wrap: balance; hyphens: manual;
+  }
+  .lede { font-size: 1rem; color: var(--ink-soft); margin: 0; max-width: 31rem; }
+
+  .status {
+    align-self: flex-start; display: inline-flex; align-items: center; gap: .5rem; margin: 0;
+    font-size: .86rem; font-weight: 700;
+    background: var(--paper-2); border: 1px solid var(--rule); border-radius: 999px;
+    padding: .3rem .85rem .32rem .7rem;
+  }
+  .status i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--accent); flex: 0 0 auto; }
+  .status.is-open i { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+
+  .cta { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .btn {
+    flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    text-decoration: none; text-align: center; font-weight: 700; font-size: .95rem;
+    border-radius: 2px; padding: .78rem 1.1rem;
+  }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
+  .btn-ghost { background: var(--paper-2); color: var(--ink); border: 1px solid var(--rule-firm); }
+  .btn-ghost:hover { background: var(--paper-3); }
+  .btn b { font-variant-numeric: tabular-nums; }
+  @media (min-width: 34rem) { .btn { flex: 0 0 auto; } }
+
+  .today {
+    display: flex; align-items: baseline; gap: .7rem; text-decoration: none;
+    background: var(--accent); color: var(--accent-ink);
+    border-radius: 2px; padding: .7rem .9rem; box-shadow: var(--shadow);
+  }
+  .today b {
+    font-size: .68rem; letter-spacing: .17em; text-transform: uppercase;
+    white-space: nowrap; opacity: .85;
+  }
+  .today span { font-size: .92rem; font-weight: 600; line-height: 1.3; }
+  .today em { font-style: normal; font-weight: 800; }
+  .today::after { content: "→"; margin-left: auto; font-weight: 700; }
+
+  /* ---------- Navigation ---------- */
+
+  .sticky {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+    background-color: var(--paper);
+    box-shadow: 0 8px 12px -10px rgba(0, 0, 0, .45);
+  }
+  nav.chips {
+    max-width: calc(var(--measure) + 2.2rem); margin: 0 auto;
+    display: flex; gap: .4rem; overflow-x: auto;
+    padding-block: .65rem; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  nav.chips::-webkit-scrollbar { display: none; }
+  nav.chips a {
+    flex: 0 0 auto; font-size: .78rem; font-weight: 600; text-decoration: none;
+    color: var(--ink); background: var(--paper-2);
+    border: 1px solid var(--rule); border-radius: 999px;
+    padding: .34rem .7rem; white-space: nowrap;
+  }
+  nav.chips a.go { background: var(--pill-bg); color: var(--pill-ink); border-color: var(--pill-bg); }
+
+  /* ---------- Abschnitte ---------- */
+
+  main { display: flex; flex-direction: column; gap: 2.6rem; padding-top: 1.8rem; }
+  section { scroll-margin-top: 4.4rem; display: flex; flex-direction: column; gap: .85rem; min-width: 0; }
+
+  .lozenge {
+    align-self: flex-start; background: var(--pill-bg); color: var(--pill-ink);
+    font-size: 1.06rem; font-weight: 700; border-radius: 999px;
+    padding: .34rem 1.05rem .4rem; margin: 0;
+  }
+  .section-note { font-size: .84rem; color: var(--ink-soft); margin: 0; max-width: 34rem; }
+
+  ul.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+  @media (min-width: 30rem) { ul.cards { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 46rem) { ul.cards { grid-template-columns: 1fr 1fr 1fr; } }
+  .card {
+    height: 100%; display: flex; flex-direction: column; gap: .3rem;
+    text-decoration: none; color: var(--ink);
+    background: var(--paper-2); border: 1px solid var(--rule); border-radius: 2px;
+    padding: .85rem .95rem .8rem;
+  }
+  .card:hover { background: var(--paper-3); border-color: var(--rule-firm); }
+  .card h3 { font-size: 1.02rem; font-weight: 800; margin: 0; letter-spacing: -.01em; }
+  .card p { font-size: .84rem; line-height: 1.4; color: var(--ink-soft); margin: 0; }
+  .card .more { margin-top: auto; padding-top: .35rem; font-size: .78rem; font-weight: 700; color: var(--accent); }
+
+  .homemade {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .8rem;
+    border-top: 1px solid var(--rule-firm); border-bottom: 1px solid var(--rule-firm);
+    padding-block: .75rem;
+  }
+  .homemade b {
+    font-size: .68rem; font-weight: 700; letter-spacing: .17em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .homemade span { font-size: .92rem; font-weight: 600; }
+
+  /* Tagesangebote und Öffnungszeiten: Zeilen wie in der Speisekarte */
+  ol.rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  ol.rows > li { border-bottom: 1px solid var(--rule); }
+  .r {
+    display: grid; grid-template-columns: 6.1rem 1fr auto; gap: .5rem;
+    align-items: baseline; padding: .62rem .5rem; border-radius: 3px;
+    color: inherit; text-decoration: none;
+  }
+  a.r:hover { background: var(--hover); }
+  .r .dname { font-weight: 700; font-size: .93rem; }
+  .r .dtext { font-size: .87rem; line-height: 1.35; min-width: 0; }
+  .r .dtext em { font-style: normal; color: var(--ink-soft); }
+  .r b { font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .r.hours { grid-template-columns: 6.1rem 1fr; font-variant-numeric: tabular-nums; }
+  .r.hours .dtext { font-size: .93rem; font-weight: 600; }
+  .r .closed { color: var(--ink-soft); font-weight: 500; }
+  li.is-today .r { background: var(--paper-2); box-shadow: inset 3px 0 0 var(--accent); }
+  li.is-today .dname::after {
+    content: "heute"; display: block; font-size: .6rem; font-weight: 700;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--accent);
+  }
+
+  .pair { display: grid; gap: 2.6rem; }
+  @media (min-width: 46rem) { .pair { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+
+  .place {
+    background: var(--paper-2); border: 1px solid var(--rule); border-radius: 2px;
+    padding: 1rem 1.1rem 1.1rem; display: flex; flex-direction: column; gap: .9rem;
+  }
+  .place .label {
+    display: block; font-size: .66rem; font-weight: 700; letter-spacing: .17em;
+    text-transform: uppercase; color: var(--ink-soft); margin-bottom: .2rem;
+  }
+  address { font-style: normal; font-size: 1.06rem; font-weight: 600; line-height: 1.4; }
+  .phone { margin: 0; }
+  .phone a {
+    font-size: 1.35rem; font-weight: 800; color: var(--ink); text-decoration: none;
+    font-variant-numeric: tabular-nums; letter-spacing: -.01em;
+  }
+  .place .cta .btn { flex: 1 1 auto; }
+
+  .order {
+    background: var(--paper-2); border: 1px solid var(--rule); border-radius: 2px;
+    padding: 1.1rem; display: grid; gap: 1rem; align-items: center;
+  }
+  .order ol { margin: 0; padding-left: 1.2rem; font-size: .92rem; line-height: 1.5; display: flex; flex-direction: column; gap: .45rem; }
+  .order ol b { font-variant-numeric: tabular-nums; }
+  .order ol a { color: var(--accent); font-weight: 700; text-underline-offset: 2px; }
+  .order .qr { display: none; flex-direction: column; align-items: center; gap: .45rem; margin: 0; }
+  .order .qr img {
+    width: 8.5rem; height: 8.5rem; max-width: 100%;
+    background: var(--qr-bg); padding: .45rem; border-radius: 2px;
+  }
+  .order .qr figcaption { font-size: .74rem; color: var(--ink-soft); text-align: center; max-width: 9rem; }
+  @media (min-width: 46rem) {
+    .order { grid-template-columns: 1fr auto; padding: 1.3rem 1.4rem; }
+    .order .qr { display: flex; }
+  }
+
+  /* ---------- Fuß ---------- */
+
+  .foot {
+    margin-top: 2.6rem; border-top: 1px solid var(--rule); padding-block: 1rem 1.4rem;
+    font-size: .78rem; line-height: 1.5; color: var(--ink-soft);
+    display: flex; flex-direction: column; gap: .7rem;
+  }
+  .foot p { margin: 0; }
+  .foot summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+  .foot details p { margin-top: .5rem; }
+
+  /* ---------- Leiste unten auf dem Handy ---------- */
+
+  .actionbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    background: var(--pill-bg); box-shadow: var(--shadow-up);
+    padding-top: .55rem;
+    padding-bottom: calc(.55rem + env(safe-area-inset-bottom, 0px));
+    padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+    display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: .45rem;
+  }
+  .actionbar a {
+    text-align: center; text-decoration: none; font-weight: 700; font-size: .9rem;
+    padding: .7rem .4rem; border-radius: 2px; color: var(--pill-ink);
+    border: 1px solid color-mix(in srgb, var(--pill-ink) 30%, transparent);
+  }
+  .actionbar a.main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .actionbar a:focus-visible { outline-color: var(--pill-ink); }
+  @media (min-width: 46rem) {
+    .actionbar { display: none; }
+    body { padding-bottom: 1rem; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus &middot; Anr&ouml;chte</p>
+    <h1>Anr&ouml;chter Schlemmer&shy;stube</h1>
+    <p class="lede">&Uuml;ber 20 Schnitzelsorten, Pfannengyros, Burger und hausgemachte Salate.
+      Frisch aus der Pfanne und vom Grill, zum Abholen an der Hauptstra&szlig;e&nbsp;22.</p>
+    <p class="status" id="status" hidden><i aria-hidden="true"></i><span id="status-text"></span></p>
+    <div class="cta">
+      <a class="btn btn-primary" href="../">Speisekarte &amp; bestellen</a>
+      <a class="btn btn-ghost" data-link="tel" href="tel:+4929479888671">Anrufen <b data-info="phone">02947 9888671</b></a>
+    </div>
+    <a class="today" id="today" href="../#angebote" hidden>
+      <b>Heute</b>
+      <span id="today-text"></span>
+    </a>
+  </header>
+</div>
+
+<div class="sticky">
+  <nav class="chips" aria-label="Bereiche der Seite">
+    <a href="#karte">Unsere Karte</a>
+    <a href="#angebote">Tagesangebote</a>
+    <a href="#zeiten">&Ouml;ffnungszeiten</a>
+    <a href="#anfahrt">Anfahrt</a>
+    <a href="#bestellen">Bestellen</a>
+    <a class="go" href="../">Speisekarte &rarr;</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <main>
+    <section id="karte">
+      <h2 class="lozenge">Unsere Karte</h2>
+      <p class="section-note">Ein Auszug. Alle Gerichte mit Gr&ouml;&szlig;en und Preisen stehen in der Speisekarte,
+        dort stellen Sie auch Ihre Bestellung zusammen.</p>
+      <ul class="cards">
+        <li><a class="card" href="../#schnitzel">
+          <h3>Schnitzel</h3>
+          <p>Wiener Art, J&auml;ger, Holzf&auml;ller, Bauern- und Rahmschnitzel. Klein, gro&szlig; oder vom H&auml;hnchen.</p>
+          <span class="more">Zur Karte &rarr;</span>
+        </a></li>
+        <li><a class="card" href="../#ueberbacken">
+          <h3>&Uuml;berbacken</h3>
+          <p>Schlemmer-, Hawaii-, Spargel- und Tessiner Schnitzel, mit K&auml;se &uuml;berbacken.</p>
+          <span class="more">Zur Karte &rarr;</span>
+        </a></li>
+        <li><a class="card" href="../#pfanne">
+          <h3>Aus der Pfanne</h3>
+          <p>Pfannen-Gyros und Schaschlik, im Brot mit Krautsalat und Zaziki oder als Kinderteller.</p>
+          <span class="more">Zur Karte &rarr;</span>
+        </a></li>
+        <li><a class="card" href="../#burger">
+          <h3>Burger &amp; Hot Dog</h3>
+          <p>Vom Hamburger &uuml;ber den Cheese-Egg-Burger bis zum Anr&ouml;chter Burger und Riesenburger.</p>
+          <span class="more">Zur Karte &rarr;</span>
+        </a></li>
+        <li><a class="card" href="../#grill">
+          <h3>Vom Grill</h3>
+          <p>Bratwurst, Currywurst, Balkanwurst, J&auml;ger- und Curryzwiebelwurst.</p>
+          <span class="more">Zur Karte &rarr;</span>
+        </a></li>
+        <li><a class="card" href="../#gemischt">
+          <h3>Salate</h3>
+          <p>Gro&szlig;e gemischte Salate mit Gyros, Thunfisch oder H&auml;hnchen, dazu Kraut-, Kartoffel- und Nudelsalat.</p>
+          <span class="more">Zur Karte &rarr;</span>
+        </a></li>
+      </ul>
+      <p class="homemade">
+        <b>Bei uns hausgemacht</b>
+        <span>Frikadellen &middot; Bratkartoffeln &middot; Zaziki &middot; Kraut-, Kartoffel- und Nudelsalat</span>
+      </p>
+    </section>
+
+    <section id="angebote">
+      <h2 class="lozenge">Tagesangebote</h2>
+      <ol class="rows" id="days"></ol>
+      <p class="section-note">Tagesangebote gelten nicht an Feiertagen. Das heutige Angebot k&ouml;nnen Sie direkt in der Speisekarte bestellen.</p>
+    </section>
+
+    <div class="pair">
+      <section id="zeiten">
+        <h2 class="lozenge">&Ouml;ffnungszeiten</h2>
+        <ol class="rows" id="hours"></ol>
+        <p class="section-note">An Feiertagen k&ouml;nnen die Zeiten abweichen. Im Zweifel einfach kurz anrufen.</p>
+      </section>
+
+      <section id="anfahrt">
+        <h2 class="lozenge">Anfahrt &amp; Kontakt</h2>
+        <div class="place">
+          <div>
+            <span class="label">Adresse</span>
+            <address>
+              <span data-info="street">Hauptstra&szlig;e 22</span><br>
+              <span data-info="city">59609 Anr&ouml;chte</span>
+            </address>
+          </div>
+          <div>
+            <span class="label">Telefon</span>
+            <p class="phone"><a data-link="tel" href="tel:+4929479888671" data-info="phone">02947 9888671</a></p>
+          </div>
+          <div class="cta">
+            <a class="btn btn-ghost" data-link="route" href="https://www.google.com/maps/dir/?api=1&amp;destination=Anr%C3%B6chter%20Schlemmerstube%2C%20Hauptstra%C3%9Fe%2022%2C%2059609%20Anr%C3%B6chte" target="_blank" rel="noopener">Route mit Google Maps</a>
+            <a class="btn btn-ghost" data-link="apple" href="https://maps.apple.com/?daddr=Hauptstra%C3%9Fe%2022%2C%2059609%20Anr%C3%B6chte" target="_blank" rel="noopener">Apple Karten</a>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section id="bestellen">
+      <h2 class="lozenge">So bestellen Sie</h2>
+      <div class="order">
+        <ol>
+          <li>In der <a href="../">Speisekarte</a> Gerichte antippen und Beilage, Sauce und Getr&auml;nk dazuw&auml;hlen.</li>
+          <li>Anrufen und die Bestellung durchgeben: <b><a data-link="tel" href="tel:+4929479888671" data-info="phone">02947 9888671</a></b></li>
+          <li>Zur vereinbarten Zeit abholen und vor Ort bezahlen.</li>
+        </ol>
+        <figure class="qr">
+          <img src="../qr-speisekarte.svg" alt="QR-Code zur Speisekarte" width="136" height="136">
+          <figcaption>Speisekarte aufs Handy: QR-Code scannen</figcaption>
+        </figure>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Alle Preise in Euro inkl.&nbsp;MwSt. &Auml;nderungen und Irrt&uuml;mer vorbehalten.
+      Eine &Uuml;bersicht der Allergene und Zusatzstoffe erhalten Sie auf Nachfrage an der Kasse.</p>
+    <details>
+      <summary>Impressum</summary>
+      <p id="impressum">Anr&ouml;chter Schlemmerstube<br>Hauptstra&szlig;e 22, 59609 Anr&ouml;chte<br>Telefon 02947 9888671</p>
+    </details>
+  </footer>
+</div>
+
+<nav class="actionbar" aria-label="Schnellzugriff">
+  <a data-link="tel" href="tel:+4929479888671">Anrufen</a>
+  <a data-link="route" href="https://www.google.com/maps/dir/?api=1&amp;destination=Anr%C3%B6chter%20Schlemmerstube%2C%20Hauptstra%C3%9Fe%2022%2C%2059609%20Anr%C3%B6chte" target="_blank" rel="noopener">Route</a>
+  <a class="main" href="../">Bestellen</a>
+</nav>
+
+<script>
+/* ==================================================================
+   DATEN — hier ändern.
+================================================================== */
+const INFO = {
+  name:    "Anröchter Schlemmerstube",
+  street:  "Hauptstraße 22",
+  zip:     "59609",
+  city:    "Anröchte",
+  phone:   "02947 9888671",   // so wie angezeigt; der Anruf-Knopf wird daraus gebaut
+  inhaber: "",                // Vor- und Nachname für das Impressum (in Deutschland Pflicht)
+  ustid:   ""                 // USt-IdNr., falls vorhanden
+};
+
+/* Öffnungszeiten. dow: 1 = Montag … 6 = Samstag, 0 = Sonntag.
+   Leere Liste = Ruhetag. Mittagspause: [["11:00", "14:00"], ["17:00", "21:00"]]. */
+const HOURS = [
+  { dow: 1, times: [["11:00", "21:00"]] },
+  { dow: 2, times: [["11:00", "21:00"]] },
+  { dow: 3, times: [] },
+  { dow: 4, times: [["11:00", "21:00"]] },
+  { dow: 5, times: [["11:00", "21:00"]] },
+  { dow: 6, times: [["11:00", "21:00"]] },
+  { dow: 0, times: [["16:00", "21:00"]] }
+];
+
+/* Tagesangebote — dieselben wie in DAYS in ../index.html (Speisekarte).
+   Wer sie dort ändert, ändert sie hier mit. */
+const DAYS = [
+  { dow: 1, name: "Montag",     text: "Schaschlik dazu Pommes mit Mayo o. Ketchup", extra: "", price: "8,00" },
+  { dow: 2, name: "Dienstag",   text: "2 Hamburger dazu Pommes mit Mayo o. Ketchup", extra: "als Cheese +0,80 €", price: "8,00" },
+  { dow: 4, name: "Donnerstag", text: "Pfannengyros dazu Pommes mit Mayo o. Ketchup", extra: "mit Zaziki 9,00 €", price: "8,00" },
+  { dow: 5, name: "Freitag",    text: "Jägerschnitzel oder Zigeunerschnitzel dazu Pommes mit Mayo o. Ketchup", extra: "", price: "8,00" },
+  { dow: 6, name: "Samstag",    text: "Doppelte Currywurst dazu Pommes mit Mayo o. Ketchup", extra: "", price: "8,00" }
+];
+
+/* ---------------- Hilfsfunktionen ---------------- */
+
+const WEEKDAY = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+const SCHEMA_DAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+const toMin = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+/* Uhrzeit in Anröchte, egal wo das Handy des Besuchers eingestellt ist. */
+function nowInAnroechte() {
+  const p = {};
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Berlin", weekday: "short", hour: "numeric", minute: "numeric", hourCycle: "h23"
+  });
+  for (const part of fmt.formatToParts(new Date())) p[part.type] = part.value;
+  const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(p.weekday);
+  return { dow, min: (Number(p.hour) % 24) * 60 + Number(p.minute) };
+}
+
+function openStatus(now) {
+  const today = HOURS.find((d) => d.dow === now.dow);
+  const open = today && today.times.find(([from, to]) => toMin(from) <= now.min && now.min < toMin(to));
+  if (open) return { open: true, text: "Jetzt geöffnet · bis " + open[1] + " Uhr" };
+
+  for (let i = 0; i < 8; i++) {
+    const dow = (now.dow + i) % 7;
+    const day = HOURS.find((d) => d.dow === dow);
+    if (!day) continue;
+    const next = day.times.find(([from]) => i > 0 || toMin(from) > now.min);
+    if (next) {
+      const when = i === 0 ? "heute" : i === 1 ? "morgen" : "am " + WEEKDAY[dow];
+      return { open: false, text: "Geschlossen · öffnet " + when + " um " + next[0] + " Uhr" };
+    }
+  }
+  return null;
+}
+
+/* ---------------- Kontaktdaten einsetzen ---------------- */
+
+const address = INFO.street + ", " + INFO.zip + " " + INFO.city;
+const LINKS = {
+  tel:   "tel:+49" + INFO.phone.replace(/\D/g, "").replace(/^0/, ""),
+  route: "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(INFO.name + ", " + address),
+  apple: "https://maps.apple.com/?daddr=" + encodeURIComponent(address)
+};
+const TEXTS = { phone: INFO.phone, street: INFO.street, city: INFO.zip + " " + INFO.city };
+
+document.querySelectorAll("[data-link]").forEach((el) => { el.href = LINKS[el.dataset.link]; });
+document.querySelectorAll("[data-info]").forEach((el) => { el.textContent = TEXTS[el.dataset.info]; });
+
+document.getElementById("impressum").innerHTML =
+  esc(INFO.name) + "<br>" +
+  (INFO.inhaber ? "Inhaber: " + esc(INFO.inhaber) + "<br>" : "") +
+  esc(address) + "<br>" +
+  "Telefon " + esc(INFO.phone) +
+  (INFO.ustid ? "<br>USt-IdNr.: " + esc(INFO.ustid) : "");
+
+/* ---------------- Tagesangebote und Öffnungszeiten ---------------- */
+
+function render() {
+  const now = nowInAnroechte();
+
+  const st = openStatus(now);
+  const statusEl = document.getElementById("status");
+  if (st) {
+    statusEl.classList.toggle("is-open", st.open);
+    document.getElementById("status-text").textContent = st.text;
+    statusEl.hidden = false;
+  }
+
+  const offer = DAYS.find((d) => d.dow === now.dow);
+  const todayEl = document.getElementById("today");
+  if (offer) {
+    document.getElementById("today-text").innerHTML =
+      "<em>" + esc(offer.text) + "</em> — " + offer.price + " €";
+  }
+  todayEl.hidden = !offer;
+
+  document.getElementById("days").innerHTML = DAYS.map((d) => {
+    const isToday = d.dow === now.dow;
+    const tag = isToday ? 'a class="r" href="../#angebote"' : 'div class="r"';
+    return '<li' + (isToday ? ' class="is-today"' : "") + "><" + tag + ">" +
+      '<span class="dname">' + d.name + "</span>" +
+      '<span class="dtext">' + esc(d.text) + (d.extra ? " <em>(" + esc(d.extra) + ")</em>" : "") + "</span>" +
+      "<b>" + d.price + "&nbsp;€</b>" +
+      "</" + (isToday ? "a" : "div") + "></li>";
+  }).join("");
+
+  document.getElementById("hours").innerHTML = HOURS.map((d) => {
+    const times = d.times.length
+      ? d.times.map(([from, to]) => from + "–" + to).join(", ") + " Uhr"
+      : '<span class="closed">Ruhetag</span>';
+    return '<li' + (d.dow === now.dow ? ' class="is-today"' : "") + '><div class="r hours">' +
+      '<span class="dname">' + WEEKDAY[d.dow] + "</span>" +
+      '<span class="dtext">' + times + "</span>" +
+      "</div></li>";
+  }).join("");
+}
+
+render();
+setInterval(render, 60 * 1000);
+
+/* ---------------- Angaben für Google (schema.org) ---------------- */
+
+const ld = document.createElement("script");
+ld.type = "application/ld+json";
+ld.textContent = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  name: INFO.name,
+  servesCuisine: ["Deutsch", "Imbiss"],
+  priceRange: "€",
+  telephone: LINKS.tel.slice(4),
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: INFO.street,
+    postalCode: INFO.zip,
+    addressLocality: INFO.city,
+    addressCountry: "DE"
+  },
+  url: location.href.split("#")[0],
+  hasMenu: new URL("../", location.href).href,
+  openingHoursSpecification: HOURS.flatMap((d) => d.times.map(([opens, closes]) => ({
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: "https://schema.org/" + SCHEMA_DAY[d.dow],
+    opens, closes
+  })))
+});
+document.head.appendChild(ld);
+</script>
+
+</body>
+</html>
