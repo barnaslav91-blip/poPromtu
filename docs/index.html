@@ -159,7 +159,7 @@
     font-size: .82rem; color: var(--ink-soft);
     margin: 1.2rem 0 0; display: flex; gap: .4rem; align-items: baseline;
   }
-  .hint::before { content: "→"; font-weight: 700; color: var(--accent); }
+  .hint::before { content: "→"; content: "→" / ""; font-weight: 700; color: var(--accent); }
 
   /* ---------- Abschnitte ---------- */
 
@@ -421,7 +421,7 @@
     <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus</p>
     <h1>Speisekarte</h1>
     <p class="lede">Alles frisch aus der Pfanne und vom Grill. Zusammenstellen, absenden, abholen.</p>
-    <a class="site-link" href="schlemmerstube/">Anr&ouml;chter Schlemmerstube &middot; &Ouml;ffnungszeiten &amp; Anfahrt &rarr;</a>
+    <a class="site-link" href="schlemmerstube/">Anr&ouml;chter Schlemmerstube &middot; &Ouml;ffnungszeiten &amp; Anfahrt <span aria-hidden="true">&rarr;</span></a>
     <div class="today" id="today" hidden>
       <b>Heute</b>
       <span id="today-text"></span>
@@ -455,8 +455,8 @@
     <h2>Karte immer dabei</h2>
     <p class="keep-lead">Legen Sie die Karte als Symbol auf den Startbildschirm &ndash; sie &ouml;ffnet sich dann wie eine App und zeigt immer die aktuellen Preise.</p>
     <ul>
-      <li><b>iPhone:</b> unten auf das Teilen-Symbol tippen &rarr; &bdquo;Zum Home-Bildschirm&ldquo;</li>
-      <li><b>Android:</b> oben rechts auf &#8942; tippen &rarr; &bdquo;Zum Startbildschirm hinzuf&uuml;gen&ldquo;</li>
+      <li><b>iPhone:</b> unten auf das Teilen-Symbol tippen <span aria-hidden="true">&rarr;</span> &bdquo;Zum Home-Bildschirm&ldquo;</li>
+      <li><b>Android:</b> oben rechts auf &#8942; tippen <span aria-hidden="true">&rarr;</span> &bdquo;Zum Startbildschirm hinzuf&uuml;gen&ldquo;</li>
     </ul>
     <a class="btn-ghost channel" id="channel-link" hidden>Tagesangebote per WhatsApp-Kanal</a>
   </div>
@@ -722,6 +722,7 @@ const fmt = (n) => n.toFixed(2).replace(".", ",") + " €";
 const numLabel = (no) => (String(no).startsWith("T") ? "" : "Nr. " + no + " ");
 const numNote  = (no) => (String(no).startsWith("T") ? "Tagesangebot" : "Nr. " + no);
 const strip = (s) => String(s).replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&middot;/g, "·").replace(/&nbsp;/g, " ");
+const attr = (s) => strip(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 
 /* Artikel-Register: Nummer -> {no, name, desc, variants, sectionTitle} */
 const BY_NO = new Map();
@@ -760,7 +761,7 @@ function renderSection(sec) {
   html += '<h2 class="lozenge">' + sec.title + "</h2>";
 
   if (sec.cols) {
-    html += '<div class="colhead"><span class="unit">Preise in €</span><div class="labels">';
+    html += '<div class="colhead" aria-hidden="true"><span class="unit">Preise in €</span><div class="labels">';
     for (const c of sec.cols) {
       const [label, sub] = c.split("|");
       html += "<span>" + label + (sub ? "<small>" + sub + "</small>" : "") + "</span>";
@@ -775,8 +776,13 @@ function renderSection(sec) {
       : item.variants.map((v) => v.label).filter(Boolean).join(" | ");
     const fullDesc = [desc, sizeText].filter(Boolean).join(" &middot; ");
 
+    /* Vorlesetext für Screenreader: jede Preisangabe mit ihrer Größe, sonst hört man nur „5,80 6,80 5,80“. */
+    const spoken = attr(["Nr. " + no, strip(name), strip(desc),
+      item.variants.map((v) => (v.label ? v.label + " " : "") + v.price + " €").join(", ")]
+      .filter(Boolean).join(", "));
+
     html += '<li class="item" data-search="' + (name + " " + desc).toLowerCase().replace(/"/g, "") + '">';
-    html += '<button type="button" class="row" data-no="' + no + '">';
+    html += '<button type="button" class="row" data-no="' + no + '" aria-label="' + spoken + '">';
     html += '<span class="no">' + no + "</span>";
     html += "<div><h3>" + name + "</h3>" + (fullDesc ? "<p>" + fullDesc + "</p>" : "") + "</div>";
     html += '<span class="prices">' +
@@ -1122,9 +1128,9 @@ function renderCart() {
     html += "<li><span class=\"what\"><b>" + l.name + "</b><small>" + numNote(l.no) +
             (l.variant ? " · " + l.variant : "") + " · " + l.price + " €</small></span>" +
             '<span class="stepper">' +
-            '<button type="button" data-line="' + i + '" data-step="-1" aria-label="Weniger">−</button>' +
+            '<button type="button" data-line="' + i + '" data-step="-1" aria-label="' + attr(l.name) + ': eins weniger">−</button>' +
             "<output>" + l.qty + "</output>" +
-            '<button type="button" data-line="' + i + '" data-step="1" aria-label="Mehr">+</button>' +
+            '<button type="button" data-line="' + i + '" data-step="1" aria-label="' + attr(l.name) + ': eins mehr">+</button>' +
             "</span>" +
             '<span class="line-sum">' + fmt(toNum(l.price) * l.qty) + "</span></li>";
   });
