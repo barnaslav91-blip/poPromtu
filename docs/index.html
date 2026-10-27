@@ -107,6 +107,12 @@
     font-weight: 800; margin: 0; text-wrap: balance;
   }
   .lede { font-size: .92rem; color: var(--ink-soft); margin: 0; max-width: 26rem; }
+  .site-link {
+    align-self: flex-start; font-size: .84rem; font-weight: 700;
+    color: var(--accent); text-decoration: none;
+  }
+  .site-link:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .site-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   .today {
     display: flex; align-items: baseline; gap: .7rem;
@@ -253,6 +259,7 @@
     margin-top: 1.6rem; font-size: .78rem; line-height: 1.5; color: var(--ink-soft);
     border-top: 1px solid var(--rule); padding-top: .9rem;
   }
+  .footnote a { color: var(--ink); font-weight: 700; text-underline-offset: 2px; }
 
   .noresult { display: none; padding: 2rem 0; font-size: .92rem; color: var(--ink-soft); }
   body.is-empty .noresult { display: block; }
@@ -414,6 +421,7 @@
     <p class="eyebrow">Imbiss &middot; Grill &middot; Schnitzelhaus</p>
     <h1>Speisekarte</h1>
     <p class="lede">Alles frisch aus der Pfanne und vom Grill. Zusammenstellen, absenden, abholen.</p>
+    <a class="site-link" href="schlemmerstube/">Anr&ouml;chter Schlemmerstube &middot; &Ouml;ffnungszeiten &amp; Anfahrt &rarr;</a>
     <div class="today" id="today" hidden>
       <b>Heute</b>
       <span id="today-text"></span>
@@ -456,7 +464,8 @@
   <p class="footnote">
     <strong>Allergene und Zusatzstoffe:</strong> Eine &Uuml;bersicht der Zusatzstoffe und Allergene
     unserer Speisen erhalten Sie auf Nachfrage an der Kasse.<br>
-    Alle Preise in Euro inkl.&nbsp;MwSt. &Auml;nderungen und Irrt&uuml;mer vorbehalten.
+    Alle Preise in Euro inkl.&nbsp;MwSt. &Auml;nderungen und Irrt&uuml;mer vorbehalten.<br>
+    &Ouml;ffnungszeiten, Anfahrt und Impressum: <a href="schlemmerstube/">Anr&ouml;chter Schlemmerstube</a>
   </p>
 </div>
 
